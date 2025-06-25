@@ -1,0 +1,523 @@
+id: https://example.org/dcat-resource
+name: dcat-resource
+title: DCAT Resource Schema
+description: LinkML schema for DCAT Resource model
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  dcat: https://www.w3.org/ns/dcat#
+  dcterms: http://purl.org/dc/terms/
+  xsd: http://www.w3.org/2001/XMLSchema#
+  adms: http://www.w3.org/ns/adms#
+  adms_status: http://purl.org/adms/status/
+  odrl2: http://www.w3.org/ns/odrl/2/
+  prov: http://www.w3.org/ns/prov#
+  dcatv3: https://www.w3.org/ns/dcat/3#
+
+default_prefix: dcat
+default_range: string
+
+imports:
+  - linkml:types
+
+types:
+  AnyHttpUrl:
+    base: AnyHttpUrl
+    description: A valid HTTP URL
+
+  VCard:
+    description: vCard contact information
+    base: VCard
+
+  Agent:
+    description: An agent (person, organization, software agent, etc.)
+    base: Agent
+
+  LiteralField:
+    description: A literal field with language and datatype support
+    base: LiteralField
+
+  ODRLPolicy:
+    description: An ODRL conformant policy
+    base: ODRLPolicy
+
+  PeriodOfTime:
+    description: A temporal period
+    base: PeriodOfTime
+
+  Location:
+    description: A geographical location
+    base: Location
+
+  AwareDatetime:
+    base: AwareDatetime
+
+  NaiveDatetime:
+    base: NaiveDatetime
+
+enums:
+  Status:
+    description: Status enumeration for ADMS
+    permissible_values:
+      Completed:
+        meaning: ADMSStatus.Completed
+        description: ADMSStatus.Completed
+      Deprecated:
+        meaning: ADMSStatus.Deprecated
+        description: ADMSStatus.Deprecated
+      UnderDevelopment:
+        meaning: ADMSStatus.UnderDevelopment
+        description: ADMSStatus.UnderDevelopment
+      Withdrawn:
+        meaning: ADMSStatus.Withdrawn
+        description: ADMSStatus.Withdrawn
+
+  AccessRights:
+    description: Access rights enumeration
+    permissible_values:
+      public:
+        meaning: "http://publications.europa.eu/resource/authority/access-right/PUBLIC"
+        description: URIRef("http://publications.europa.eu/resource/authority/access-right/PUBLIC")
+      restricted:
+        meaning: "http://publications.europa.eu/resource/authority/access-right/RESTRICTED"
+        description: URIRef("http://publications.europa.eu/resource/authority/access-right/RESTRICTED")
+      non_public:
+        meaning: "http://publications.europa.eu/resource/authority/access-right/NON_PUBLIC"
+        description: URIRef("http://publications.europa.eu/resource/authority/access-right/NON_PUBLIC")
+
+classes:
+
+  # Predefined classes - these should be imported instead of generated
+  RDFModel:
+    description: Base RDF model class
+    abstract: true
+
+
+  DCATResource:
+    is_a: RDFModel
+    abstract: true
+    description: Resource published or curated by a single agent. Abstract class
+    class_uri: dcat:Resource
+    annotations:
+      ontology: "https://www.w3.org/TR/vocab-dcat-3/"
+      namespace: "DCAT"
+      IRI: "DCAT.Resource"
+      prefix: "dcat"
+      validator_logic: |
+        _validate_literal_fields: ClassVar[Set[str]] = {"title", "description", "keyword", "version", "version_notes"}
+
+            @field_validator(*_validate_literal_fields, mode="before")
+            @classmethod
+            def validate_literal(cls, value: List[Union[str, LiteralField]]) -> List[LiteralField]:
+                return convert_to_literal(value)
+        
+            @field_validator("release_date", "modification_date", mode="before")
+            @classmethod
+            def date_validator(cls, value):
+                return date_handler(value)
+
+    slots:
+      - access_rights
+      - conforms_to
+      - contact_point
+      - creator
+      - description
+      - has_part
+      - has_policy
+      - identifier
+      - is_referenced_by
+      - keyword
+      - landing_page
+      - license
+      - language
+      - relation
+      - rights
+      - qualified_relation
+      - publisher
+      - release_date
+      - theme
+      - title
+      - type
+      - modification_date
+      - qualified_attribution
+      - has_current_version
+      - has_version
+      - previous_version
+      - replaces
+      - status
+      - version
+      - version_notes
+      - first
+      - last
+      - previous
+      - temporal_coverage
+      - geographical_coverage
+
+slots:
+
+  access_rights:
+    description: Information about who can access the resource or an indication of its security status.
+    slot_uri: dcterms:accessRights
+    range: AccessRights
+    required: false
+    annotations:
+      rdf_term: "DCTERMS.accessRights"
+      rdf_type: "uri"
+
+  conforms_to:
+    description: An established standard to which the described resource conforms.
+    slot_uri: dcterms:conformsTo
+    range: AnyHttpUrl
+    required: false
+    annotations:
+      rdf_term: "DCTERMS.conformsTo"
+      rdf_type: "uri"
+
+  contact_point:
+    description: Relevant contact information for the cataloged resource. Use of vCard is recommended
+    slot_uri: dcat:contactPoint
+    multivalued: true
+    any_of:
+      - range: AnyHttpUrl
+      - range: VCard
+      - range: Agent
+    required: false
+    annotations:
+      rdf_term: "DCAT.contactPoint"
+      rdf_type: "uri"
+
+  creator:
+    description: The entity responsible for producing the resource. Resources of type foaf:Agent are recommended as values for this property.
+    slot_uri: dcterms:creator
+    multivalued: true
+    any_of:
+      - range: AnyHttpUrl
+      - range: VCard
+      - range: Agent
+    required: false
+    annotations:
+      rdf_term: "DCTERMS.creator"
+      rdf_type: "uri"
+
+  description:
+    description: An account of the resource.
+    slot_uri: dcterms:description
+    multivalued: true
+    any_of:
+      - range: LiteralField
+      - range: string
+    required: true
+    annotations:
+      rdf_term: "DCTERMS.description"
+      rdf_type: "rdfs_literal"
+
+  has_part:
+    description: A related resource that is included either physically or logically in the described resource.
+    slot_uri: dcterms:hasPart
+    multivalued: true
+    range: AnyHttpUrl
+    required: false
+    annotations:
+      rdf_term: "DCTERMS.hasPart"
+      rdf_type: "uri"
+
+  has_policy:
+    description: An ODRL conformant policy expressing the rights associated with the resource.
+    slot_uri: odrl2:hasPolicy
+    range: ODRLPolicy
+    required: false
+    annotations:
+      rdf_term: "ODRL2.hasPolicy"
+      rdf_type: "uri"
+
+  identifier:
+    description: A unique identifier of the resource being described or cataloged.
+    slot_uri: dcterms:identifier
+    multivalued: true
+    any_of:
+      - range: string
+      - range: LiteralField
+    required: false
+    annotations:
+      rdf_term: "DCTERMS.identifier"
+      rdf_type: "rdfs_literal"
+
+  is_referenced_by:
+    description: A related resource, such as a publication, that references, cites, or otherwise points to the cataloged resource.
+    slot_uri: dcterms:isReferencedBy
+    multivalued: true
+    range: AnyHttpUrl
+    required: false
+    annotations:
+      rdf_term: "DCTERMS.isReferencedBy"
+      rdf_type: "uri"
+
+  keyword:
+    description: A keyword or tag describing the resource.
+    slot_uri: dcat:keyword
+    multivalued: true
+    range: LiteralField
+    required: false
+    annotations:
+      rdf_term: "DCAT.keyword"
+      rdf_type: "rdfs_literal"
+
+  landing_page:
+    description: A Web page that can be navigated to in a Web browser to gain access to the catalog, a dataset, its distributions and/or additional information.
+    slot_uri: dcat:landingPage
+    multivalued: true
+    range: AnyHttpUrl
+    required: false
+    annotations:
+      rdf_term: "DCAT.landingPage"
+      rdf_type: "uri"
+
+  license:
+    description: A legal document under which the resource is made available.
+    slot_uri: dcterms:license
+    range: AnyHttpUrl
+    required: false
+    annotations:
+      rdf_term: "DCTERMS.license"
+      rdf_type: "uri"
+
+  language:
+    description: A language of the resource. This refers to the natural language used for textual metadata (i.e., titles, descriptions, etc.) of a cataloged resource (i.e., dataset or service) or the textual values of a dataset distribution
+    slot_uri: dcterms:language
+    multivalued: true
+    range: AnyHttpUrl
+    required: false
+    annotations:
+      rdf_term: "DCTERMS.language"
+      rdf_type: "uri"
+
+  relation:
+    description: A resource with an unspecified relationship to the cataloged resource.
+    slot_uri: dcterms:relation
+    multivalued: true
+    range: AnyHttpUrl
+    required: false
+    annotations:
+      rdf_term: "DCTERMS.relation"
+      rdf_type: "uri"
+
+  rights:
+    description: Information about rights held in and over the distribution. Recommended practice is to refer to a rights statement with a URI. If this is not possible or feasible, a literal value (name, label, or short text) may be provided.
+    slot_uri: dcterms:rights
+    any_of:
+      - range: LiteralField
+      - range: AnyHttpUrl
+    required: false
+    annotations:
+      rdf_term: "DCTERMS.rights"
+      rdf_type: "uri"
+
+  qualified_relation:
+    description: Link to a description of a relationship with another resource
+    slot_uri: dcat:qualifiedRelation
+    multivalued: true
+    range: AnyHttpUrl
+    required: false
+    annotations:
+      rdf_term: "DCAT.qualifiedRelation"
+      rdf_type: "uri"
+
+  publisher:
+    description: The entity responsible for making the resource available.
+    slot_uri: dcterms:publisher
+    multivalued: true
+    any_of:
+      - range: AnyHttpUrl
+      - range: Agent
+    required: false
+    annotations:
+      rdf_term: "DCTERMS.publisher"
+      rdf_type: "uri"
+
+  release_date:
+    description: Date of formal issuance (e.g., publication) of the resource.
+    slot_uri: dcterms:issued
+    any_of:
+      - range: string
+      - range: datetime
+      - range: date
+      - range: AwareDatetime
+      - range: NaiveDatetime
+    required: false
+    annotations:
+      rdf_term: "DCTERMS.issued"
+      rdf_type: "datetime_literal"
+
+  theme:
+    description: A main category of the resource. A resource can have multiple themes.
+    slot_uri: dcat:theme
+    multivalued: true
+    range: AnyHttpUrl
+    required: false
+    annotations:
+      rdf_term: "DCAT.theme"
+      rdf_type: "uri"
+
+  title:
+    description: A name given to the resource.
+    slot_uri: dcterms:title
+    multivalued: true
+    any_of:
+      - range: LiteralField
+      - range: string
+    required: true
+    annotations:
+      rdf_term: "DCTERMS.title"
+      rdf_type: "rdfs_literal"
+
+  type:
+    description: The nature or genre of the resource.
+    slot_uri: dcterms:type
+    multivalued: true
+    range: AnyHttpUrl
+    required: false
+    annotations:
+      rdf_term: "DCTERMS.type"
+      rdf_type: "uri"
+
+  modification_date:
+    description: Most recent date on which the resource was changed, updated or modified.
+    slot_uri: dcterms:modified
+    any_of:
+      - range: string
+      - range: date
+      - range: AwareDatetime
+      - range: NaiveDatetime
+    required: false
+    annotations:
+      rdf_term: "DCTERMS.modified"
+      rdf_type: "datetime_literal"
+
+  qualified_attribution:
+    description: Link to an Agent having some form of responsibility for the resource
+    slot_uri: prov:qualifiedAttribution
+    multivalued: true
+    range: AnyHttpUrl
+    required: false
+    annotations:
+      rdf_term: "PROV.qualifiedAttribution"
+      rdf_type: "uri"
+
+  has_current_version:
+    description: This resource has a more specific, versioned resource with equivalent content [PAV].
+    slot_uri: dcatv3:hasCurrentVersion
+    range: AnyHttpUrl
+    required: false
+    annotations:
+      rdf_term: "DCATv3.hasCurrentVersion"
+      rdf_type: "uri"
+
+  has_version:
+    description: This resource has a more specific, versioned resource
+    slot_uri: dcterms:hasVersion
+    multivalued: true
+    range: AnyHttpUrl
+    required: false
+    annotations:
+      rdf_term: "DCTERMS.hasVersion"
+      rdf_type: "uri"
+
+  previous_version:
+    description: The previous version of a resource in a lineage [PAV].
+    slot_uri: dcatv3:previousVersion
+    range: AnyHttpUrl
+    required: false
+    annotations:
+      rdf_term: "DCATv3.previousVersion"
+      rdf_type: "uri"
+
+  replaces:
+    description: A related resource that is supplanted, displaced, or superseded by the described resource
+    slot_uri: dcterms:replaces
+    range: AnyHttpUrl
+    required: false
+    annotations:
+      rdf_term: "DCTERMS.replaces"
+      rdf_type: "uri"
+
+  status:
+    description: The status of the resource in the context of a particular workflow process [VOCAB-ADMS].
+    slot_uri: adms:status
+    range: Status
+    required: false
+    annotations:
+      rdf_term: "ADMS.status"
+      rdf_type: "uri"
+
+  version:
+    description: The version indicator (name or identifier) of a resource.
+    slot_uri: dcatv3:version
+    any_of:
+      - range: string
+      - range: LiteralField
+    required: false
+    annotations:
+      rdf_term: "DCATv3.version"
+      rdf_type: "rdfs_literal"
+
+  version_notes:
+    description: A description of changes between this version and the previous version of the resource [VOCAB-ADMS].
+    slot_uri: adms:versionNotes
+    multivalued: true
+    any_of:
+      - range: string
+      - range: LiteralField
+    required: false
+    annotations:
+      rdf_term: "ADMS.versionNotes"
+      rdf_type: "rdfs_literal"
+
+  first:
+    description: The first resource in an ordered collection or series of resources, to which the current resource belongs.
+    slot_uri: dcatv3:first
+    range: AnyHttpUrl
+    required: false
+    annotations:
+      rdf_term: "DCATv3.first"
+      rdf_type: "uri"
+
+  last:
+    description: The last resource in an ordered collection or series of resources, to which the current resource belongs.
+    slot_uri: dcatv3:last
+    range: AnyHttpUrl
+    required: false
+    annotations:
+      rdf_term: "DCATv3.last"
+      rdf_type: "uri"
+
+  previous:
+    description: The previous resource (before the current one) in an ordered collection or series of resources.
+    slot_uri: dcatv3:prev
+    multivalued: true
+    range: AnyHttpUrl
+    required: false
+    annotations:
+      rdf_term: "DCATv3.prev"
+      rdf_type: "uri"
+
+  temporal_coverage:
+    description: The temporal period that the dataset covers.
+    slot_uri: dcterms:temporal
+    multivalued: true
+    range: PeriodOfTime
+    required: false
+    annotations:
+      rdf_term: "DCTERMS.temporal"
+      rdf_type: "DCTERMS.PeriodOfTime"
+
+  geographical_coverage:
+    description: The geographical area covered by the dataset.
+    slot_uri: dcterms:spatial
+    multivalued: true
+    any_of:
+      - range: AnyHttpUrl
+      - range: Location
+    required: false
+    annotations:
+      rdf_term: "DCTERMS.spatial"
+      rdf_type: "uri"

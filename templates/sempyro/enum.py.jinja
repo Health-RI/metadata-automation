@@ -1,0 +1,13 @@
+class {{ name }}({% if values %}Enum{% endif %}):
+{% if description %}
+    """
+    {{ description }}
+    """
+{% endif %}
+{% if values %}
+    {% for pv in values.values() %}
+    {{pv.label}} = {{pv.description}}
+    {% endfor %}
+{% else %}
+    pass
+{% endif %}

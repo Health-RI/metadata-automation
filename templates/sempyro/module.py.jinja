@@ -1,0 +1,18 @@
+{{ python_imports }}
+
+metamodel_version = "{{metamodel_version}}"
+version = "{{version if version else None}}"
+
+logger = logging.getLogger(__name__)
+
+{% if enums %}
+    {% for e in enums.values() %}
+
+{{ e }}
+    {% endfor %}
+{% endif %}
+
+{% for c in classes.values() %}
+
+{{ c }}
+{% endfor %}

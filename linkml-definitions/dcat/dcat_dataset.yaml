@@ -1,0 +1,197 @@
+id: https://example.org/dcat-dataset
+name: dcat-dataset
+title: DCAT Dataset Schema
+description: LinkML schema for DCAT Dataset model
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  dcat: https://www.w3.org/ns/dcat#
+  dcterms: http://purl.org/dc/terms/
+  xsd: http://www.w3.org/2001/XMLSchema#
+  freq: http://purl.org/cld/freq/
+  dcatv3: https://www.w3.org/ns/dcat/3#
+  prov: http://www.w3.org/ns/prov#
+
+default_prefix: dcat
+default_range: string
+
+imports:
+  - linkml:types
+  - dcat_resource  # Import the base DCATResource schema
+
+types:
+  AnyHttpUrl:
+    base: AnyHttpUrl
+    description: A valid HTTP URL
+
+  LiteralField:
+    description: A literal field with language and datatype support
+    base: LiteralField
+
+  Activity:
+    description: A PROV Activity
+    base: Activity
+
+enums:
+  Frequency:
+    description: Frequency enumeration
+    permissible_values:
+      triennial:
+        meaning: "FREQ.triennial"
+        description: FREQ.triennial
+      biennial:
+        meaning: "FREQ.biennial"
+        description: FREQ.biennial
+      annual:
+        meaning: "FREQ.annual"
+        description: FREQ.annual
+      semiannual:
+        meaning: "FREQ.semiannual"
+        description: FREQ.semiannual
+      threeTimesAYear:
+        meaning: "FREQ.threeTimesAYear"
+        description: FREQ.threeTimesAYear
+      quarterly:
+        meaning: "FREQ.quarterly"
+        description: FREQ.quarterly
+      bimonthly:
+        meaning: "FREQ.bimonthly"
+        description: FREQ.bimonthly
+      monthly:
+        meaning: "FREQ.monthly"
+        description: FREQ.monthly
+      semimonthly:
+        meaning: "FREQ.semimonthly"
+        description: FREQ.semimonthly
+      biweekly:
+        meaning: "FREQ.biweekly"
+        description: FREQ.biweekly
+      threeTimesAMonth:
+        meaning: "FREQ.threeTimesAMonth"
+        description: FREQ.threeTimesAMonth
+      weekly:
+        meaning: "FREQ.weekly"
+        description: FREQ.weekly
+      semiweekly:
+        meaning: "FREQ.semiweekly"
+        description: FREQ.semiweekly
+      threeTimesAWeek:
+        meaning: "FREQ.threeTimesAWeek"
+        description: FREQ.threeTimesAWeek
+      daily:
+        meaning: "FREQ.daily"
+        description: FREQ.daily
+      continuous:
+        meaning: "FREQ.continuous"
+        description: FREQ.continuous
+      irregular:
+        meaning: "FREQ.irregular"
+        description: FREQ.irregular
+
+classes:
+  # Import DCATResource from the base schema
+  DCATResource:
+    description: Base DCAT Resource class (imported)
+    abstract: true
+
+  DCATDataset:
+    is_a: DCATResource
+    description: A collection of data, published or curated by a single source, and available for access or download in one or more representations.
+    class_uri: dcat:Dataset
+    annotations:
+      ontology: "https://www.w3.org/TR/vocab-dcat-3/"
+      namespace: "DCAT"
+      IRI: "DCAT.Dataset"
+      prefix: "dcat"
+      validator_logic: |
+        @field_validator("temporal_resolution", mode="after")
+            @classmethod
+            def validate_xsd_duration(cls, value: Union[str, LiteralField]) -> LiteralField:
+                if isinstance(value, str):
+                    return LiteralField(value=value, datatype="xsd:duration")
+                if isinstance(value, LiteralField) and value.datatype != "xsd:duration":
+                    return LiteralField(value=value.value, datatype="xsd:duration")
+                return value
+
+    slots:
+      - distribution
+      - frequency
+      - in_series
+      - spatial_resolution
+      - temporal_resolution
+      - was_generated_by
+      - access_rights_dataset  # Override from parent
+
+slots:
+  distribution:
+    description: An available distribution of the dataset.
+    slot_uri: dcat:distribution
+    multivalued: true
+    range: AnyHttpUrl
+    required: false
+    annotations:
+      rdf_term: "DCAT.distribution"
+      rdf_type: "uri"
+
+  frequency:
+    description: The frequency at which a dataset is published.
+    slot_uri: dcterms:accrualPeriodicity
+    any_of:
+      - range: AnyHttpUrl
+      - range: Frequency
+    required: false
+    annotations:
+      rdf_term: "DCTERMS.accrualPeriodicity"
+      rdf_type: "uri"
+
+  in_series:
+    description: A dataset series of which the dataset is part.
+    slot_uri: dcatv3:inSeries
+    multivalued: true
+    range: AnyHttpUrl
+    required: false
+    annotations:
+      rdf_term: "DCATv3.inSeries"
+      rdf_type: "uri"
+
+  spatial_resolution:
+    description: Minimum spatial separation resolvable in a dataset, measured in meters.
+    slot_uri: dcat:spatialResolutionInMeters
+    multivalued: true
+    range: float
+    required: false
+    annotations:
+      rdf_term: "DCAT.spatialResolutionInMeters"
+      rdf_type: "xsd:decimal"
+
+  temporal_resolution:
+    description: Minimum time period resolvable in the dataset.
+    slot_uri: dcat:temporalResolution
+    any_of:
+      - range: string
+      - range: LiteralField
+    required: false
+    annotations:
+      rdf_term: "DCAT.temporalResolution"
+      rdf_type: "xsd:duration"
+
+  was_generated_by:
+    description: An activity that generated, or provides the business context for, the creation of the dataset.
+    slot_uri: prov:wasGeneratedBy
+    multivalued: true
+    any_of:
+      - range: AnyHttpUrl
+      - range: Activity
+    required: false
+    annotations:
+      rdf_term: "PROV.wasGeneratedBy"
+      rdf_type: "uri"
+
+  access_rights_dataset:
+    description: Information about who can access the dataset and under what conditions.
+    slot_uri: dcterms:accessRights
+    range: AnyHttpUrl
+    required: false
+    annotations:
+      rdf_term: "DCTERMS.accessRights"
+      rdf_type: "uri"

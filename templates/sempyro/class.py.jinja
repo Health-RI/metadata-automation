@@ -1,0 +1,39 @@
+{%  if attributes %}
+class {{ name }}({% if bases is string %}{{ bases }}{% else %}{{ bases | join(', ') }}{% endif %}{% if meta.abstract %}, metaclass=ABCMeta{% endif %}):
+    {% if description %}
+    """
+    {{ description | indent(width=4) }}
+    """
+    {% endif -%}
+    {% if meta %}
+    {% if meta.annotations %}
+    model_config = ConfigDict(arbitrary_types_allowed=True,
+                              use_enum_values=True,
+                              json_schema_extra={
+                                  "$ontology": "{{ meta.annotations.ontology.value }}",
+                                  "$namespace": str({{ meta.annotations.namespace.value }}),
+                                  "$IRI": {{ meta.annotations.IRI.value }},
+                                  "$prefix": "{{ meta.annotations.prefix.value }}"
+                              }
+                              )
+    {% endif %}
+    {% endif %}
+    {%  if attributes or validators %}
+        {% if attributes %}
+            {% for attr in attributes.values() %}
+    {{ attr }}
+            {% endfor -%}
+        {% endif %}
+        {% if validators %}
+            {% for validator in validators.values() %}
+
+    {{ validator }}
+            {% endfor -%}
+        {% endif %}
+    {%  if meta.annotations.validator_logic %}
+    {{ meta.annotations.validator_logic.value }}
+    {% endif %}
+    {% else %}
+    pass
+    {% endif %}
+{% endif %}
