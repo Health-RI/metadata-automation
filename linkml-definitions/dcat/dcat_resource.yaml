@@ -201,7 +201,7 @@ slots:
     any_of:
       - range: AnyHttpUrl
       - range: VCard
-      - range: Agent
+      - range: FOAFAgent
     required: false
     annotations:
       rdf_term: "DCTERMS.creator"
@@ -336,7 +336,7 @@ slots:
     multivalued: true
     any_of:
       - range: AnyHttpUrl
-      - range: Agent
+      - range: FOAFAgent
     required: false
     annotations:
       rdf_term: "DCTERMS.publisher"
