@@ -18,7 +18,6 @@ default_range: string
 
 imports:
   - linkml:types
-  - dcat_resource  # Import the base DCATResource schema
 
 slots:
   hasEmail:
