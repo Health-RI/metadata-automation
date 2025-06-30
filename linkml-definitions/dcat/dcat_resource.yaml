@@ -22,6 +22,7 @@ default_range: string
 imports:
   - linkml:types
   - foaf_agent
+  - dcat_vcard
 
 types:
   AnyHttpUrl:

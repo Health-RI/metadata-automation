@@ -1,5 +1,5 @@
 id: https://example.org/dcat-vcard
-name: dcat-vcard
+name: dcat_vcard
 title: DCAT Dataset Schema
 description: LinkML schema for DCAT Dataset model
 

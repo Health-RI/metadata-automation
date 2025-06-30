@@ -19,7 +19,6 @@ default_range: string
 imports:
   - linkml:types
   - dcat_resource  # Import the base DCATResource schema
-  - dcat-vcard
 
 types:
   Activity:
@@ -186,12 +185,3 @@ slots:
     annotations:
       rdf_term: "DCTERMS.accessRights"
       rdf_type: "uri"
-
-  contact_point:
-      description: "Point of contact for the dataset"
-      slot_uri: dcat:contactPoint
-      range: vcard:Kind
-      required: false
-      annotations:
-        rdf_term: "DCAT.contactPoint"
-        rdf_type: "bnode"
