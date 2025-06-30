@@ -1,0 +1,109 @@
+id: https://example.org/foaf-agent
+name: foaf-agent
+title: FOAF Agent
+description: LinkML schema for FOAF Agent model
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  foaf: http://xmlns.com/foaf/0.1/
+  dct: http://purl.org/dc/terms/
+  healthdcatap: http://healthdataportal.eu/ns/health#
+
+default_prefix: foaf
+default_range: string
+
+imports:
+  - linkml:types
+
+classes:
+  FOAFAgent:
+    description: 
+    class_uri: foaf:Agent
+    annotations:
+      ontology: "http://xmlns.com/foaf/spec/"
+      namespace: "FOAF"
+      IRI: "FOAF.Agent"
+      prefix: "foaf"
+
+    slots:
+      - country
+      - email
+      - foaf_identifier
+      - name
+      - publisher_note
+      - publisher_type
+      - foaf_type
+      - url
+
+slots:
+  country:
+    description:
+    slot_uri: dct:spatial
+    range: AnyHttpUrl
+    required: false
+    annotations:
+      rdf_term: "DCTERMS.spatial"
+      rdf_type: "uri"
+
+  email:
+    description:
+    slot_uri: foaf:mbox
+    range: AnyHttpUrl
+    required: true
+    annotations:
+      rdf_term: "FOAF.mbox"
+      rdf_type: "uri"
+
+  foaf_identifier:
+    description:
+    slot_uri: dct:identifier
+    range: string
+    required: true
+    annotations:
+      rdf_term: "DCTERMS.identifier"
+      rdf_type: "rdfs_literal"
+
+  name:
+    description:
+    slot_uri: foaf:name
+    range: string
+    required: true
+    annotations:
+      rdf_term: "FOAF.name"
+      rdf_type: "rdfs_literal"
+
+  publisher_note:
+    description:
+    slot_uri: healthdcatap:publisherNote
+    range: string
+    required: false
+    annotations:
+      rdf_term: "HEALTHDCATAP.publisherNote"
+      rdf_type: "rdfs_literal"
+
+  publisher_type:
+    description:
+    slot_uri: healthdcatap:publisherType
+    range: AnyHttpUrl
+    required: false
+    annotations:
+      rdf_term: "HEALTHDCATAP.publisherType"
+      rdf_type: "uri"
+
+  foaf_type:
+    description:
+    slot_uri: dct:type
+    range: AnyHttpUrl
+    required: false
+    annotations:
+      rdf_term: "DCTERMS.type"
+      rdf_type: "uri"
+
+  url:
+    description:
+    slot_uri: foaf:homepage
+    range: AnyHttpUrl
+    required: true
+    annotations:
+      rdf_term: "FOAF.homepage"
+      rdf_type: "uri"
