@@ -19,6 +19,7 @@ default_range: string
 
 imports:
   - linkml:types
+  - foaf_agent
 
 types:
   AnyHttpUrl:
@@ -28,10 +29,6 @@ types:
   VCard:
     description: vCard contact information
     base: VCard
-
-  Agent:
-    description: An agent (person, organization, software agent, etc.)
-    base: Agent
 
   LiteralField:
     description: A literal field with language and datatype support
@@ -180,7 +177,7 @@ slots:
     any_of:
       - range: AnyHttpUrl
       - range: VCard
-      - range: Agent
+      - range: FOAFAgent
     required: false
     annotations:
       rdf_term: "DCAT.contactPoint"
