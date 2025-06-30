@@ -13,6 +13,8 @@ prefixes:
   odrl2: http://www.w3.org/ns/odrl/2/
   prov: http://www.w3.org/ns/prov#
   dcatv3: https://www.w3.org/ns/dcat/3#
+  vcard: http://www.w3.org/2006/vcard/ns#
+  foaf: http://xmlns.com/foaf/0.1/
 
 default_prefix: dcat
 default_range: string
@@ -23,33 +25,41 @@ imports:
 
 types:
   AnyHttpUrl:
+    uri: xsd:anyURI
     base: AnyHttpUrl
     description: A valid HTTP URL
 
   VCard:
+    uri: vcard:VCard
     description: vCard contact information
     base: VCard
 
   LiteralField:
+    uri: xsd:string
     description: A literal field with language and datatype support
     base: LiteralField
 
   ODRLPolicy:
+    uri: odrl2:Policy
     description: An ODRL conformant policy
     base: ODRLPolicy
 
   PeriodOfTime:
+    uri: dcat:PeriodOfTime
     description: A temporal period
     base: PeriodOfTime
 
   Location:
+    uri: dcat:Location
     description: A geographical location
     base: Location
 
   AwareDatetime:
+    uri: xsd:dateTime
     base: AwareDatetime
 
   NaiveDatetime:
+    uri: xsd:dateTime
     base: NaiveDatetime
 
 enums:
