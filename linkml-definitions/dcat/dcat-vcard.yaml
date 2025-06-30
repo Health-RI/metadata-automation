@@ -1,0 +1,37 @@
+id: https://example.org/dcat-vcard
+name: dcat-vcard
+title: DCAT Dataset Schema
+description: LinkML schema for DCAT Dataset model
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  dcat: https://www.w3.org/ns/dcat#
+  dcterms: http://purl.org/dc/terms/
+  xsd: http://www.w3.org/2001/XMLSchema#
+  freq: http://purl.org/cld/freq/
+  dcatv3: https://www.w3.org/ns/dcat/3#
+  prov: http://www.w3.org/ns/prov#
+  vcard: http://www.w3.org/2006/vcard/ns#
+
+default_prefix: dcat
+default_range: string
+
+imports:
+  - linkml:types
+  - dcat_resource  # Import the base DCATResource schema
+
+slots:
+  hasEmail:
+    description: The email address as a mailto URI
+    slot_uri: vcard:hasEmail
+    range: uri
+
+  formatted_name:
+    description: The full name of the object (as a single string). This is the only mandatory property.
+    slot_uri: vcard:fn
+    range: string
+
+  hasUID:
+    description: A unique identifier for the object
+    slot_uri: vcard:hasUID
+    range: uri

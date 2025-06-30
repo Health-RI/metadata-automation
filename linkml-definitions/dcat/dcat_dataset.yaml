@@ -11,6 +11,7 @@ prefixes:
   freq: http://purl.org/cld/freq/
   dcatv3: https://www.w3.org/ns/dcat/3#
   prov: http://www.w3.org/ns/prov#
+  vcard: http://www.w3.org/2006/vcard/ns#
 
 default_prefix: dcat
 default_range: string
@@ -18,6 +19,7 @@ default_range: string
 imports:
   - linkml:types
   - dcat_resource  # Import the base DCATResource schema
+  - dcat-vcard
 
 types:
   AnyHttpUrl:
@@ -121,6 +123,7 @@ classes:
       - temporal_resolution
       - was_generated_by
       - access_rights_dataset  # Override from parent
+      - contact_point
 
 slots:
   distribution:
@@ -195,3 +198,12 @@ slots:
     annotations:
       rdf_term: "DCTERMS.accessRights"
       rdf_type: "uri"
+
+  contact_point:
+      description: "Point of contact for the dataset"
+      slot_uri: dcat:contactPoint
+      range: vcard:Kind
+      required: false
+      annotations:
+        rdf_term: "DCAT.contactPoint"
+        rdf_type: "bnode"
