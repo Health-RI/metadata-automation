@@ -19,6 +19,20 @@ default_range: string
 imports:
   - linkml:types
 
+classes:
+  DCATVCard:
+    description: A vCard-style representation of an agent (person or organization)
+    class_uri: vcard:Kind
+    annotations:
+      ontology: "https://www.w3.org/TR/vcard-rdf/"
+      namespace: "vcard"
+      IRI: "vcard:Kind"
+      prefix: "vcard"
+    slots:
+      - formatted_name
+      - hasEmail
+      - hasUID
+
 slots:
   hasEmail:
     description: The email address as a mailto URI
