@@ -23,6 +23,16 @@ This repository contains a pipeline for generating Sempyro Pydantic classes from
 
 ## Usage
 
+### Generating SHACL shapes
+```bash
+gen-shacl ./linkml-definitions/dcat/dcat_dataset.yaml
+```
+
+### Generating UML diagrams
+```bash
+gen-plantuml ./linkml-definitions/dcat/dcat_dataset.yaml --classes DCATDataset --classes DCATResource --directory ./tmp --classes FOAFAgent --classes DCATVCard
+```
+
 ### Generating Sempyro Classes
 
 Run the generation script to convert LinkML definitions to Sempyro Pydantic classes:
