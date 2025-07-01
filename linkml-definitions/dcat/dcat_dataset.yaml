@@ -110,7 +110,7 @@ classes:
       - temporal_resolution
       - was_generated_by
       - access_rights_dataset  # Override from parent
-      - contact_point
+      #- contact_point
 
 slots:
   distribution:

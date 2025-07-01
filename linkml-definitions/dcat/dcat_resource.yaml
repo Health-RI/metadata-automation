@@ -185,10 +185,11 @@ slots:
     description: Relevant contact information for the cataloged resource. Use of vCard is recommended
     slot_uri: dcat:contactPoint
     multivalued: true
-    any_of:
-      - range: AnyHttpUrl
-      - range: VCard
-      - range: FOAFAgent
+    range: DCATVCard
+    #any_of:
+    #  - range: AnyHttpUrl
+    #  - range: DCATVCard
+    #  - range: FOAFAgent
     required: false
     annotations:
       rdf_term: "DCAT.contactPoint"
@@ -198,10 +199,11 @@ slots:
     description: The entity responsible for producing the resource. Resources of type foaf:Agent are recommended as values for this property.
     slot_uri: dcterms:creator
     multivalued: true
-    any_of:
-      - range: AnyHttpUrl
-      - range: VCard
-      - range: FOAFAgent
+    range: FOAFAgent
+    #any_of:
+    #  - range: AnyHttpUrl
+    #  - range: VCard
+    #  - range: FOAFAgent
     required: false
     annotations:
       rdf_term: "DCTERMS.creator"
