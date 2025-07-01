@@ -15,9 +15,15 @@ default_range: string
 imports:
   - linkml:types
 
+types:
+  AnyHttpUrl:
+    uri: xsd:anyURI
+    base: AnyHttpUrl
+    description: A valid HTTP URL
+
 classes:
   FOAFAgent:
-    description: 
+    description:
     class_uri: foaf:Agent
     annotations:
       ontology: "http://xmlns.com/foaf/spec/"

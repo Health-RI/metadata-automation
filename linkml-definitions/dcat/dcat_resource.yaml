@@ -21,8 +21,8 @@ default_range: string
 
 imports:
   - linkml:types
-  - foaf_agent
-  - dcat_vcard
+  - ../foaf/foaf_agent
+  - ../vcard/dcat_vcard
 
 types:
   AnyHttpUrl:
@@ -95,14 +95,7 @@ enums:
 
 classes:
 
-  # Predefined classes - these should be imported instead of generated
-  RDFModel:
-    description: Base RDF model class
-    abstract: true
-
-
   DCATResource:
-    is_a: RDFModel
     abstract: true
     description: Resource published or curated by a single agent. Abstract class
     class_uri: dcat:Resource

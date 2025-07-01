@@ -1,7 +1,7 @@
 id: https://example.org/dcat-vcard
 name: dcat_vcard
-title: DCAT Dataset Schema
-description: LinkML schema for DCAT Dataset model
+title: VCard Kind schema
+description: LinkML schema for VCard Kind model
 
 prefixes:
   linkml: https://w3id.org/linkml/
@@ -26,7 +26,7 @@ classes:
     annotations:
       ontology: "https://www.w3.org/TR/vcard-rdf/"
       namespace: "vcard"
-      IRI: "vcard:Kind"
+      IRI: "VCARD.Kind"
       prefix: "vcard"
     slots:
       - formatted_name
@@ -38,13 +38,22 @@ slots:
     description: The email address as a mailto URI
     slot_uri: vcard:hasEmail
     range: uri
+    annotations:
+      rdf_term: "VCARD.hasEmail"
+      rdf_type: "uri"
 
   formatted_name:
     description: The full name of the object (as a single string). This is the only mandatory property.
     slot_uri: vcard:fn
     range: string
+    annotations:
+      rdf_term: "VCARD.fn"
+      rdf_type: "rdfs_literal"
 
   hasUID:
     description: A unique identifier for the object
     slot_uri: vcard:hasUID
     range: uri
+    annotations:
+      rdf_term: "VCARD.hasUID"
+      rdf_type: "uri"
