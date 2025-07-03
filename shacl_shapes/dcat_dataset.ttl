@@ -1,0 +1,742 @@
+@prefix dcat1: <https://www.w3.org/ns/dcat#> .
+@prefix dcatv3: <https://www.w3.org/ns/dcat/3#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix ns1: <dash:> .
+@prefix odrl: <http://www.w3.org/ns/odrl/2/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix vcard: <http://www.w3.org/2006/vcard/ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+dcat1:Dataset a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "A collection of data, published or curated by a single source, and available for access or download in one or more representations." ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:datatype xsd:float ;
+            sh:description "Minimum spatial separation resolvable in a dataset, measured in meters." ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path dcat1:spatialResolutionInMeters ;
+            "rdf_term"^^xsd:string "DCAT.spatialResolutionInMeters"^^xsd:string ;
+            "rdf_type"^^xsd:string xsd:decimal ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "The first resource in an ordered collection or series of resources, to which the current resource belongs." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 37 ;
+            sh:path dcatv3:first ;
+            "rdf_term"^^xsd:string "DCATv3.first"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "The last resource in an ordered collection or series of resources, to which the current resource belongs." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 38 ;
+            sh:path dcatv3:last ;
+            "rdf_term"^^xsd:string "DCATv3.last"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:description "A unique identifier of the resource being described or cataloged." ;
+            sh:or ( [ sh:datatype xsd:string ;
+                        sh:nodeKind sh:Literal ] [ sh:datatype xsd:string ;
+                        sh:nodeKind sh:Literal ] ) ;
+            sh:order 14 ;
+            sh:path dcterms:identifier ;
+            "rdf_term"^^xsd:string "DCTERMS.identifier"^^xsd:string ;
+            "rdf_type"^^xsd:string "rdfs_literal"^^xsd:string ],
+        [ sh:description "Information about rights held in and over the distribution. Recommended practice is to refer to a rights statement with a URI. If this is not possible or feasible, a literal value (name, label, or short text) may be provided." ;
+            sh:maxCount 1 ;
+            sh:or ( [ sh:datatype xsd:string ;
+                        sh:nodeKind sh:Literal ] [ sh:datatype xsd:anyURI ;
+                        sh:nodeKind sh:Literal ] ) ;
+            sh:order 21 ;
+            sh:path dcterms:rights ;
+            "rdf_term"^^xsd:string "DCTERMS.rights"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:description "The entity responsible for making the resource available." ;
+            sh:or ( [ sh:datatype xsd:anyURI ;
+                        sh:nodeKind sh:Literal ] [ sh:class foaf:Agent ] ) ;
+            sh:order 23 ;
+            sh:path dcterms:publisher ;
+            "rdf_term"^^xsd:string "DCTERMS.publisher"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A related resource that is included either physically or logically in the described resource." ;
+            sh:nodeKind sh:Literal ;
+            sh:order 12 ;
+            sh:path dcterms:hasPart ;
+            "rdf_term"^^xsd:string "DCTERMS.hasPart"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:description "Minimum time period resolvable in the dataset." ;
+            sh:maxCount 1 ;
+            sh:or ( [ sh:datatype xsd:string ;
+                        sh:nodeKind sh:Literal ] [ sh:datatype xsd:string ;
+                        sh:nodeKind sh:Literal ] ) ;
+            sh:order 4 ;
+            sh:path dcat1:temporalResolution ;
+            "rdf_term"^^xsd:string "DCAT.temporalResolution"^^xsd:string ;
+            "rdf_type"^^xsd:string xsd:duration ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "The previous resource (before the current one) in an ordered collection or series of resources." ;
+            sh:nodeKind sh:Literal ;
+            sh:order 39 ;
+            sh:path dcatv3:prev ;
+            "rdf_term"^^xsd:string "DCATv3.prev"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:class vcard:Kind ;
+            sh:description "Relevant contact information for the cataloged resource. Use of vCard is recommended" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 9 ;
+            sh:path dcat1:contactPoint ;
+            "dash.editor"^^xsd:string ns1:BlankNodeEditor ;
+            "dash.viewer"^^xsd:string ns1:URIViewer ;
+            "rdf_term"^^xsd:string "DCAT.contactPoint"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype dcat1:PeriodOfTime ;
+            sh:description "The temporal period that the dataset covers." ;
+            sh:nodeKind sh:Literal ;
+            sh:order 40 ;
+            sh:path dcterms:temporal ;
+            "rdf_term"^^xsd:string "DCTERMS.temporal"^^xsd:string ;
+            "rdf_type"^^xsd:string "DCTERMS.PeriodOfTime"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A resource with an unspecified relationship to the cataloged resource." ;
+            sh:nodeKind sh:Literal ;
+            sh:order 20 ;
+            sh:path dcterms:relation ;
+            "rdf_term"^^xsd:string "DCTERMS.relation"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "An available distribution of the dataset." ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path dcat1:distribution ;
+            "rdf_term"^^xsd:string "DCAT.distribution"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:description "An activity that generated, or provides the business context for, the creation of the dataset." ;
+            sh:or ( [ sh:datatype xsd:anyURI ;
+                        sh:nodeKind sh:Literal ] [ sh:datatype prov:Activity ;
+                        sh:nodeKind sh:Literal ] ) ;
+            sh:order 5 ;
+            sh:path prov:wasGeneratedBy ;
+            "rdf_term"^^xsd:string "PROV.wasGeneratedBy"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:description "A name given to the resource." ;
+            sh:minCount 1 ;
+            sh:or ( [ sh:datatype xsd:string ;
+                        sh:nodeKind sh:Literal ] [ sh:datatype xsd:string ;
+                        sh:nodeKind sh:Literal ] ) ;
+            sh:order 26 ;
+            sh:path dcterms:title ;
+            "rdf_term"^^xsd:string "DCTERMS.title"^^xsd:string ;
+            "rdf_type"^^xsd:string "rdfs_literal"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "The previous version of a resource in a lineage [PAV]." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 32 ;
+            sh:path dcatv3:previousVersion ;
+            "rdf_term"^^xsd:string "DCATv3.previousVersion"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:description "The status of the resource in the context of a particular workflow process [VOCAB-ADMS]." ;
+            sh:in ( <ADMSStatus.Completed> <ADMSStatus.Deprecated> <ADMSStatus.UnderDevelopment> <ADMSStatus.Withdrawn> ) ;
+            sh:maxCount 1 ;
+            sh:order 34 ;
+            sh:path <http://www.w3.org/ns/adms#status> ;
+            "rdf_term"^^xsd:string "ADMS.status"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A Web page that can be navigated to in a Web browser to gain access to the catalog, a dataset, its distributions and/or additional information." ;
+            sh:nodeKind sh:Literal ;
+            sh:order 17 ;
+            sh:path dcat1:landingPage ;
+            "rdf_term"^^xsd:string "DCAT.landingPage"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A legal document under which the resource is made available." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 18 ;
+            sh:path dcterms:license ;
+            "rdf_term"^^xsd:string "DCTERMS.license"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:description "Most recent date on which the resource was changed, updated or modified." ;
+            sh:maxCount 1 ;
+            sh:or ( [ sh:datatype xsd:string ;
+                        sh:nodeKind sh:Literal ] [ sh:datatype xsd:date ;
+                        sh:nodeKind sh:Literal ] [ sh:datatype xsd:dateTime ;
+                        sh:nodeKind sh:Literal ] [ sh:datatype xsd:dateTime ;
+                        sh:nodeKind sh:Literal ] ) ;
+            sh:order 28 ;
+            sh:path dcterms:modified ;
+            "rdf_term"^^xsd:string "DCTERMS.modified"^^xsd:string ;
+            "rdf_type"^^xsd:string "datetime_literal"^^xsd:string ],
+        [ sh:description "A description of changes between this version and the previous version of the resource [VOCAB-ADMS]." ;
+            sh:or ( [ sh:datatype xsd:string ;
+                        sh:nodeKind sh:Literal ] [ sh:datatype xsd:string ;
+                        sh:nodeKind sh:Literal ] ) ;
+            sh:order 36 ;
+            sh:path <http://www.w3.org/ns/adms#versionNotes> ;
+            "rdf_term"^^xsd:string "ADMS.versionNotes"^^xsd:string ;
+            "rdf_type"^^xsd:string "rdfs_literal"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A language of the resource. This refers to the natural language used for textual metadata (i.e., titles, descriptions, etc.) of a cataloged resource (i.e., dataset or service) or the textual values of a dataset distribution" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 19 ;
+            sh:path dcterms:language ;
+            "rdf_term"^^xsd:string "DCTERMS.language"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "This resource has a more specific, versioned resource with equivalent content [PAV]." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 30 ;
+            sh:path dcatv3:hasCurrentVersion ;
+            "rdf_term"^^xsd:string "DCATv3.hasCurrentVersion"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:string ;
+            sh:description "A keyword or tag describing the resource." ;
+            sh:nodeKind sh:Literal ;
+            sh:order 16 ;
+            sh:path dcat1:keyword ;
+            "rdf_term"^^xsd:string "DCAT.keyword"^^xsd:string ;
+            "rdf_type"^^xsd:string "rdfs_literal"^^xsd:string ],
+        [ sh:description "Information about who can access the resource or an indication of its security status." ;
+            sh:in ( <http://publications.europa.eu/resource/authority/access-right/PUBLIC> <http://publications.europa.eu/resource/authority/access-right/RESTRICTED> <http://publications.europa.eu/resource/authority/access-right/NON_PUBLIC> ) ;
+            sh:maxCount 1 ;
+            sh:order 7 ;
+            sh:path dcterms:accessRights ;
+            "rdf_term"^^xsd:string "DCTERMS.accessRights"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:description "Date of formal issuance (e.g., publication) of the resource." ;
+            sh:maxCount 1 ;
+            sh:or ( [ sh:datatype xsd:string ;
+                        sh:nodeKind sh:Literal ] [ sh:datatype xsd:dateTime ;
+                        sh:nodeKind sh:Literal ] [ sh:datatype xsd:date ;
+                        sh:nodeKind sh:Literal ] [ sh:datatype xsd:dateTime ;
+                        sh:nodeKind sh:Literal ] [ sh:datatype xsd:dateTime ;
+                        sh:nodeKind sh:Literal ] ) ;
+            sh:order 24 ;
+            sh:path dcterms:issued ;
+            "rdf_term"^^xsd:string "DCTERMS.issued"^^xsd:string ;
+            "rdf_type"^^xsd:string "datetime_literal"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "The nature or genre of the resource." ;
+            sh:nodeKind sh:Literal ;
+            sh:order 27 ;
+            sh:path dcterms:type ;
+            "rdf_term"^^xsd:string "DCTERMS.type"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:class foaf:Agent ;
+            sh:description "The entity responsible for producing the resource. Resources of type foaf:Agent are recommended as values for this property." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 10 ;
+            sh:path dcterms:creator ;
+            "rdf_term"^^xsd:string "DCTERMS.creator"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "Information about who can access the dataset and under what conditions." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 6 ;
+            sh:path dcterms:accessRights ;
+            "rdf_term"^^xsd:string "DCTERMS.accessRights"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A related resource, such as a publication, that references, cites, or otherwise points to the cataloged resource." ;
+            sh:nodeKind sh:Literal ;
+            sh:order 15 ;
+            sh:path dcterms:isReferencedBy ;
+            "rdf_term"^^xsd:string "DCTERMS.isReferencedBy"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "Link to a description of a relationship with another resource" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 22 ;
+            sh:path dcat1:qualifiedRelation ;
+            "rdf_term"^^xsd:string "DCAT.qualifiedRelation"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A dataset series of which the dataset is part." ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path dcatv3:inSeries ;
+            "rdf_term"^^xsd:string "DCATv3.inSeries"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:description "An account of the resource." ;
+            sh:minCount 1 ;
+            sh:or ( [ sh:datatype xsd:string ;
+                        sh:nodeKind sh:Literal ] [ sh:datatype xsd:string ;
+                        sh:nodeKind sh:Literal ] ) ;
+            sh:order 11 ;
+            sh:path dcterms:description ;
+            "rdf_term"^^xsd:string "DCTERMS.description"^^xsd:string ;
+            "rdf_type"^^xsd:string "rdfs_literal"^^xsd:string ],
+        [ sh:description "The geographical area covered by the dataset." ;
+            sh:or ( [ sh:datatype xsd:anyURI ;
+                        sh:nodeKind sh:Literal ] [ sh:datatype dcat1:Location ;
+                        sh:nodeKind sh:Literal ] ) ;
+            sh:order 41 ;
+            sh:path dcterms:spatial ;
+            "rdf_term"^^xsd:string "DCTERMS.spatial"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A related resource that is supplanted, displaced, or superseded by the described resource" ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 33 ;
+            sh:path dcterms:replaces ;
+            "rdf_term"^^xsd:string "DCTERMS.replaces"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:description "The frequency at which a dataset is published." ;
+            sh:maxCount 1 ;
+            sh:or ( [ sh:datatype xsd:anyURI ;
+                        sh:nodeKind sh:Literal ] [ sh:in ( <FREQ.triennial> <FREQ.biennial> <FREQ.annual> <FREQ.semiannual> <FREQ.threeTimesAYear> <FREQ.quarterly> <FREQ.bimonthly> <FREQ.monthly> <FREQ.semimonthly> <FREQ.biweekly> <FREQ.threeTimesAMonth> <FREQ.weekly> <FREQ.semiweekly> <FREQ.threeTimesAWeek> <FREQ.daily> <FREQ.continuous> <FREQ.irregular> ) ] ) ;
+            sh:order 1 ;
+            sh:path dcterms:accrualPeriodicity ;
+            "rdf_term"^^xsd:string "DCTERMS.accrualPeriodicity"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype odrl:Policy ;
+            sh:description "An ODRL conformant policy expressing the rights associated with the resource." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 13 ;
+            sh:path odrl:hasPolicy ;
+            "rdf_term"^^xsd:string "ODRL2.hasPolicy"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:description "The version indicator (name or identifier) of a resource." ;
+            sh:maxCount 1 ;
+            sh:or ( [ sh:datatype xsd:string ;
+                        sh:nodeKind sh:Literal ] [ sh:datatype xsd:string ;
+                        sh:nodeKind sh:Literal ] ) ;
+            sh:order 35 ;
+            sh:path dcatv3:version ;
+            "rdf_term"^^xsd:string "DCATv3.version"^^xsd:string ;
+            "rdf_type"^^xsd:string "rdfs_literal"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "An established standard to which the described resource conforms." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path dcterms:conformsTo ;
+            "rdf_term"^^xsd:string "DCTERMS.conformsTo"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "This resource has a more specific, versioned resource" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 31 ;
+            sh:path dcterms:hasVersion ;
+            "rdf_term"^^xsd:string "DCTERMS.hasVersion"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "Link to an Agent having some form of responsibility for the resource" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 29 ;
+            sh:path prov:qualifiedAttribution ;
+            "rdf_term"^^xsd:string "PROV.qualifiedAttribution"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A main category of the resource. A resource can have multiple themes." ;
+            sh:nodeKind sh:Literal ;
+            sh:order 25 ;
+            sh:path dcat1:theme ;
+            "rdf_term"^^xsd:string "DCAT.theme"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ] ;
+    sh:targetClass dcat1:Dataset ;
+    "IRI"^^xsd:string "DCAT.Dataset"^^xsd:string ;
+    "namespace"^^xsd:string "DCAT"^^xsd:string ;
+    "ontology"^^xsd:string <https://www.w3.org/TR/vocab-dcat-3/> ;
+    "prefix"^^xsd:string "dcat"^^xsd:string .
+
+dcat1:Resource a sh:NodeShape ;
+    sh:closed false ;
+    sh:description "Resource published or curated by a single agent. Abstract class" ;
+    sh:ignoredProperties ( dcatv3:inSeries dcat1:temporalResolution dcat1:spatialResolutionInMeters rdf:type prov:wasGeneratedBy dcat1:distribution dcterms:accrualPeriodicity ) ;
+    sh:property [ sh:datatype xsd:anyURI ;
+            sh:description "A legal document under which the resource is made available." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path dcterms:license ;
+            "rdf_term"^^xsd:string "DCTERMS.license"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:string ;
+            sh:description "A keyword or tag describing the resource." ;
+            sh:nodeKind sh:Literal ;
+            sh:order 9 ;
+            sh:path dcat1:keyword ;
+            "rdf_term"^^xsd:string "DCAT.keyword"^^xsd:string ;
+            "rdf_type"^^xsd:string "rdfs_literal"^^xsd:string ],
+        [ sh:class foaf:Agent ;
+            sh:description "The entity responsible for producing the resource. Resources of type foaf:Agent are recommended as values for this property." ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 3 ;
+            sh:path dcterms:creator ;
+            "rdf_term"^^xsd:string "DCTERMS.creator"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A related resource that is supplanted, displaced, or superseded by the described resource" ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 26 ;
+            sh:path dcterms:replaces ;
+            "rdf_term"^^xsd:string "DCTERMS.replaces"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:description "Information about who can access the resource or an indication of its security status." ;
+            sh:in ( <http://publications.europa.eu/resource/authority/access-right/PUBLIC> <http://publications.europa.eu/resource/authority/access-right/RESTRICTED> <http://publications.europa.eu/resource/authority/access-right/NON_PUBLIC> ) ;
+            sh:maxCount 1 ;
+            sh:order 0 ;
+            sh:path dcterms:accessRights ;
+            "rdf_term"^^xsd:string "DCTERMS.accessRights"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "This resource has a more specific, versioned resource with equivalent content [PAV]." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 23 ;
+            sh:path dcatv3:hasCurrentVersion ;
+            "rdf_term"^^xsd:string "DCATv3.hasCurrentVersion"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:description "The status of the resource in the context of a particular workflow process [VOCAB-ADMS]." ;
+            sh:in ( <ADMSStatus.Completed> <ADMSStatus.Deprecated> <ADMSStatus.UnderDevelopment> <ADMSStatus.Withdrawn> ) ;
+            sh:maxCount 1 ;
+            sh:order 27 ;
+            sh:path <http://www.w3.org/ns/adms#status> ;
+            "rdf_term"^^xsd:string "ADMS.status"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "The last resource in an ordered collection or series of resources, to which the current resource belongs." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 31 ;
+            sh:path dcatv3:last ;
+            "rdf_term"^^xsd:string "DCATv3.last"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A main category of the resource. A resource can have multiple themes." ;
+            sh:nodeKind sh:Literal ;
+            sh:order 18 ;
+            sh:path dcat1:theme ;
+            "rdf_term"^^xsd:string "DCAT.theme"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:description "Information about rights held in and over the distribution. Recommended practice is to refer to a rights statement with a URI. If this is not possible or feasible, a literal value (name, label, or short text) may be provided." ;
+            sh:maxCount 1 ;
+            sh:or ( [ sh:datatype xsd:string ;
+                        sh:nodeKind sh:Literal ] [ sh:datatype xsd:anyURI ;
+                        sh:nodeKind sh:Literal ] ) ;
+            sh:order 14 ;
+            sh:path dcterms:rights ;
+            "rdf_term"^^xsd:string "DCTERMS.rights"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:description "A description of changes between this version and the previous version of the resource [VOCAB-ADMS]." ;
+            sh:or ( [ sh:datatype xsd:string ;
+                        sh:nodeKind sh:Literal ] [ sh:datatype xsd:string ;
+                        sh:nodeKind sh:Literal ] ) ;
+            sh:order 29 ;
+            sh:path <http://www.w3.org/ns/adms#versionNotes> ;
+            "rdf_term"^^xsd:string "ADMS.versionNotes"^^xsd:string ;
+            "rdf_type"^^xsd:string "rdfs_literal"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "Link to a description of a relationship with another resource" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 15 ;
+            sh:path dcat1:qualifiedRelation ;
+            "rdf_term"^^xsd:string "DCAT.qualifiedRelation"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype dcat1:PeriodOfTime ;
+            sh:description "The temporal period that the dataset covers." ;
+            sh:nodeKind sh:Literal ;
+            sh:order 33 ;
+            sh:path dcterms:temporal ;
+            "rdf_term"^^xsd:string "DCTERMS.temporal"^^xsd:string ;
+            "rdf_type"^^xsd:string "DCTERMS.PeriodOfTime"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "The nature or genre of the resource." ;
+            sh:nodeKind sh:Literal ;
+            sh:order 20 ;
+            sh:path dcterms:type ;
+            "rdf_term"^^xsd:string "DCTERMS.type"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:description "Most recent date on which the resource was changed, updated or modified." ;
+            sh:maxCount 1 ;
+            sh:or ( [ sh:datatype xsd:string ;
+                        sh:nodeKind sh:Literal ] [ sh:datatype xsd:date ;
+                        sh:nodeKind sh:Literal ] [ sh:datatype xsd:dateTime ;
+                        sh:nodeKind sh:Literal ] [ sh:datatype xsd:dateTime ;
+                        sh:nodeKind sh:Literal ] ) ;
+            sh:order 21 ;
+            sh:path dcterms:modified ;
+            "rdf_term"^^xsd:string "DCTERMS.modified"^^xsd:string ;
+            "rdf_type"^^xsd:string "datetime_literal"^^xsd:string ],
+        [ sh:description "The version indicator (name or identifier) of a resource." ;
+            sh:maxCount 1 ;
+            sh:or ( [ sh:datatype xsd:string ;
+                        sh:nodeKind sh:Literal ] [ sh:datatype xsd:string ;
+                        sh:nodeKind sh:Literal ] ) ;
+            sh:order 28 ;
+            sh:path dcatv3:version ;
+            "rdf_term"^^xsd:string "DCATv3.version"^^xsd:string ;
+            "rdf_type"^^xsd:string "rdfs_literal"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "This resource has a more specific, versioned resource" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 24 ;
+            sh:path dcterms:hasVersion ;
+            "rdf_term"^^xsd:string "DCTERMS.hasVersion"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A related resource, such as a publication, that references, cites, or otherwise points to the cataloged resource." ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path dcterms:isReferencedBy ;
+            "rdf_term"^^xsd:string "DCTERMS.isReferencedBy"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:description "The entity responsible for making the resource available." ;
+            sh:or ( [ sh:datatype xsd:anyURI ;
+                        sh:nodeKind sh:Literal ] [ sh:class foaf:Agent ] ) ;
+            sh:order 16 ;
+            sh:path dcterms:publisher ;
+            "rdf_term"^^xsd:string "DCTERMS.publisher"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "An established standard to which the described resource conforms." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path dcterms:conformsTo ;
+            "rdf_term"^^xsd:string "DCTERMS.conformsTo"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:description "A name given to the resource." ;
+            sh:minCount 1 ;
+            sh:or ( [ sh:datatype xsd:string ;
+                        sh:nodeKind sh:Literal ] [ sh:datatype xsd:string ;
+                        sh:nodeKind sh:Literal ] ) ;
+            sh:order 19 ;
+            sh:path dcterms:title ;
+            "rdf_term"^^xsd:string "DCTERMS.title"^^xsd:string ;
+            "rdf_type"^^xsd:string "rdfs_literal"^^xsd:string ],
+        [ sh:datatype odrl:Policy ;
+            sh:description "An ODRL conformant policy expressing the rights associated with the resource." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 6 ;
+            sh:path odrl:hasPolicy ;
+            "rdf_term"^^xsd:string "ODRL2.hasPolicy"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "The previous version of a resource in a lineage [PAV]." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 25 ;
+            sh:path dcatv3:previousVersion ;
+            "rdf_term"^^xsd:string "DCATv3.previousVersion"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A resource with an unspecified relationship to the cataloged resource." ;
+            sh:nodeKind sh:Literal ;
+            sh:order 13 ;
+            sh:path dcterms:relation ;
+            "rdf_term"^^xsd:string "DCTERMS.relation"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:description "A unique identifier of the resource being described or cataloged." ;
+            sh:or ( [ sh:datatype xsd:string ;
+                        sh:nodeKind sh:Literal ] [ sh:datatype xsd:string ;
+                        sh:nodeKind sh:Literal ] ) ;
+            sh:order 7 ;
+            sh:path dcterms:identifier ;
+            "rdf_term"^^xsd:string "DCTERMS.identifier"^^xsd:string ;
+            "rdf_type"^^xsd:string "rdfs_literal"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "Link to an Agent having some form of responsibility for the resource" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 22 ;
+            sh:path prov:qualifiedAttribution ;
+            "rdf_term"^^xsd:string "PROV.qualifiedAttribution"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A Web page that can be navigated to in a Web browser to gain access to the catalog, a dataset, its distributions and/or additional information." ;
+            sh:nodeKind sh:Literal ;
+            sh:order 10 ;
+            sh:path dcat1:landingPage ;
+            "rdf_term"^^xsd:string "DCAT.landingPage"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:description "An account of the resource." ;
+            sh:minCount 1 ;
+            sh:or ( [ sh:datatype xsd:string ;
+                        sh:nodeKind sh:Literal ] [ sh:datatype xsd:string ;
+                        sh:nodeKind sh:Literal ] ) ;
+            sh:order 4 ;
+            sh:path dcterms:description ;
+            "rdf_term"^^xsd:string "DCTERMS.description"^^xsd:string ;
+            "rdf_type"^^xsd:string "rdfs_literal"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "The first resource in an ordered collection or series of resources, to which the current resource belongs." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 30 ;
+            sh:path dcatv3:first ;
+            "rdf_term"^^xsd:string "DCATv3.first"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:description "The geographical area covered by the dataset." ;
+            sh:or ( [ sh:datatype xsd:anyURI ;
+                        sh:nodeKind sh:Literal ] [ sh:datatype dcat1:Location ;
+                        sh:nodeKind sh:Literal ] ) ;
+            sh:order 34 ;
+            sh:path dcterms:spatial ;
+            "rdf_term"^^xsd:string "DCTERMS.spatial"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A language of the resource. This refers to the natural language used for textual metadata (i.e., titles, descriptions, etc.) of a cataloged resource (i.e., dataset or service) or the textual values of a dataset distribution" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 12 ;
+            sh:path dcterms:language ;
+            "rdf_term"^^xsd:string "DCTERMS.language"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "The previous resource (before the current one) in an ordered collection or series of resources." ;
+            sh:nodeKind sh:Literal ;
+            sh:order 32 ;
+            sh:path dcatv3:prev ;
+            "rdf_term"^^xsd:string "DCATv3.prev"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A related resource that is included either physically or logically in the described resource." ;
+            sh:nodeKind sh:Literal ;
+            sh:order 5 ;
+            sh:path dcterms:hasPart ;
+            "rdf_term"^^xsd:string "DCTERMS.hasPart"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:class vcard:Kind ;
+            sh:description "Relevant contact information for the cataloged resource. Use of vCard is recommended" ;
+            sh:nodeKind sh:BlankNodeOrIRI ;
+            sh:order 2 ;
+            sh:path dcat1:contactPoint ;
+            "dash.editor"^^xsd:string ns1:BlankNodeEditor ;
+            "dash.viewer"^^xsd:string ns1:URIViewer ;
+            "rdf_term"^^xsd:string "DCAT.contactPoint"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:description "Date of formal issuance (e.g., publication) of the resource." ;
+            sh:maxCount 1 ;
+            sh:or ( [ sh:datatype xsd:string ;
+                        sh:nodeKind sh:Literal ] [ sh:datatype xsd:dateTime ;
+                        sh:nodeKind sh:Literal ] [ sh:datatype xsd:date ;
+                        sh:nodeKind sh:Literal ] [ sh:datatype xsd:dateTime ;
+                        sh:nodeKind sh:Literal ] [ sh:datatype xsd:dateTime ;
+                        sh:nodeKind sh:Literal ] ) ;
+            sh:order 17 ;
+            sh:path dcterms:issued ;
+            "rdf_term"^^xsd:string "DCTERMS.issued"^^xsd:string ;
+            "rdf_type"^^xsd:string "datetime_literal"^^xsd:string ] ;
+    sh:targetClass dcat1:Resource ;
+    "IRI"^^xsd:string "DCAT.Resource"^^xsd:string ;
+    "namespace"^^xsd:string "DCAT"^^xsd:string ;
+    "ontology"^^xsd:string <https://www.w3.org/TR/vocab-dcat-3/> ;
+    "prefix"^^xsd:string "dcat"^^xsd:string .
+
+vcard:Kind a sh:NodeShape ;
+    sh:closed true ;
+    sh:description "A vCard-style representation of an agent (person or organization)" ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:datatype xsd:string ;
+            sh:description "The full name of the object (as a single string). This is the only mandatory property." ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path vcard:fn ;
+            "rdf_term"^^xsd:string "VCARD.fn"^^xsd:string ;
+            "rdf_type"^^xsd:string "rdfs_literal"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "A unique identifier for the object" ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path vcard:hasUID ;
+            "rdf_term"^^xsd:string "VCARD.hasUID"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:description "The email address as a mailto URI" ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path vcard:hasEmail ;
+            "rdf_term"^^xsd:string "VCARD.hasEmail"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ] ;
+    sh:targetClass vcard:Kind ;
+    "IRI"^^xsd:string "VCARD.Kind"^^xsd:string ;
+    "namespace"^^xsd:string "vcard"^^xsd:string ;
+    "ontology"^^xsd:string <https://www.w3.org/TR/vcard-rdf/> ;
+    "prefix"^^xsd:string "vcard"^^xsd:string .
+
+foaf:Agent a sh:NodeShape ;
+    sh:closed true ;
+    sh:ignoredProperties ( rdf:type ) ;
+    sh:property [ sh:datatype xsd:anyURI ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 5 ;
+            sh:path <http://healthdataportal.eu/ns/health#publisherType> ;
+            "rdf_term"^^xsd:string "HEALTHDCATAP.publisherType"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 0 ;
+            sh:path dcterms:spatial ;
+            "rdf_term"^^xsd:string "DCTERMS.spatial"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 6 ;
+            sh:path dcterms:type ;
+            "rdf_term"^^xsd:string "DCTERMS.type"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:string ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 2 ;
+            sh:path dcterms:identifier ;
+            "rdf_term"^^xsd:string "DCTERMS.identifier"^^xsd:string ;
+            "rdf_type"^^xsd:string "rdfs_literal"^^xsd:string ],
+        [ sh:datatype xsd:anyURI ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 7 ;
+            sh:path foaf:homepage ;
+            "rdf_term"^^xsd:string "FOAF.homepage"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:string ;
+            sh:maxCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 4 ;
+            sh:path <http://healthdataportal.eu/ns/health#publisherNote> ;
+            "rdf_term"^^xsd:string "HEALTHDCATAP.publisherNote"^^xsd:string ;
+            "rdf_type"^^xsd:string "rdfs_literal"^^xsd:string ],
+        [ ns1:editor ns1:BlankNodeEditor ;
+            ns1:viewer ns1:URIViewer ;
+            sh:datatype xsd:anyURI ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 1 ;
+            sh:path foaf:mbox ;
+            "rdf_term"^^xsd:string "FOAF.mbox"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+        [ sh:datatype xsd:string ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:nodeKind sh:Literal ;
+            sh:order 3 ;
+            sh:path foaf:name ;
+            "rdf_term"^^xsd:string "FOAF.name"^^xsd:string ;
+            "rdf_type"^^xsd:string "rdfs_literal"^^xsd:string ] ;
+    sh:targetClass foaf:Agent ;
+    "IRI"^^xsd:string "FOAF.Agent"^^xsd:string ;
+    "namespace"^^xsd:string "FOAF"^^xsd:string ;
+    "ontology"^^xsd:string <http://xmlns.com/foaf/spec/> ;
+    "prefix"^^xsd:string "foaf"^^xsd:string .
+
+

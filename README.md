@@ -1,6 +1,6 @@
-# LinkML to Sempyro Pipeline
+# LinkML to Metadata Pipeline
 
-This repository contains a pipeline for generating Sempyro Pydantic classes from LinkML schema definitions, specifically designed for DCAT and related semantic web vocabularies.
+This repository contains a pipeline for generating SHACLs, UMLs and Sempyro Pydantic classes from LinkML schema definitions, specifically designed for DCAT and related semantic web vocabularies.
 
 ## Repository Structure
 
@@ -25,8 +25,29 @@ This repository contains a pipeline for generating Sempyro Pydantic classes from
 
 ### Generating SHACL shapes
 ```bash
-gen-shacl ./linkml-definitions/dcat/dcat_dataset.yaml
+gen-shacl --include-annotations ./linkml-definitions/dcat/dcat_dataset.yaml > ./shacl_shapes/dcat_dataset.ttl
 ```
+
+This will add everything to a class or property/slot under `annotations`, like this:
+
+```
+        [ dash:editor dash:BlankNodeEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:datatype xsd:anyURI ; 
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:nodeKind sh:Literal ; 
+            sh:order 1 ;
+            sh:path foaf:mbox ;
+            "rdf_term"^^xsd:string "FOAF.mbox"^^xsd:string ;
+            "rdf_type"^^xsd:string "uri"^^xsd:string ],
+```
+
+If the key and/or value contains ':', it will be parsed as an URI.
+Also, everything that is in `annotations` for Sempyro also is added the SHACLs.
+
+The SHACLs are currently generated with all properties 'inline', which matches HealthDCAT-AP. The previous
+Health-RI v2 SHACLs had the properties separately.
 
 ### Generating UML diagrams
 ```bash
@@ -43,8 +64,9 @@ python gen_sempyro.py
 
 This will:
 1. Read LinkML YAML files from `./linkml-definitions/`
-2. Apply custom Jinja templates from `./templates/sempyro/`
-3. Generate Python classes in `./sempyro_classes/`
+2. Adds a link to `../rdf_model` where necessary. The RDFModel class is only relevant for Sempyro, not for the SHACLs or UML.
+3. Apply custom Jinja templates from `./templates/sempyro/`
+4. Generate Python classes in `./sempyro_classes/`
 
 ### Custom Templates
 
@@ -54,13 +76,15 @@ The Pydantic generation uses adapted Jinja templates located in `./templates/sem
 
 ## Known Issues and Limitations
 
-### 1. Default Python Imports
+### 1. Sempyro: Default Python Imports -> Fixed
 - **Issue**: During Pydantic code generation, LinkML adds default Python imports alongside our custom imports defined in `gen_sempyro.py`
 - **Impact**: Results in superfluous (but harmless) import statements in generated files
 - **Status**: Unclear how to completely eliminate these default imports
 - **Workaround**: The extra imports don't break functionality, just create visual clutter
 
-### 2. Enum Generation Problems
+-> Fixed by subclassing the Pydanticgenerator.
+
+### 2. Sempyro: Enum Generation Problems
 - **Issue**: LinkML's Pydantic generator doesn't handle the `meaning` property correctly for enums
 - **Workaround**: We misuse the `description` property to generate proper enum values
 - **Example**: 
@@ -72,10 +96,12 @@ The Pydantic generation uses adapted Jinja templates located in `./templates/sem
         description: ADMSStatus.Completed  # Used for actual enum value
   ```
 
-### 3. Enum Inheritance
+### 3. Sempyro: Enum Inheritance -> Fixed
 - **Issue**: When creating inherited classes (e.g., `DCATDataset` inheriting from `DCATResource`), all enums from parent schemas get duplicated in the child class
 - **Impact**: Results in redundant enum definitions in generated Python files
 - **Status**: No clean solution identified yet
+
+-> Fixed by post-hoc removing all classes not in the YAML.
 
 ## Next Steps
 

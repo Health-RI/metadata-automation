@@ -15,6 +15,7 @@ prefixes:
   dcatv3: https://www.w3.org/ns/dcat/3#
   vcard: http://www.w3.org/2006/vcard/ns#
   foaf: http://xmlns.com/foaf/0.1/
+  dash: http://datashapes.org/dash#
 
 default_prefix: dcat
 default_range: string
