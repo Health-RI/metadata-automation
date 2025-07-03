@@ -1,0 +1,17 @@
+id: https://example.org/my-project/types
+name: my-project-types
+title: My Project Types
+description: Common types for my project
+
+prefixes:
+  linkml: https://w3id.org/linkml/
+  xsd: http://www.w3.org/2001/XMLSchema#
+
+default_prefix: my-project-types
+default_range: string
+
+types:
+  AnyHttpUrl:
+    uri: xsd:anyURI
+    base: AnyHttpUrl
+    description: A valid HTTP URL

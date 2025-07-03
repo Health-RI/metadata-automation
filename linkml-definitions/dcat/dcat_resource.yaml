@@ -21,15 +21,11 @@ default_range: string
 
 imports:
   - linkml:types
+  - ../types
   - ../foaf/foaf_agent
   - ../vcard/dcat_vcard
 
 types:
-  AnyHttpUrl:
-    uri: xsd:anyURI
-    base: AnyHttpUrl
-    description: A valid HTTP URL
-
   VCard:
     uri: vcard:VCard
     description: vCard contact information
@@ -185,6 +181,8 @@ slots:
     #  - range: FOAFAgent
     required: false
     annotations:
+      dash.viewer: "dash:URIViewer"
+      dash.editor: "dash:BlankNodeEditor"
       rdf_term: "DCAT.contactPoint"
       rdf_type: "uri"
 
