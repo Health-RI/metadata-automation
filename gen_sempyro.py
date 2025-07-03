@@ -350,11 +350,3 @@ for link_dict in link_dicts:
     remove_unwanted_classes(Path(link_dict['output_path']), Path(link_dict['schema_path']))
     if os.path.exists("./linkml-definitions/temp"):
         shutil.rmtree("./linkml-definitions/temp")
-
-
-# split_objects = generator.generate_split("./linkml-definitions/dcat/dcat_dataset.yaml",
-#                                          output_path="./output.py",
-#                                          template_dir="./templates/sempyro",
-#                                          black=True,
-#                                          imports=imports_dcat_dataset,
-#                                          split_pattern=".{{ schema.name }}")
