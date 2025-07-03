@@ -100,18 +100,18 @@ classes:
       namespace: "DCAT"
       IRI: "DCAT.Resource"
       prefix: "dcat"
-      validator_logic: |
-        _validate_literal_fields: ClassVar[Set[str]] = {"title", "description", "keyword", "version", "version_notes"}
+      # validator_logic: |
+      #   _validate_literal_fields: ClassVar[Set[str]] = {"title", "description", "keyword", "version", "version_notes"}
 
-            @field_validator(*_validate_literal_fields, mode="before")
-            @classmethod
-            def validate_literal(cls, value: List[Union[str, LiteralField]]) -> List[LiteralField]:
-                return convert_to_literal(value)
-        
-            @field_validator("release_date", "modification_date", mode="before")
-            @classmethod
-            def date_validator(cls, value):
-                return date_handler(value)
+      #       @field_validator(*_validate_literal_fields, mode="before")
+      #       @classmethod
+      #       def validate_literal(cls, value: List[Union[str, LiteralField]]) -> List[LiteralField]:
+      #           return convert_to_literal(value)
+      #
+      #       @field_validator("release_date", "modification_date", mode="before")
+      #       @classmethod
+      #       def date_validator(cls, value):
+      #           return date_handler(value)
 
     slots:
       - access_rights

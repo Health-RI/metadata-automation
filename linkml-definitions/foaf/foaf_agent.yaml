@@ -54,6 +54,8 @@ slots:
     annotations:
       rdf_term: "FOAF.mbox"
       rdf_type: "uri"
+      dash.viewer: "dash:URIViewer"
+      dash.editor: "dash:BlankNodeEditor"
 
   foaf_identifier:
     description:
