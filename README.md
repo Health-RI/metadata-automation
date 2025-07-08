@@ -156,3 +156,6 @@ When adding new LinkML definitions:
 2. Update `gen_sempyro.py` with any new import requirements
 3. Test generation and verify output in `./sempyro_classes/`
 4. Document any new issues or workarounds in this README
+
+### Wishlist
+- 

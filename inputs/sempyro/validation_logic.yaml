@@ -1,0 +1,27 @@
+classes:
+  DCATDataset:
+    annotations:
+      validator_logic: |
+        @field_validator("temporal_resolution", mode="after")
+            @classmethod
+            def validate_xsd_duration(cls, value: Union[str, LiteralField]) -> LiteralField:
+                if isinstance(value, str):
+                    return LiteralField(value=value, datatype="xsd:duration")
+                if isinstance(value, LiteralField) and value.datatype != "xsd:duration":
+                    return LiteralField(value=value.value, datatype="xsd:duration")
+                return value
+        
+  DCATResource:
+    annotations:
+      validator_logic: |
+        _validate_literal_fields: ClassVar[Set[str]] = {"title", "description", "keyword", "version", "version_notes"}
+
+            @field_validator(*_validate_literal_fields, mode="before")
+            @classmethod
+            def validate_literal(cls, value: List[Union[str, LiteralField]]) -> List[LiteralField]:
+                return convert_to_literal(value)
+      
+            @field_validator("release_date", "modification_date", mode="before")
+            @classmethod
+            def date_validator(cls, value):
+                return date_handler(value)
