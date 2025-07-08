@@ -34,24 +34,7 @@ This repository contains a pipeline for generating SHACLs, UMLs and Sempyro Pyda
 ```bash
 gen-shacl --include-annotations ./linkml-definitions/dcat/dcat_dataset.yaml > ./outputs/shacl_shapes/dcat_dataset.ttl
 ```
-
-This will add everything to a class or property/slot under `annotations`, like this:
-
-```
-        [ dash:editor dash:BlankNodeEditor ;
-            dash:viewer dash:URIViewer ;
-            sh:datatype xsd:anyURI ; 
-            sh:maxCount 1 ;
-            sh:minCount 1 ;
-            sh:nodeKind sh:Literal ; 
-            sh:order 1 ;
-            sh:path foaf:mbox ;
-            "rdf_term"^^xsd:string "FOAF.mbox"^^xsd:string ;
-            "rdf_type"^^xsd:string "uri"^^xsd:string ],
-```
-
-If the key and/or value contains ':', it will be parsed as an URI.
-Also, everything that is in `annotations` for Sempyro also is added the SHACLs.
+If the key and/or value in a class or property/slot under 'annotations' contains ':' , it will be parsed as an URI.
 
 The SHACLs are currently generated with all properties 'inline', which matches HealthDCAT-AP. The previous
 Health-RI v2 SHACLs had the properties separately.

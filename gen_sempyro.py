@@ -2,9 +2,9 @@ import os
 
 
 from inputs.sempyro.imports import imports_dcat_dataset, imports_dcat_resource
+from metadata_automation.utils import create_temp_definition, remove_temp_definitions
 from metadata_automation.sempyro.cleanup import remove_unwanted_classes
-from metadata_automation.sempyro.utils import add_rdf_model_to_yaml, generate_from_linkml, create_temp_definition, \
-    add_validation_logic_to_schema
+from metadata_automation.sempyro.utils import add_rdf_model_to_yaml, generate_from_linkml, add_validation_logic_to_schema
 
 from pathlib import Path
 
@@ -43,5 +43,4 @@ for link_dict in link_dicts:
     generate_from_linkml(link_dict)
     remove_unwanted_classes(Path(link_dict['output_path']), Path(link_dict['schema_path']))
 
-if os.path.exists("linkml-definitions/temp"):
-    shutil.rmtree("linkml-definitions/temp")
+remove_temp_definitions()

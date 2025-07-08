@@ -1,28 +1,9 @@
-import os
-import shutil
 from pathlib import Path
 from typing import Dict, Any
 
 import yaml
 
 from metadata_automation.sempyro.sempyro_generator import CustomPydanticGenerator
-
-def create_temp_definition(link_dict: Dict[str, Any]) -> Dict[str, Any]:
-    yaml_path = Path(link_dict['schema_path'])
-    try:
-        temp_yaml_path = yaml_path.parent.parent / 'temp' / yaml_path.name
-        if not (yaml_path.parent.parent / 'temp').exists():
-            os.makedirs(yaml_path.parent.parent / 'temp')
-        shutil.copy2(yaml_path, temp_yaml_path)
-
-        # Update the schema_path in the input dictionary
-        link_dict['schema_path'] = str(temp_yaml_path)
-
-    except Exception as e:
-        raise IOError(f"Error writing YAML file to temporary directory: {e}")
-
-    return link_dict
-
 
 def add_validation_logic_to_schema(link_dict: Dict[str, Any]) -> None:
     validation_logic_path = Path("./inputs/sempyro/validation_logic.yaml")
