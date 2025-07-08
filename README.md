@@ -25,7 +25,7 @@ This repository contains a pipeline for generating SHACLs, UMLs and Sempyro Pyda
 
 ### Generating SHACL shapes
 ```bash
-gen-shacl --include-annotations ./linkml-definitions/dcat/dcat_dataset.yaml > ./shacl_shapes/dcat_dataset.ttl
+gen-shacl --include-annotations ./linkml-definitions/dcat/dcat_dataset.yaml > ./outputs/shacl_shapes/dcat_dataset.ttl
 ```
 
 This will add everything to a class or property/slot under `annotations`, like this:
@@ -65,8 +65,9 @@ python gen_sempyro.py
 This will:
 1. Read LinkML YAML files from `./linkml-definitions/`
 2. Adds a link to `../rdf_model` where necessary. The RDFModel class is only relevant for Sempyro, not for the SHACLs or UML.
-3. Apply custom Jinja templates from `./templates/sempyro/`
-4. Generate Python classes in `./sempyro_classes/`
+3. Adds validation logic from `./inputs/sempyro/validation_logic.yaml` to the relevant classes.
+4. Apply custom Jinja templates from `./templates/sempyro/`
+5. Generate Python classes in `./sempyro_classes/`
 
 ### Custom Templates
 
@@ -158,4 +159,5 @@ When adding new LinkML definitions:
 4. Document any new issues or workarounds in this README
 
 ### Wishlist
-- 
+- Generate CKAN fields (https://github.com/ckan/ckanext-dcat/tree/master/ckanext/dcat) from the LinkML definitions
+- Generate OpenAPI/Discovery service specification from the LinkML definitions
