@@ -6,18 +6,25 @@ This repository contains a pipeline for generating SHACLs, UMLs and Sempyro Pyda
 
 ```
 .
-├── linkml-definitions/          # LinkML YAML schema definitions, organized by namespace
+├── metadata_automation/            # Code for this repository
+│   ├── sempyro/templates/          # Custom Jinja templates for Pydantic generation
+│   │   └── ...
+│   └── ...
+├── linkml-definitions/             # LinkML YAML schema definitions, organized by namespace
 │   ├── dcat/
 │   │   ├── dcat_resource.yaml
 │   │   └── dcat_dataset.yaml
 │   └── ...
-├── sempyro_classes/            # Generated Python files with Sempyro Pydantic classes
-│   ├── dcat/
-│   │   ├── dcat_resource.py
-│   │   └── dcat_dataset.py
+├── inputs/                         # Additional inputs besides the LinkML definitions
+├── outputs/
+│   ├── sempyro_classes/            # Generated Python files with Sempyro Pydantic classes
+│   │   ├── dcat/
+│   │   │   ├── dcat_resource.py
+│   │   │   └── dcat_dataset.py
+│   │   └── ...
+│   ├── shacl_shapes/               # Generated Turtle files with SHACL shapes
 │   └── ...
-├── templates/sempyro/          # Custom Jinja templates for Pydantic generation
-├── gen_sempyro.py             # Generator script with custom import definitions
+├── gen_sempyro.py                 # Generator script with custom import definitions
 └── README.md
 ```
 
