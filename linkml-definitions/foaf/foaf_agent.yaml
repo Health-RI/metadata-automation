@@ -18,7 +18,7 @@ imports:
   - ../types
 
 classes:
-  FOAFAgent:
+  Agent:
     description:
     class_uri: foaf:Agent
     annotations:

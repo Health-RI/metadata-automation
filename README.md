@@ -67,15 +67,7 @@ The Pydantic generation uses adapted Jinja templates located in `./templates/sem
 
 ## Known Issues and Limitations
 
-### 1. Sempyro: Default Python Imports -> Fixed
-- **Issue**: During Pydantic code generation, LinkML adds default Python imports alongside our custom imports defined in `gen_sempyro.py`
-- **Impact**: Results in superfluous (but harmless) import statements in generated files
-- **Status**: Unclear how to completely eliminate these default imports
-- **Workaround**: The extra imports don't break functionality, just create visual clutter
-
--> Fixed by subclassing the Pydanticgenerator.
-
-### 2. Sempyro: Enum Generation Problems
+### Sempyro: Enum Generation Problems
 - **Issue**: LinkML's Pydantic generator doesn't handle the `meaning` property correctly for enums
 - **Workaround**: We misuse the `description` property to generate proper enum values
 - **Example**: 
@@ -86,13 +78,6 @@ The Pydantic generation uses adapted Jinja templates located in `./templates/sem
         meaning: ADMSStatus.Completed
         description: ADMSStatus.Completed  # Used for actual enum value
   ```
-
-### 3. Sempyro: Enum Inheritance -> Fixed
-- **Issue**: When creating inherited classes (e.g., `DCATDataset` inheriting from `DCATResource`), all enums from parent schemas get duplicated in the child class
-- **Impact**: Results in redundant enum definitions in generated Python files
-- **Status**: No clean solution identified yet
-
--> Fixed by post-hoc removing all classes not in the YAML.
 
 ## Next Steps
 
