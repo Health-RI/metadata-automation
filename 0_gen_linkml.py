@@ -56,6 +56,7 @@ for index, row in table_classes.iterrows():
     ontology_name = row['ontology_name']
     inherits_from = row.get('inherits_from')
     class_description = str(row.get('description'))
+    import_classes = row.get('import_classes').split(',') if (row.get('import_classes') and str(row.get('import_classes') != 'nan')) else []
 
     ontology = ontology_name.split(':')[0]
     ontology_class = ontology_name.split(':')[1]
@@ -112,6 +113,20 @@ for index, row in table_classes.iterrows():
             # Different ontology - go up one folder and into the other ontology folder
             import_path = f"../{inherits_ontology}/{inherits_ontology}-{inherits_class}"
         
+        linkml_data['imports'].append(import_path)
+
+    # Handle other imports
+    for item in import_classes:
+        import_ontology = item.strip().split(':')[0]
+        import_class = item.strip().split(':')[1]
+
+        if import_ontology == ontology:
+            # Same ontology - import from same folder
+            import_path = f"{import_ontology}-{import_class}"
+        else:
+            # Different ontology - go up one folder and into the other ontology folder
+            import_path = f"../{import_ontology}/{import_ontology}-{import_class}"
+
         linkml_data['imports'].append(import_path)
 
     linkml_data['classes'] = {
