@@ -30,6 +30,12 @@ This repository contains a pipeline for generating SHACLs, UMLs and Sempyro Pyda
 
 ## Usage
 
+### Generating LinkML
+```bash
+python 0_gen_linkml.py
+```
+The output directory is currently hardcoded to './temp-linkml'.
+
 ### Generating SHACL shapes
 ```bash
 gen-shacl --include-annotations ./linkml-definitions/dcat/dcat_dataset.yaml > ./outputs/shacl_shapes/dcat_dataset.ttl
@@ -65,7 +71,7 @@ The Pydantic generation uses adapted Jinja templates located in `./templates/sem
 - Handle Sempyro-specific class generation
 - Customize output formatting
 
-## Known Issues and Limitations
+## Known Issues & Limitations 
 
 ### Sempyro: Enum Generation Problems
 - **Issue**: LinkML's Pydantic generator doesn't handle the `meaning` property correctly for enums
@@ -79,7 +85,17 @@ The Pydantic generation uses adapted Jinja templates located in `./templates/sem
         description: ADMSStatus.Completed  # Used for actual enum value
   ```
 
-## Next Steps
+## Future Work 
+- LinkML generation: Find a way to keep the single source of truth as clean as possible.
+- LinkML generation: Integrate DCAT-AP and HealthDCAT-AP, either through defining it in the Single source of truth, or directly in LinkML.
+- Sempyro generation: Per slot, swap 'range' with 'annotations/sempyro_range' so the right types are defined in the Sempyro classes.
+- SHACL & Sempyro: Fix enums so they are compatible with the SHACLs and Sempyro
+- Sempyro: Agree on a workflow to update Sempyro based on the Single source of truth.
+- UML generation: Implement UML generation
+- Generate CKAN properties (https://github.com/ckan/ckanext-dcat/tree/master/ckanext/dcat)
+- Generate Discovery service mappings (https://github.com/GenomicDataInfrastructure/gdi-userportal-dataset-discovery-service) 
+  - https://github.com/GenomicDataInfrastructure/gdi-userportal-dataset-discovery-service/pull/212 
+- Generate HTML tables for Bikeshed
 
 ### Priority Items
 
@@ -96,11 +112,6 @@ The Pydantic generation uses adapted Jinja templates located in `./templates/sem
 3. **HealthDCAT-AP Integration**
    - Convert existing HealthDCAT-AP SHACL constraints to LinkML format
    - Generate Sempyro classes directly from HealthDCAT-AP specifications
-
-4. **Organization and Structure**
-   - Design optimal folder structure for LinkML YAMLs across namespaces
-   - Implement automated organization of generated Python files
-   - Create namespace-aware generation that respects package hierarchies
 
 ## Development Notes
 
