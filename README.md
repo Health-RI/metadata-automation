@@ -30,6 +30,12 @@ This repository contains a pipeline for generating SHACLs, UMLs and Sempyro Pyda
 
 ## Usage
 
+### Generating LinkML
+```bash
+python 0_gen_linkml.py
+```
+The output directory is currently hardcoded to './temp-linkml'.
+
 ### Generating SHACL shapes
 ```bash
 gen-shacl --include-annotations ./linkml-definitions/dcat/dcat_dataset.yaml > ./outputs/shacl_shapes/dcat_dataset.ttl
@@ -65,17 +71,9 @@ The Pydantic generation uses adapted Jinja templates located in `./templates/sem
 - Handle Sempyro-specific class generation
 - Customize output formatting
 
-## Known Issues and Limitations
+## Known Issues & Limitations 
 
-### 1. Sempyro: Default Python Imports -> Fixed
-- **Issue**: During Pydantic code generation, LinkML adds default Python imports alongside our custom imports defined in `gen_sempyro.py`
-- **Impact**: Results in superfluous (but harmless) import statements in generated files
-- **Status**: Unclear how to completely eliminate these default imports
-- **Workaround**: The extra imports don't break functionality, just create visual clutter
-
--> Fixed by subclassing the Pydanticgenerator.
-
-### 2. Sempyro: Enum Generation Problems
+### Sempyro: Enum Generation Problems
 - **Issue**: LinkML's Pydantic generator doesn't handle the `meaning` property correctly for enums
 - **Workaround**: We misuse the `description` property to generate proper enum values
 - **Example**: 
@@ -87,14 +85,17 @@ The Pydantic generation uses adapted Jinja templates located in `./templates/sem
         description: ADMSStatus.Completed  # Used for actual enum value
   ```
 
-### 3. Sempyro: Enum Inheritance -> Fixed
-- **Issue**: When creating inherited classes (e.g., `DCATDataset` inheriting from `DCATResource`), all enums from parent schemas get duplicated in the child class
-- **Impact**: Results in redundant enum definitions in generated Python files
-- **Status**: No clean solution identified yet
-
--> Fixed by post-hoc removing all classes not in the YAML.
-
-## Next Steps
+## Future Work 
+- LinkML generation: Find a way to keep the single source of truth as clean as possible.
+- LinkML generation: Integrate DCAT-AP and HealthDCAT-AP, either through defining it in the Single source of truth, or directly in LinkML.
+- Sempyro generation: Per slot, swap 'range' with 'annotations/sempyro_range' so the right types are defined in the Sempyro classes.
+- SHACL & Sempyro: Fix enums so they are compatible with the SHACLs and Sempyro
+- Sempyro: Agree on a workflow to update Sempyro based on the Single source of truth.
+- UML generation: Implement UML generation
+- Generate CKAN properties (https://github.com/ckan/ckanext-dcat/tree/master/ckanext/dcat)
+- Generate Discovery service mappings (https://github.com/GenomicDataInfrastructure/gdi-userportal-dataset-discovery-service) 
+  - https://github.com/GenomicDataInfrastructure/gdi-userportal-dataset-discovery-service/pull/212 
+- Generate HTML tables for Bikeshed
 
 ### Priority Items
 
@@ -111,11 +112,6 @@ The Pydantic generation uses adapted Jinja templates located in `./templates/sem
 3. **HealthDCAT-AP Integration**
    - Convert existing HealthDCAT-AP SHACL constraints to LinkML format
    - Generate Sempyro classes directly from HealthDCAT-AP specifications
-
-4. **Organization and Structure**
-   - Design optimal folder structure for LinkML YAMLs across namespaces
-   - Implement automated organization of generated Python files
-   - Create namespace-aware generation that respects package hierarchies
 
 ## Development Notes
 

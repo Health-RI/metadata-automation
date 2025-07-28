@@ -10,26 +10,28 @@ from pathlib import Path
 
 import shutil
 
+linkml_definitions_path = Path("./linkml-definitions")
+
 link_dicts = [
     {
-        "schema_path": "./linkml-definitions/dcat/dcat_resource.yaml",
+        "schema_path": linkml_definitions_path / "dcat" / "dcat_resource.yaml",
         "imports": imports_dcat_resource,
         "output_path": "./outputs/sempyro_classes/dcat/dcat_resource.py",
         "add_rdf_model_to_class": ['DCATResource']
     },
     {
-        "schema_path": "./linkml-definitions/dcat/dcat_dataset.yaml",
+        "schema_path": linkml_definitions_path / "dcat" / "dcat_dataset.yaml",
         "imports": imports_dcat_dataset,
         "output_path": "./outputs/sempyro_classes/dcat/dcat_dataset.py"
     },
     {
-        "schema_path": "./linkml-definitions/vcard/dcat_vcard.yaml",
+        "schema_path": linkml_definitions_path / "vcard" / "dcat_vcard.yaml",
         "imports": imports_dcat_dataset,
         "output_path": "./outputs/sempyro_classes/vcard/dcat_vcard.py",
         "add_rdf_model_to_class": ['DCATVCard']
     },
     {
-        "schema_path": "./linkml-definitions/foaf/foaf_agent.yaml",
+        "schema_path": linkml_definitions_path / "foaf" / "foaf_agent.yaml",
         "imports": imports_dcat_dataset,
         "output_path": "./outputs/sempyro_classes/foaf/foaf_agent.py",
         "add_rdf_model_to_class": ['FOAFAgent']
