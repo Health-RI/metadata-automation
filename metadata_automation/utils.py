@@ -8,6 +8,7 @@ TEMP_FOLDER = Path("./linkml-definitions/temp")
 def copy_temp_types() -> None:
     try:
         linkml_definitions_path = Path("./linkml-definitions")
+        TEMP_FOLDER.mkdir(parents=True, exist_ok=True)
 
         shutil.copy2(linkml_definitions_path / 'types.yaml',
                      TEMP_FOLDER / 'types.yaml')

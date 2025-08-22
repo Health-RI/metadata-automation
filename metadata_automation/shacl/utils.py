@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import yaml
 from linkml.generators import ShaclGenerator
 
@@ -55,8 +57,12 @@ def generate_from_linkml(link_dict):
 
     generator = ShaclGenerator(
         schema=link_dict['schema_path'],
-        include_annotations=True
+        include_annotations=True,
+        suffix="Shape",
+        mergeimports=False
     )
+
+    Path(link_dict['output_path']).parent.mkdir(parents=True, exist_ok=True)
 
     with open(link_dict['output_path'], 'w') as fname:
         fname.write(generator.serialize())
