@@ -166,6 +166,12 @@ class LinkMLCreator():
             if ':' in slot_row['SHACL range']:
                 slots[slot_name]['annotations']['sh:node'] = f"{slot_row['SHACL range']}Shape"
 
+            if slot_row['Pattern'] and slot_row['Pattern'] != 'nan':
+                slots[slot_name]['pattern'] = slot_row['Pattern']
+
+            if slot_row['Default value'] and slot_row['Default value'] != 'nan':
+                slots[slot_name]['ifabsent'] = slot_row['Default value']
+
         class_dict = {
             'class_uri': ontology_name,
             'slots': class_slots,
