@@ -1,0 +1,389 @@
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix dash: <http://datashapes.org/dash#> .
+@prefix dcat1: <https://www.w3.org/ns/dcat#> .
+@prefix dcatap: <http://data.europa.eu/r5r/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix dpv: <https://w3id.org/dpv#> .
+@prefix dqv: <http://www.w3.org/ns/dqv#> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix healthdcatap: <http://healthdataportal.eu/ns/health#> .
+@prefix hri: <http://data.health-ri.nl/core/p2/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+hri:DatasetShape a sh:NodeShape ;
+    sh:property [ dash:editor dash:BlankNodeEditor ;
+            dash:viewer dash:DetailsViewer ;
+            sh:description "An entity responsible for making the resource." ;
+            sh:minCount 1 ;
+            sh:name "creator" ;
+            sh:node hri:AgentShape ;
+            sh:order 7 ;
+            sh:path dct:creator ],
+        [ dash:editor dash:DateTimePickerEditor ;
+            dash:viewer dash:LiteralViewer ;
+            sh:datatype xsd:dateTime ;
+            sh:description "Date on which the resource was changed." ;
+            sh:maxCount 1 ;
+            sh:name "modification date" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 23 ;
+            sh:path dct:modified ;
+            sh:pattern "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,3})?(Z|[+-]\\d{2}:\\d{2})$" ],
+        [ dash:editor dash:TextFieldEditor ;
+            dash:viewer dash:LiteralViewer ;
+            sh:datatype xsd:string ;
+            sh:description "An account of the resource." ;
+            sh:minCount 1 ;
+            sh:name "description" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 8 ;
+            sh:path dct:description ],
+        [ dash:editor dash:DateTimePickerEditor ;
+            dash:viewer dash:LiteralViewer ;
+            sh:datatype xsd:dateTime ;
+            sh:description "Date of formal issuance of the resource." ;
+            sh:maxCount 1 ;
+            sh:name "release date" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 34 ;
+            sh:path dct:issued ;
+            sh:pattern "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,3})?(Z|[+-]\\d{2}:\\d{2})$" ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:LabelViewer ;
+            sh:description "Indicates association with Purpose." ;
+            sh:name "purpose" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 30 ;
+            sh:path dpv:hasPurpose ],
+        [ dash:editor dash:TextFieldEditor ;
+            dash:viewer dash:LiteralViewer ;
+            sh:datatype xsd:integer ;
+            sh:description "Maximum typical age of the population within the dataset" ;
+            sh:maxCount 1 ;
+            sh:name "maximum typical age" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 21 ;
+            sh:path healthdcatap:maxTypicalAge ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "Information about who access the resource or an indication of its security status." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "access rights" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 0 ;
+            sh:path dct:accessRights ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "A page or document about this thing." ;
+            sh:name "documentation" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 10 ;
+            sh:path foaf:page ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "Spatial characteristics of the resource." ;
+            sh:name "geographical coverage" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 12 ;
+            sh:path dct:spatial ],
+        [ dash:editor dash:BlankNodeEditor ;
+            dash:viewer dash:DetailsViewer ;
+            sh:description "Temporal characteristics of the resource." ;
+            sh:name "temporal coverage" ;
+            sh:node hri:PeriodOfTimeShape ;
+            sh:order 39 ;
+            sh:path dct:temporal ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "An established standard to which the described resource conforms." ;
+            sh:name "conforms to" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 5 ;
+            sh:path dct:conformsTo ],
+        [ dash:editor dash:TextFieldEditor ;
+            dash:viewer dash:LiteralViewer ;
+            sh:datatype xsd:string ;
+            sh:description "A keyword or tag describing the resource." ;
+            sh:minCount 1 ;
+            sh:name "keyword" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 18 ;
+            sh:path dcat1:keyword ],
+        [ dash:editor dash:BlankNodeEditor ;
+            dash:viewer dash:DetailsViewer ;
+            sh:description "Link to a description of a relationship with another resource." ;
+            sh:name "qualified relation" ;
+            sh:node hri:RelationShape ;
+            sh:order 32 ;
+            sh:path dcat1:qualifiedRelation ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "Coding systems in use (ex: ICD-10-CM, DGRs, SNOMED=CT, ...)" ;
+            sh:name "coding system" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 4 ;
+            sh:path healthdcatap:hasCodingSystem ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "A category of the Dataset or tag describing the Dataset." ;
+            sh:name "health theme" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 14 ;
+            sh:path healthdcatap:healthTheme ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "A related resource from which the described resource is derived." ;
+            sh:name "source" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 37 ;
+            sh:path dct:source ],
+        [ dash:editor dash:TextFieldEditor ;
+            dash:viewer dash:LiteralViewer ;
+            sh:datatype xsd:string ;
+            sh:description "The version indicator (name or identifier) of a resource." ;
+            sh:maxCount 1 ;
+            sh:name "version" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 44 ;
+            sh:path dcat1:version ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "The status of the Asset in the context of a particular workflow process." ;
+            sh:maxCount 1 ;
+            sh:name "status" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 38 ;
+            sh:path adms:status ],
+        [ dash:editor dash:BlankNodeEditor ;
+            dash:viewer dash:DetailsViewer ;
+            sh:description "Links a resource to an adms:Identifier class." ;
+            sh:name "other identifier" ;
+            sh:node hri:IdentifierShape ;
+            sh:order 26 ;
+            sh:path adms:identifier ],
+        [ dash:editor dash:TextFieldEditor ;
+            dash:viewer dash:LiteralViewer ;
+            sh:datatype xsd:string ;
+            sh:description "A definition of the population within the dataset" ;
+            sh:name "population coverage" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 28 ;
+            sh:path healthdcatap:populationCoverage ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "Indicates use or applicability of a Legal Basis." ;
+            sh:name "legal basis" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 20 ;
+            sh:path dpv:hasLegalBasis ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "The frequency with which items are added to a collection." ;
+            sh:maxCount 1 ;
+            sh:name "frequency" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 11 ;
+            sh:path dct:accrualPeriodicity ],
+        [ dash:editor dash:TextFieldEditor ;
+            dash:viewer dash:LiteralViewer ;
+            sh:datatype xsd:string ;
+            sh:description "A description of changes between this version and the previous version of the Asset." ;
+            sh:name "version notes" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 45 ;
+            sh:path adms:versionNotes ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "This resource has a more specific, versioned resource." ;
+            sh:name "has version" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 13 ;
+            sh:path dcat1:hasVersion ],
+        [ dash:editor dash:TextFieldEditor ;
+            dash:viewer dash:LiteralViewer ;
+            sh:datatype xsd:duration ;
+            sh:description "Minimum time period resolvable in the dataset." ;
+            sh:maxCount 1 ;
+            sh:name "temporal resolution" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 40 ;
+            sh:path dcat1:temporalResolution ],
+        [ dash:editor dash:BlankNodeEditor ;
+            dash:viewer dash:DetailsViewer ;
+            sh:description "Attribution is the ascribing of an entity to an agent." ;
+            sh:name "qualified attribution" ;
+            sh:node hri:AttributionShape ;
+            sh:order 31 ;
+            sh:path prov:qualifiedAttribution ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:defaultValue "http://data.europa.eu/eli/reg/2025/327/oj"^^xsd:anyURI ;
+            sh:description "The legislation that is applicable to this resource." ;
+            sh:minCount 1 ;
+            sh:name "applicable legislation" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path dcatap:applicableLegislation ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "Health classifications and their codes associated with the dataset" ;
+            sh:name "code values" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 3 ;
+            sh:path healthdcatap:hasCodeValues ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "An available Distribution for the Dataset." ;
+            sh:name "distribution" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 9 ;
+            sh:path dcat1:distribution ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "A related resource that references, cites, or otherwise points to the described resource." ;
+            sh:name "is referenced by" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 17 ;
+            sh:path dct:isReferencedBy ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "A language of the resource." ;
+            sh:name "language" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 19 ;
+            sh:path dct:language ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "Generation is the completion of production of a new entity by an activity. This entity did not exist before generation and becomes available for usage after this generation." ;
+            sh:name "was generated by" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 46 ;
+            sh:path prov:wasGeneratedBy ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "A main category of the resource. A resource can have multiple themes." ;
+            sh:minCount 1 ;
+            sh:name "theme" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 41 ;
+            sh:path dcat1:theme ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:LabelViewer ;
+            sh:description "Indicates association with Personal Data." ;
+            sh:name "personal data" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 27 ;
+            sh:path dpv:hasPersonalData ],
+        [ dash:editor dash:BlankNodeEditor ;
+            dash:viewer dash:DetailsViewer ;
+            sh:description "Refers to a quality annotation." ;
+            sh:name "quality annotation" ;
+            sh:node hri:QualityCertificateShape ;
+            sh:order 33 ;
+            sh:path dqv:hasQualityAnnotation ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "An analytics distribution of the dataset." ;
+            sh:name "analytics" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 1 ;
+            sh:path healthdcatap:analytics ],
+        [ dash:editor dash:TextFieldEditor ;
+            dash:viewer dash:LiteralViewer ;
+            sh:datatype xsd:integer ;
+            sh:description "Number of records for unique individuals." ;
+            sh:maxCount 1 ;
+            sh:name "number of unique infividuals" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 25 ;
+            sh:path healthdcatap:numberOfUniqueIndividuals ],
+        [ dash:editor dash:BlankNodeEditor ;
+            dash:viewer dash:DetailsViewer ;
+            sh:description "An entity responsible for making the resource available." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "publisher" ;
+            sh:node hri:AgentShape ;
+            sh:order 29 ;
+            sh:path dct:publisher ],
+        [ dash:editor dash:TextFieldEditor ;
+            dash:viewer dash:LiteralViewer ;
+            sh:datatype xsd:string ;
+            sh:description "An unambiguous reference to the resource within a given context." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "identifier" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 15 ;
+            sh:path dct:identifier ],
+        [ dash:editor dash:TextFieldEditor ;
+            dash:viewer dash:LiteralViewer ;
+            sh:datatype xsd:integer ;
+            sh:description "Size of the dataset in terms of the number of records" ;
+            sh:maxCount 1 ;
+            sh:name "number of records" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 24 ;
+            sh:path healthdcatap:numberOfRecords ],
+        [ dash:editor dash:BlankNodeEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "Relevant contact information for the cataloged resource." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "contact point" ;
+            sh:node hri:KindShape ;
+            sh:order 6 ;
+            sh:path dcat1:contactPoint ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "Links to a sample of an Asset (which is itself an Asset)." ;
+            sh:name "sample" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 36 ;
+            sh:path adms:sample ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "The nature or genre of the resource." ;
+            sh:name "type" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 43 ;
+            sh:path dct:type ],
+        [ dash:editor dash:TextFieldEditor ;
+            dash:viewer dash:LiteralViewer ;
+            sh:datatype xsd:integer ;
+            sh:description "Minimum typical age of the population within the dataset" ;
+            sh:maxCount 1 ;
+            sh:name "minimum typical age" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 22 ;
+            sh:path healthdcatap:minTypicalAge ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "A dataset series of which the dataset is part." ;
+            sh:name "in series" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 16 ;
+            sh:path dcat1:inSeries ],
+        [ dash:editor dash:BlankNodeEditor ;
+            dash:viewer dash:DetailsViewer ;
+            sh:description "A temporal period which the dataset is available for secondary use." ;
+            sh:maxCount 1 ;
+            sh:name "retention period" ;
+            sh:node hri:PeriodOfTimeShape ;
+            sh:order 35 ;
+            sh:path healthdcatap:retentionPeriod ],
+        [ dash:editor dash:TextFieldEditor ;
+            dash:viewer dash:LiteralViewer ;
+            sh:datatype xsd:string ;
+            sh:description "A name given to the resource." ;
+            sh:minCount 1 ;
+            sh:name "title" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 42 ;
+            sh:path dct:title ] ;
+    sh:targetClass hri:Dataset,
+        dcat1:Dataset .
+

@@ -1,0 +1,187 @@
+@prefix adms: <http://www.w3.org/ns/adms#> .
+@prefix dash: <http://datashapes.org/dash#> .
+@prefix dcat1: <https://www.w3.org/ns/dcat#> .
+@prefix dcatap: <http://data.europa.eu/r5r/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix hri: <http://data.health-ri.nl/core/p2/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+hri:DataServiceShape a sh:NodeShape ;
+    sh:property [ dash:editor dash:BlankNodeEditor ;
+            dash:viewer dash:DetailsViewer ;
+            sh:description "An entity responsible for making the resource." ;
+            sh:name "creator" ;
+            sh:node hri:AgentShape ;
+            sh:order 4 ;
+            sh:path dct:creator ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "The legislation that is applicable to this resource." ;
+            sh:name "applicable legislation" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 1 ;
+            sh:path dcatap:applicableLegislation ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "A main category of the resource. A resource can have multiple themes." ;
+            sh:minCount 1 ;
+            sh:name "theme" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 20 ;
+            sh:path dcat1:theme ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "The root location or primary endpoint of the service (a Web-resolvable IRI)." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "end point URL" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 8 ;
+            sh:path dcat1:endPointURL ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "A language of the resource." ;
+            sh:name "language" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 14 ;
+            sh:path dct:language ],
+        [ dash:editor dash:BlankNodeEditor ;
+            dash:viewer dash:DetailsViewer ;
+            sh:description "Links a resource to an adms:Identifier class." ;
+            sh:name "other identifier" ;
+            sh:node hri:IdentifierShape ;
+            sh:order 17 ;
+            sh:path adms:identifier ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "A Web page that can be navigated to in a Web browser to gain access to the catalog, a dataset, its distributions and/or additional information." ;
+            sh:name "landing Page" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 13 ;
+            sh:path dcat1:landingPage ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "A collection of data that this data service can distribute." ;
+            sh:name "serves dataset" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 19 ;
+            sh:path dcat1:servesDataset ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "An established standard to which the described resource conforms." ;
+            sh:name "application profile" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 2 ;
+            sh:path dct:conformsTo ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "Information about who access the resource or an indication of its security status." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "access rights" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 0 ;
+            sh:path dct:accessRights ],
+        [ dash:editor dash:BlankNodeEditor ;
+            dash:viewer dash:DetailsViewer ;
+            sh:description "Relevant contact information for the cataloged resource." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "contact point" ;
+            sh:node hri:KindShape ;
+            sh:order 3 ;
+            sh:path dcat1:contactPoint ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "A legal document giving official permission to do something with the resource." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "licence" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 15 ;
+            sh:path dct:license ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "A data category defined in the High Value Dataset Implementing Regulation." ;
+            sh:name "HVD Category" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 10 ;
+            sh:path dcatap:hvdCategory ],
+        [ dash:editor dash:DateTimePickerEditor ;
+            dash:viewer dash:LiteralViewer ;
+            sh:datatype xsd:dateTime ;
+            sh:description "Date on which the resource was changed." ;
+            sh:maxCount 1 ;
+            sh:name "modification date" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 16 ;
+            sh:path dct:modified ;
+            sh:pattern "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,3})?(Z|[+-]\\d{2}:\\d{2})$" ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "A description of the services available via the end-points, including their operations, parameters etc." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "end point description" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 7 ;
+            sh:path dcat1:endpointDescription ],
+        [ dash:editor dash:TextAreaEditor ;
+            dash:viewer dash:LiteralViewer ;
+            sh:datatype xsd:string ;
+            sh:description "A keyword or tag describing the resource." ;
+            sh:name "keyword" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 12 ;
+            sh:path dcat1:keyword ],
+        [ dash:editor dash:BlankNodeEditor ;
+            dash:viewer dash:DetailsViewer ;
+            sh:description "An entity responsible for making the resource available." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "publisher" ;
+            sh:node hri:AgentShape ;
+            sh:order 18 ;
+            sh:path dct:publisher ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "Information about rights held in and over the resource." ;
+            sh:name "rights" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 5 ;
+            sh:path dct:rights ],
+        [ sh:description "A name given to the resource." ;
+            sh:minCount 1 ;
+            sh:name "title" ;
+            sh:order 21 ;
+            sh:path dct:title ],
+        [ dash:editor dash:TextAreaEditor ;
+            dash:viewer dash:LiteralViewer ;
+            sh:datatype xsd:string ;
+            sh:description "An unambiguous reference to the resource within a given context." ;
+            sh:maxCount 1 ;
+            sh:minCount 1 ;
+            sh:name "identifier" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 11 ;
+            sh:path dct:identifier ],
+        [ dash:editor dash:URIEditor ;
+            dash:viewer dash:URIViewer ;
+            sh:description "The file format, physical medium, or dimensions of the resource." ;
+            sh:name "format" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 9 ;
+            sh:path dct:format ],
+        [ dash:editor dash:TextAreaEditor ;
+            dash:viewer dash:LiteralViewer ;
+            sh:datatype xsd:string ;
+            sh:description "An account of the resource." ;
+            sh:minCount 1 ;
+            sh:name "description" ;
+            sh:nodeKind sh:Literal ;
+            sh:order 6 ;
+            sh:path dct:description ] ;
+    sh:targetClass hri:DataService,
+        dcat1:DataService .
+

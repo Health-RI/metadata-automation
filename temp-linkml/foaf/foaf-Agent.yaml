@@ -1,0 +1,124 @@
+id: http://xmlns.com/foaf/0.1/Agent
+title: foaf-Agent
+description: foaf-Agent
+prefixes:
+  linkml: https://w3id.org/linkml/
+  dcat: https://www.w3.org/ns/dcat#
+  dct: http://purl.org/dc/terms/
+  xsd: http://www.w3.org/2001/XMLSchema#
+  adms: http://www.w3.org/ns/adms#
+  adms_status: http://purl.org/adms/status/
+  odrl2: http://www.w3.org/ns/odrl/2/
+  prov: http://www.w3.org/ns/prov#
+  dcatv3: https://www.w3.org/ns/dcat/3#
+  vcard: http://www.w3.org/2006/vcard/ns#
+  foaf: http://xmlns.com/foaf/0.1/
+  dash: http://datashapes.org/dash#
+  schema: http://schema.org
+  spdx: http://spdx.org/rdf/terms#
+  owl: http://www.w3.org/2002/07/owl#
+  disco: http://rdf-vocabulary.ddialliance.org/discovery#
+  skosthes: http://purl.org/iso25964/skos-thes#
+  skos: http://www.w3.org/2004/02/skos/core#
+  rdfs: http://www.w3.org/2000/01/rdf-schema#
+  qb: http://purl.org/linked-data/cube#
+  healthdcatap: http://healthdataportal.eu/ns/health#
+  doap: http://usefulinc.com/ns/doap#
+  sh: http://www.w3.org/ns/shacl#
+  euvoc: http://publications.europa.eu/ontology/euvoc#
+  hri: http://data.health-ri.nl/core/p2/
+  dcatap: http://data.europa.eu/r5r/
+  org: http://www.w3.org/ns/org#
+  skosxl: http://www.w3.org/2008/05/skos-xl#
+  rdf: http://www.w3.org/1999/02/22-rdf-syntax-ns#
+  dc: http://purl.org/dc/elements/1.1/
+imports:
+- linkml:types
+classes:
+  FOAFAgent:
+    class_uri: foaf:Agent
+    slots:
+    - country
+    - email
+    - identifier
+    - name
+    - publisher_note
+    - publisher_type
+    - type
+    - URL
+slots:
+  country:
+    description: Spatial characteristics of the resource.
+    slot_uri: dct:spatial
+    range: uri
+    annotations:
+      dash:viewer: dash:URIViewer
+      dash:editor: dash:URIEditor
+    required: false
+    multivalued: true
+  email:
+    description: 'A email address via which contact can be made. This property SHOULD
+      be used to provide the email address of the Agent, specified using fully qualified
+      mailto: URI scheme [RFC6068]. The email SHOULD be used to establish a communication
+      channel to the agent.'
+    slot_uri: foaf:mbox
+    range: uri
+    annotations:
+      dash:viewer: dash:URIViewer
+      dash:editor: dash:URIEditor
+    required: true
+    multivalued: false
+  identifier:
+    description: An unambiguous reference to the resource within a given context.
+    slot_uri: dct:identifier
+    range: string
+    annotations:
+      dash:viewer: dash:LiteralViewer
+      dash:editor: dash:TextAreaEditor
+    required: true
+    multivalued: true
+  name:
+    description: A name for some thing.
+    slot_uri: foaf:name
+    range: string
+    annotations:
+      dash:viewer: dash:LiteralViewer
+      dash:editor: dash:TextAreaEditor
+    required: true
+    multivalued: true
+  publisher_note:
+    description: A description of the publisher activities.
+    slot_uri: healthdcatap:publishernote
+    range: string
+    annotations:
+      dash:viewer: dash:LiteralViewer
+      dash:editor: dash:TextAreaEditor
+    required: false
+    multivalued: false
+  publisher_type:
+    description: A type of organisation that makes the Dataset available.
+    slot_uri: healthdcatap:publishertype
+    range: uri
+    annotations:
+      dash:viewer: dash:URIViewer
+      dash:editor: dash:URIEditor
+    required: false
+    multivalued: false
+  type:
+    description: The nature or genre of the resource.
+    slot_uri: dct:type
+    range: uri
+    annotations:
+      dash:viewer: dash:URIViewer
+      dash:editor: dash:URIEditor
+    required: false
+    multivalued: false
+  URL:
+    description: A homepage for some thing.
+    slot_uri: foaf:homepage
+    range: uri
+    annotations:
+      dash:viewer: dash:URIViewer
+      dash:editor: dash:URIEditor
+    required: true
+    multivalued: false

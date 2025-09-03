@@ -1,0 +1,600 @@
+id: http://data.health-ri.nl/core/p2/Dataset
+title: hri-Dataset
+description: hri-Dataset
+prefixes:
+  linkml: https://w3id.org/linkml/
+  dcat: https://www.w3.org/ns/dcat#
+  dct: http://purl.org/dc/terms/
+  xsd: http://www.w3.org/2001/XMLSchema#
+  adms: http://www.w3.org/ns/adms#
+  adms_status: http://purl.org/adms/status/
+  odrl2: http://www.w3.org/ns/odrl/2/
+  prov: http://www.w3.org/ns/prov#
+  dcatv3: https://www.w3.org/ns/dcat/3#
+  vcard: http://www.w3.org/2006/vcard/ns#
+  foaf: http://xmlns.com/foaf/0.1/
+  dash: http://datashapes.org/dash#
+  spdx: http://spdx.org/rdf/terms#
+  owl: http://www.w3.org/2002/07/owl#
+  disco: http://rdf-vocabulary.ddialliance.org/discovery#
+  skosthes: http://purl.org/iso25964/skos-thes#
+  skos: http://www.w3.org/2004/02/skos/core#
+  rdfs: http://www.w3.org/2000/01/rdf-schema#
+  qb: http://purl.org/linked-data/cube#
+  healthdcatap: http://healthdataportal.eu/ns/health#
+  doap: http://usefulinc.com/ns/doap#
+  sh: http://www.w3.org/ns/shacl#
+  euvoc: http://publications.europa.eu/ontology/euvoc#
+  hri: http://data.health-ri.nl/core/p2/
+  dcatap: http://data.europa.eu/r5r/
+  org: http://www.w3.org/ns/org#
+  skosxl: http://www.w3.org/2008/05/skos-xl#
+  rdf: http://www.w3.org/1999/02/22-rdf-syntax-ns#
+  dc: http://purl.org/dc/elements/1.1/
+  dqv: http://www.w3.org/ns/dqv#
+  dpv: https://w3id.org/dpv#
+  dqv-pd: https://w3id.org/dpv/dpv-pd#
+imports:
+- linkml:types
+types:
+  nonNegativeInteger:
+    uri: xsd:nonNegativeInteger
+    base: int
+  duration:
+    uri: xsd:duration
+    base: str
+classes:
+  HRIDataset:
+    class_uri: hri:Dataset
+    slots:
+    - access_rights
+    - analytics
+    - applicable_legislation
+    - code_values
+    - coding_system
+    - conforms_to
+    - contact_point
+    - creator
+    - description
+    - distribution
+    - documentation
+    - frequency
+    - geographical_coverage
+    - has_version
+    - health_theme
+    - identifier
+    - in_series
+    - is_referenced_by
+    - keyword
+    - language
+    - legal_basis
+    - maximum_typical_age
+    - minimum_typical_age
+    - modification_date
+    - number_of_records
+    - number_of_unique_infividuals
+    - other_identifier
+    - personal_data
+    - population_coverage
+    - publisher
+    - purpose
+    - qualified_attribution
+    - qualified_relation
+    - quality_annotation
+    - release_date
+    - retention_period
+    - sample
+    - source
+    - status
+    - temporal_coverage
+    - temporal_resolution
+    - theme
+    - title
+    - type
+    - version
+    - version_notes
+    - was_generated_by
+    annotations:
+      sh:targetClass: dcat:Dataset
+  HRIKind:
+    class_uri: hri:Kind
+  HRIAgent:
+    class_uri: hri:Agent
+  HRIIdentifier:
+    class_uri: hri:Identifier
+  HRIAttribution:
+    class_uri: hri:Attribution
+  HRIRelation:
+    class_uri: hri:Relation
+  HRIQualitycertificate:
+    class_uri: hri:QualityCertificate
+  HRIPeriodoftime:
+    class_uri: hri:PeriodOfTime
+slots:
+  access_rights:
+    title: access rights
+    description: Information about who access the resource or an indication of its
+      security status.
+    slot_uri: dct:accessRights
+    annotations:
+      dash:viewer: dash:URIViewer
+      dash:editor: dash:EnumSelectEditor
+    required: true
+    multivalued: false
+    range: uri
+  analytics:
+    title: analytics
+    description: An analytics distribution of the dataset.
+    slot_uri: healthdcatap:analytics
+    annotations:
+      dash:viewer: dash:URIViewer
+      dash:editor: dash:URIEditor
+    required: false
+    multivalued: true
+    range: uri
+  applicable_legislation:
+    title: applicable legislation
+    description: The legislation that is applicable to this resource.
+    slot_uri: dcatap:applicableLegislation
+    annotations:
+      dash:viewer: dash:URIViewer
+      dash:editor: dash:URIEditor
+      sh:defaultValue: http://data.europa.eu/eli/reg/2025/327/oj
+    required: true
+    multivalued: true
+    range: uri
+  code_values:
+    title: code values
+    description: Health classifications and their codes associated with the dataset
+    slot_uri: healthdcatap:hasCodeValues
+    annotations:
+      dash:viewer: dash:URIViewer
+      dash:editor: dash:URIEditor
+    required: false
+    multivalued: true
+    range: uri
+  coding_system:
+    title: coding system
+    description: 'Coding systems in use (ex: ICD-10-CM, DGRs, SNOMED=CT, ...)'
+    slot_uri: healthdcatap:hasCodingSystem
+    annotations:
+      dash:viewer: dash:URIViewer
+      dash:editor: dash:URIEditor
+    required: false
+    multivalued: true
+    range: uri
+  conforms_to:
+    title: conforms to
+    description: An established standard to which the described resource conforms.
+    slot_uri: dct:conformsTo
+    annotations:
+      dash:viewer: dash:URIViewer
+      dash:editor: dash:URIEditor
+    required: false
+    multivalued: true
+    range: uri
+  contact_point:
+    title: contact point
+    description: Relevant contact information for the cataloged resource.
+    slot_uri: dcat:contactPoint
+    annotations:
+      dash:viewer: dash:URIViewer
+      dash:editor: dash:BlankNodeEditor
+      sh:node: hri:KindShape
+    required: true
+    multivalued: false
+    range: HRIKind
+  creator:
+    title: creator
+    description: An entity responsible for making the resource.
+    slot_uri: dct:creator
+    annotations:
+      dash:viewer: dash:DetailsViewer
+      dash:editor: dash:BlankNodeEditor
+      sh:node: hri:AgentShape
+    required: true
+    multivalued: true
+    range: HRIAgent
+  description:
+    title: description
+    description: An account of the resource.
+    slot_uri: dct:description
+    annotations:
+      dash:viewer: dash:LiteralViewer
+      dash:editor: dash:TextFieldEditor
+    required: true
+    multivalued: true
+    range: string
+  distribution:
+    title: distribution
+    description: An available Distribution for the Dataset.
+    slot_uri: dcat:distribution
+    annotations:
+      dash:viewer: dash:URIViewer
+      dash:editor: dash:URIEditor
+    required: false
+    multivalued: true
+    range: uri
+  documentation:
+    title: documentation
+    description: A page or document about this thing.
+    slot_uri: foaf:page
+    annotations:
+      dash:viewer: dash:URIViewer
+      dash:editor: dash:URIEditor
+    required: false
+    multivalued: true
+    range: uri
+  frequency:
+    title: frequency
+    description: The frequency with which items are added to a collection.
+    slot_uri: dct:accrualPeriodicity
+    annotations:
+      dash:viewer: dash:URIViewer
+      dash:editor: dash:URIEditor
+    required: false
+    multivalued: false
+    range: uri
+  geographical_coverage:
+    title: geographical coverage
+    description: Spatial characteristics of the resource.
+    slot_uri: dct:spatial
+    annotations:
+      dash:viewer: dash:URIViewer
+      dash:editor: dash:URIEditor
+    required: false
+    multivalued: true
+    range: uri
+  has_version:
+    title: has version
+    description: This resource has a more specific, versioned resource.
+    slot_uri: dcat:hasVersion
+    annotations:
+      dash:viewer: dash:URIViewer
+      dash:editor: dash:URIEditor
+    required: false
+    multivalued: true
+    range: uri
+  health_theme:
+    title: health theme
+    description: A category of the Dataset or tag describing the Dataset.
+    slot_uri: healthdcatap:healthTheme
+    annotations:
+      dash:viewer: dash:URIViewer
+      dash:editor: dash:URIEditor
+    required: false
+    multivalued: true
+    range: uri
+  identifier:
+    title: identifier
+    description: An unambiguous reference to the resource within a given context.
+    slot_uri: dct:identifier
+    annotations:
+      dash:viewer: dash:LiteralViewer
+      dash:editor: dash:TextFieldEditor
+    required: true
+    multivalued: false
+    range: string
+  in_series:
+    title: in series
+    description: A dataset series of which the dataset is part.
+    slot_uri: dcat:inSeries
+    annotations:
+      dash:viewer: dash:URIViewer
+      dash:editor: dash:URIEditor
+    required: false
+    multivalued: true
+    range: uri
+  is_referenced_by:
+    title: is referenced by
+    description: A related resource that references, cites, or otherwise points to
+      the described resource.
+    slot_uri: dct:isReferencedBy
+    annotations:
+      dash:viewer: dash:URIViewer
+      dash:editor: dash:URIEditor
+    required: false
+    multivalued: true
+    range: uri
+  keyword:
+    title: keyword
+    description: A keyword or tag describing the resource.
+    slot_uri: dcat:keyword
+    annotations:
+      dash:viewer: dash:LiteralViewer
+      dash:editor: dash:TextFieldEditor
+    required: true
+    multivalued: true
+    range: string
+  language:
+    title: language
+    description: A language of the resource.
+    slot_uri: dct:language
+    annotations:
+      dash:viewer: dash:URIViewer
+      dash:editor: dash:URIEditor
+    required: false
+    multivalued: true
+    range: uri
+  legal_basis:
+    title: legal basis
+    description: Indicates use or applicability of a Legal Basis.
+    slot_uri: dpv:hasLegalBasis
+    annotations:
+      dash:viewer: dash:URIViewer
+      dash:editor: dash:URIEditor
+    required: false
+    multivalued: true
+    range: uri
+  maximum_typical_age:
+    title: maximum typical age
+    description: Maximum typical age of the population within the dataset
+    slot_uri: healthdcatap:maxTypicalAge
+    annotations:
+      dash:viewer: dash:LiteralViewer
+      dash:editor: dash:TextFieldEditor
+    required: false
+    multivalued: false
+    range: integer
+  minimum_typical_age:
+    title: minimum typical age
+    description: Minimum typical age of the population within the dataset
+    slot_uri: healthdcatap:minTypicalAge
+    annotations:
+      dash:viewer: dash:LiteralViewer
+      dash:editor: dash:TextFieldEditor
+    required: false
+    multivalued: false
+    range: integer
+  modification_date:
+    title: modification date
+    description: Date on which the resource was changed.
+    slot_uri: dct:modified
+    annotations:
+      dash:viewer: dash:LiteralViewer
+      dash:editor: dash:DateTimePickerEditor
+    required: false
+    multivalued: false
+    range: datetime
+    pattern: ^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,3})?(Z|[+-]\\d{2}:\\d{2})$
+  number_of_records:
+    title: number of records
+    description: Size of the dataset in terms of the number of records
+    slot_uri: healthdcatap:numberOfRecords
+    annotations:
+      dash:viewer: dash:LiteralViewer
+      dash:editor: dash:TextFieldEditor
+    required: false
+    multivalued: false
+    range: integer
+  number_of_unique_infividuals:
+    title: number of unique infividuals
+    description: Number of records for unique individuals.
+    slot_uri: healthdcatap:numberOfUniqueIndividuals
+    annotations:
+      dash:viewer: dash:LiteralViewer
+      dash:editor: dash:TextFieldEditor
+    required: false
+    multivalued: false
+    range: integer
+  other_identifier:
+    title: other identifier
+    description: Links a resource to an adms:Identifier class.
+    slot_uri: adms:identifier
+    annotations:
+      dash:viewer: dash:DetailsViewer
+      dash:editor: dash:BlankNodeEditor
+      sh:node: hri:IdentifierShape
+    required: false
+    multivalued: true
+    range: HRIIdentifier
+  personal_data:
+    title: personal data
+    description: Indicates association with Personal Data.
+    slot_uri: dpv:hasPersonalData
+    annotations:
+      dash:viewer: dash:LabelViewer
+      dash:editor: dash:URIEditor
+    required: false
+    multivalued: true
+    range: uri
+  population_coverage:
+    title: population coverage
+    description: A definition of the population within the dataset
+    slot_uri: healthdcatap:populationCoverage
+    annotations:
+      dash:viewer: dash:LiteralViewer
+      dash:editor: dash:TextFieldEditor
+    required: false
+    multivalued: true
+    range: string
+  publisher:
+    title: publisher
+    description: An entity responsible for making the resource available.
+    slot_uri: dct:publisher
+    annotations:
+      dash:viewer: dash:DetailsViewer
+      dash:editor: dash:BlankNodeEditor
+      sh:node: hri:AgentShape
+    required: true
+    multivalued: false
+    range: HRIAgent
+  purpose:
+    title: purpose
+    description: Indicates association with Purpose.
+    slot_uri: dpv:hasPurpose
+    annotations:
+      dash:viewer: dash:LabelViewer
+      dash:editor: dash:URIEditor
+    required: false
+    multivalued: true
+    range: uri
+  qualified_attribution:
+    title: qualified attribution
+    description: Attribution is the ascribing of an entity to an agent.
+    slot_uri: prov:qualifiedAttribution
+    annotations:
+      dash:viewer: dash:DetailsViewer
+      dash:editor: dash:BlankNodeEditor
+      sh:node: hri:AttributionShape
+    required: false
+    multivalued: true
+    range: HRIAttribution
+  qualified_relation:
+    title: qualified relation
+    description: Link to a description of a relationship with another resource.
+    slot_uri: dcat:qualifiedRelation
+    annotations:
+      dash:viewer: dash:DetailsViewer
+      dash:editor: dash:BlankNodeEditor
+      sh:node: hri:RelationShape
+    required: false
+    multivalued: true
+    range: HRIRelation
+  quality_annotation:
+    title: quality annotation
+    description: Refers to a quality annotation.
+    slot_uri: dqv:hasQualityAnnotation
+    annotations:
+      dash:viewer: dash:DetailsViewer
+      dash:editor: dash:BlankNodeEditor
+      sh:node: hri:QualityCertificateShape
+    required: false
+    multivalued: true
+    range: HRIQualitycertificate
+  release_date:
+    title: release date
+    description: Date of formal issuance of the resource.
+    slot_uri: dct:issued
+    annotations:
+      dash:viewer: dash:LiteralViewer
+      dash:editor: dash:DateTimePickerEditor
+    required: false
+    multivalued: false
+    range: datetime
+    pattern: ^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,3})?(Z|[+-]\\d{2}:\\d{2})$
+  retention_period:
+    title: retention period
+    description: A temporal period which the dataset is available for secondary use.
+    slot_uri: healthdcatap:retentionPeriod
+    annotations:
+      dash:viewer: dash:DetailsViewer
+      dash:editor: dash:BlankNodeEditor
+      sh:node: hri:PeriodOfTimeShape
+    required: false
+    multivalued: false
+    range: HRIPeriodoftime
+  sample:
+    title: sample
+    description: Links to a sample of an Asset (which is itself an Asset).
+    slot_uri: adms:sample
+    annotations:
+      dash:viewer: dash:URIViewer
+      dash:editor: dash:URIEditor
+    required: false
+    multivalued: true
+    range: uri
+  source:
+    title: source
+    description: A related resource from which the described resource is derived.
+    slot_uri: dct:source
+    annotations:
+      dash:viewer: dash:URIViewer
+      dash:editor: dash:URIEditor
+    required: false
+    multivalued: true
+    range: uri
+  status:
+    title: status
+    description: The status of the Asset in the context of a particular workflow process.
+    slot_uri: adms:status
+    annotations:
+      dash:viewer: dash:URIViewer
+      dash:editor: dash:URIEditor
+    required: false
+    multivalued: false
+    range: uri
+  temporal_coverage:
+    title: temporal coverage
+    description: Temporal characteristics of the resource.
+    slot_uri: dct:temporal
+    annotations:
+      dash:viewer: dash:DetailsViewer
+      dash:editor: dash:BlankNodeEditor
+      sh:node: hri:PeriodOfTimeShape
+    required: false
+    multivalued: true
+    range: HRIPeriodoftime
+  temporal_resolution:
+    title: temporal resolution
+    description: Minimum time period resolvable in the dataset.
+    slot_uri: dcat:temporalResolution
+    annotations:
+      dash:viewer: dash:LiteralViewer
+      dash:editor: dash:TextFieldEditor
+    required: false
+    multivalued: false
+    range: duration
+  theme:
+    title: theme
+    description: A main category of the resource. A resource can have multiple themes.
+    slot_uri: dcat:theme
+    annotations:
+      dash:viewer: dash:URIViewer
+      dash:editor: dash:URIEditor
+    required: true
+    multivalued: true
+    range: uri
+  title:
+    title: title
+    description: A name given to the resource.
+    slot_uri: dct:title
+    annotations:
+      dash:viewer: dash:LiteralViewer
+      dash:editor: dash:TextFieldEditor
+    required: true
+    multivalued: true
+    range: string
+  type:
+    title: type
+    description: The nature or genre of the resource.
+    slot_uri: dct:type
+    annotations:
+      dash:viewer: dash:URIViewer
+      dash:editor: dash:URIEditor
+    required: false
+    multivalued: true
+    range: uri
+  version:
+    title: version
+    description: The version indicator (name or identifier) of a resource.
+    slot_uri: dcat:version
+    annotations:
+      dash:viewer: dash:LiteralViewer
+      dash:editor: dash:TextFieldEditor
+    required: false
+    multivalued: false
+    range: string
+  version_notes:
+    title: version notes
+    description: A description of changes between this version and the previous version
+      of the Asset.
+    slot_uri: adms:versionNotes
+    annotations:
+      dash:viewer: dash:LiteralViewer
+      dash:editor: dash:TextFieldEditor
+    required: false
+    multivalued: true
+    range: string
+  was_generated_by:
+    title: was generated by
+    description: Generation is the completion of production of a new entity by an
+      activity. This entity did not exist before generation and becomes available
+      for usage after this generation.
+    slot_uri: prov:wasGeneratedBy
+    annotations:
+      dash:viewer: dash:URIViewer
+      dash:editor: dash:URIEditor
+    required: false
+    multivalued: true
+    range: uri

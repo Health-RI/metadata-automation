@@ -213,6 +213,30 @@ def remove_ignored_properties(shacl_file_path):
     g.serialize(destination=shacl_file_path, format="turtle")
 
 
+def remove_closed_properties(shacl_file_path):
+    """
+    Remove sh:closed from all sh:NodeShapes in a SHACL file.
+    """
+    SH = Namespace("http://www.w3.org/ns/shacl#")
+
+    # Load the SHACL file
+    g = Graph()
+    g.parse(shacl_file_path, format="turtle")
+
+    # Find all NodeShapes
+    node_shapes = list(g.subjects(RDF.type, SH.NodeShape))
+
+    # Remove sh:closed from each NodeShape
+    for node_shape in node_shapes:
+        closed_props_triples = list(g.triples((node_shape, SH.closed, None)))
+        for triple in closed_props_triples:
+            g.remove(triple)
+            print(f"Removed sh:closed from {node_shape}")
+
+    # Write back to file
+    g.serialize(destination=shacl_file_path, format="turtle")
+
+
 def remove_anyuri_datatype(shacl_file_path):
     """
     Remove sh:datatype xsd:anyURI from properties that have it defined.

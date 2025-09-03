@@ -1,0 +1,27 @@
+@prefix dash: <http://datashapes.org/dash#> .
+@prefix dcat1: <https://www.w3.org/ns/dcat#> .
+@prefix hri: <http://data.health-ri.nl/core/p2/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+hri:AttributionShape a sh:NodeShape ;
+    sh:property [ dash:editor dash:URIEditor ;
+            dash:viewer dash:LabelViewer ;
+            sh:description "The function of an entity or agent with respect to another entity or resource." ;
+            sh:maxCount 1 ;
+            sh:name "role" ;
+            sh:nodeKind sh:IRI ;
+            sh:order 1 ;
+            sh:path dcat1:hadRole ],
+        [ dash:editor dash:BlankNodeEditor ;
+            dash:viewer dash:DetailsViewer ;
+            sh:description "The prov:agent property references an prov:Agent which influenced a resource." ;
+            sh:maxCount 1 ;
+            sh:name "agent" ;
+            sh:node hri:AgentShape ;
+            sh:order 0 ;
+            sh:path prov:agent ] ;
+    sh:targetClass hri:Attribution,
+        prov:Attribution .
+
