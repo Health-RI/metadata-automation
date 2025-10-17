@@ -84,6 +84,54 @@ This follows a different structure to the other properties. The generation of th
 In the current version of the pipeline creates an empty Turtle file for the Resource class, since there are no properties defined.
 To test the SHACLs, the SHACL of Health-RI is used.
 
+### Generating SHACLPlay Excel files
+```bash
+python gen_shaclplay.py
+```
+
+This script converts the Health-RI metadata Excel file directly to SHACLPlay-compatible Excel format without going through LinkML. The generated files can be imported into [SHACLPlay](https://shacl-play.sparna.fr/) for visual SHACL shape editing and validation.
+
+The conversion process:
+- Reads prefixes from the 'prefixes' sheet and converts them to SHACLPlay format
+- Reads class configuration from the 'classes' sheet in the input Excel
+- For each class, converts properties to SHACLPlay PropertyShapes format
+- Handles cardinality parsing (e.g., "0..n" → minCount=0, maxCount=unbounded)
+- Converts SHACL ranges to appropriate sh:nodeKind or sh:datatype
+- Infers sh:node references for complex object types
+- Maps controlled vocabulary URLs to sh:in value lists (where configured)
+- Generates properly formatted 3-sheet Excel files (prefixes, NodeShapes, PropertyShapes)
+
+Output files are written to `./outputs/shaclplay/SHACL-{classname}.xlsx`
+
+**Controlled Vocabulary Mappings:**
+The converter includes a mapping system for controlled vocabularies in `metadata_automation/shaclplay/vocab_mappings.py`. Currently mapped:
+- `access-right` → `( eu:PUBLIC eu:RESTRICTED eu:NON_PUBLIC )`
+
+Additional vocabulary mappings can be added by extending the `VOCAB_MAPPINGS` dictionary.
+
+### Converting SHACLPlay Excel to SHACL Turtle files
+```bash
+python gen_shacls_from_shaclplay.py
+```
+
+This script converts the SHACLPlay Excel files to SHACL Turtle format using the xls2rdf tool. It:
+- Finds all SHACLPlay Excel files in `./outputs/shaclplay/`
+- Converts each to Turtle format using `xls2rdf-app-3.2.1-onejar.jar`
+- Outputs SHACL files to `./outputs/shacl_shapes/{classname}.ttl`
+
+**Requirements:**
+- Java must be installed and available in your PATH
+- The xls2rdf JAR file must be at `./inputs/shacls/xls2rdf-app-3.2.1-onejar.jar`
+
+**Complete Pipeline:**
+```bash
+# Step 1: Generate SHACLPlay Excel files from source
+python gen_shaclplay.py
+
+# Step 2: Convert SHACLPlay Excel to SHACL Turtle
+python gen_shacls_from_shaclplay.py
+```
+
 ### Generating UML diagrams
 ```bash
 gen-plantuml ./linkml-definitions/dcat/dcat_dataset.yaml --classes DCATDataset --classes DCATResource --directory ./tmp --classes FOAFAgent --classes DCATVCard

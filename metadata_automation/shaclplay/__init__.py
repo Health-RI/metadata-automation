@@ -1,0 +1,1 @@
+"""SHACLPlay Excel converter module."""
