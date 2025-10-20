@@ -41,49 +41,6 @@ In the Excel file there are three types of sheets:
 
 The direct-to-artifact pipelines take this Excel, creates LinkML definitions specific for the type of artifact on the fly, and then creates the artifact.
 
-### Generating LinkML
-```bash
-python 0_gen_linkml.py
-```
-Besides the direct-to-artifact pipelines, this script generates the LinkML files designed for the SHACL generation.
-The output directory is currently hardcoded to './temp-linkml'. 
-The creation of LinkML is done using methods of the class `LinkMLCreator()`, in `metadata_automation/linkml/creator`.
-For SHACLs the methods `build_base_class` and `build_shacl_class` are used.
-
-### Generating SHACL shapes
-```bash
-python gen_shacls.py
-```
-
-The creation of LinkML is done using methods of the class `LinkMLCreator()`, in `metadata_automation/linkml/creator`.
-For SHACLs the methods `build_base_class` and `build_shacl_class` are used.
-
-If the key and/or value in a class or property/slot under 'annotations' contains ':' , it will be parsed as an URI.
-
-The SHACLs are currently generated with all properties 'inline', which matches HealthDCAT-AP. The previous
-Health-RI v2 SHACLs had the properties separately.
-
-After generating the SHACLs with the LinkML SHACL generator, a number of corrections are made to try to match it 
-with the Health-RI SHACLs or just to get it to work:
-- `remove_redundant_constraints`: Removes all class stubs needed to define the range of some properties. Importing the real classes from other LinkML definitions did not work due to an overlap in properties. Removes `sh:class` and `sh:nodeKind` if `sh:node` is defined. `sh:node` is added during the creation of the LinkML when the range points to another class, e.g., `hri:Agent`.
-- `fix_uri_node_kinds`: If `sh:datatype` is `xsd:anyURI`, `sh:nodeKind` is replaced with `sh:IRI`.
-- `remove_ignored_properties`: By default the predicate `sh:ignoredProperties ( rdf:type )` is added on the class level; this seemed to interfere when using it in the FDP, so it is removed.
-- `remove_closed_properties`: By default the predicate `sh:closed` is added on the class level. This is removed to try to get the SHACLs to match.
-- `remove_anyuri_datatype`: Removes the `sh:datatype xsd:anyURI` statement from the properties. Also to get it to work in the FDP/match it to the current SHACLs.
-- `remove_empty_node`: Removing the class stubs caused empty nodes to appear in the SHACLs. This step removes these. 
-
-In the Health-RI SHACLs, for the Distribution class, there is a property `dcat:accessService`:
-```
-<http://data.health-ri.nl/core/p2/DistributionShape#dcat:accessService> sh:path dcat:accessService;
-  sh:name "access service"@en;
-  sh:maxCount 1;
-  sh:class dcat:DataService .
-```
-This follows a different structure to the other properties. The generation of this property needs to be incorporated in the pipeline.
-
-In the current version of the pipeline creates an empty Turtle file for the Resource class, since there are no properties defined.
-To test the SHACLs, the SHACL of Health-RI is used.
-
 ### Generating SHACLPlay Excel files
 ```bash
 python gen_shaclplay.py
@@ -117,11 +74,11 @@ python gen_shacls_from_shaclplay.py
 This script converts the SHACLPlay Excel files to SHACL Turtle format using the xls2rdf tool. It:
 - Finds all SHACLPlay Excel files in `./outputs/shaclplay/`
 - Converts each to Turtle format using `xls2rdf-app-3.2.1-onejar.jar`
-- Outputs SHACL files to `./outputs/shacl_shapes/{classname}.ttl`
+- Outputs SHACL files to `./outputs/shacl_shapes/{namespace}/{namespace}-{classname}.ttl`
 
 **Requirements:**
 - Java must be installed and available in your PATH
-- The xls2rdf JAR file must be at `./inputs/shacls/xls2rdf-app-3.2.1-onejar.jar`
+- The xls2rdf JAR file must be at `./inputs/shacls/xls2rdf-app-3.2.1-onejar.jar` (https://github.com/sparna-git/xls2rdf)
 
 **Complete Pipeline:**
 ```bash

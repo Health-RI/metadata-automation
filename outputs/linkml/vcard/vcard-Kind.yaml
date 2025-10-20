@@ -14,7 +14,6 @@ prefixes:
   vcard: http://www.w3.org/2006/vcard/ns#
   foaf: http://xmlns.com/foaf/0.1/
   dash: http://datashapes.org/dash#
-  schema: http://schema.org
   spdx: http://spdx.org/rdf/terms#
   owl: http://www.w3.org/2002/07/owl#
   disco: http://rdf-vocabulary.ddialliance.org/discovery#
@@ -32,41 +31,54 @@ prefixes:
   skosxl: http://www.w3.org/2008/05/skos-xl#
   rdf: http://www.w3.org/1999/02/22-rdf-syntax-ns#
   dc: http://purl.org/dc/elements/1.1/
+  dqv: http://www.w3.org/ns/dqv#
+  dpv: https://w3id.org/dpv#
+  dqv-pd: https://w3id.org/dpv/dpv-pd#
+  eu: http://publications.europa.eu/resource/authority/access-right/
+  eucaim: https://cancerimage.eu/ontology/EUCAIM#
 imports:
 - linkml:types
+- ../sempyro_types
+- ../rdf_model
 classes:
   VCARDKind:
     class_uri: vcard:Kind
+    annotations:
+      ontology: nan
+      IRI: '"nan"'
+      namespace: VCARD
+      prefix: vcard
     slots:
     - contact_page
     - has_email
     - formatted_name
+    is_a: RDFModel
 slots:
   contact_page:
     description: To specify a uniform resource locator associated with the object.
     slot_uri: vcard:hasURL
-    range: uri
     annotations:
-      dash:viewer: dash:URIViewer
-      dash:editor: dash:URIEditor
+      rdf_term: VCARD.hasURL
+      rdf_type: uri
     required: false
     multivalued: true
+    range: AnyUrl
   has_email:
     description: To specify the electronic mail address for communication with the
       object.
     slot_uri: vcard:hasEmail
-    range: uri
     annotations:
-      dash:viewer: dash:URIViewer
-      dash:editor: dash:URIEditor
+      rdf_term: VCARD.hasEmail
+      rdf_type: uri
     required: true
     multivalued: false
+    range: str
   formatted_name:
     description: The formatted text corresponding to the name of the object.
     slot_uri: vcard:fn
-    range: string
     annotations:
-      dash:viewer: dash:LiteralViewer
-      dash:editor: dash:TextAreaEditor
+      rdf_term: VCARD.fn
+      rdf_type: rdfs_literal
     required: true
     multivalued: false
+    range: AnyHttpUrl

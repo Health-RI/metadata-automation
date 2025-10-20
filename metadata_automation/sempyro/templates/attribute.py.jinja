@@ -1,6 +1,7 @@
-{{name}}: {{ range }} = Field(default={{ field }}
-{%- if title != None %}, title="{{title}}"{% endif -%}
-{%- if description %}, description="""{{description}}"""{% endif -%}
+{{name}}: {{ range }} = Field(
+{%- if not required %} default={{ field }}, {% endif -%}
+{%- if title != None %} title="{{title}}", {% endif -%}
+{%- if description %} description="""{{description}}"""{% endif -%}
 {%- if equals_number != None %}
     , le={{equals_number}}, ge={{equals_number}}
 {%- else -%}

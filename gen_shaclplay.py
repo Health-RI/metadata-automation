@@ -5,6 +5,7 @@ This script converts the Health-RI metadata Excel file to SHACLPlay-compatible
 Excel format that can be imported into SHACLPlay for SHACL shape editing.
 """
 
+import traceback
 from pathlib import Path
 import pandas as pd
 
@@ -12,10 +13,10 @@ from metadata_automation.shaclplay.converter import SHACLPlayConverter
 from metadata_automation.shaclplay.utils import write_shaclplay_excel
 
 # Configuration
-EXCEL_FILE_PATH = "./inputs/Health-RI-Metadata_CoreGenericHealth_v2-0-0.xlsx"
+EXCEL_FILE_PATH = "./inputs/EUCAIM.xlsx"
 TEMPLATE_PATH = Path("./inputs/shacls/shaclplay-template.xlsx")
-OUTPUT_PATH = Path("./outputs/shaclplay/")
-
+FOLDER_NAME = "eucaim"
+OUTPUT_PATH = Path("./outputs/shaclplay") / FOLDER_NAME
 
 def main():
     """Main conversion function."""
@@ -87,7 +88,6 @@ def main():
 
         except Exception as e:
             print(f"  ✗ Error processing {sheet_name}: {e}")
-            import traceback
             traceback.print_exc()
             print()
 

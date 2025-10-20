@@ -122,7 +122,7 @@ def add_rdf_model_to_yaml(link_dict: Dict[str, Any]) -> None:
 
 def generate_from_linkml(link_dict):
     print(f"Generating from {link_dict['schema_path']}...")
-    
+
     generator = CustomPydanticGenerator(
         schema=link_dict['schema_path'],
         imports=link_dict['imports'],
@@ -131,6 +131,10 @@ def generate_from_linkml(link_dict):
         mergeimports=False
     )
 
-    with open(link_dict['output_path'], 'w') as fname:
+    # Create parent directory if it doesn't exist
+    output_path = Path(link_dict['output_path'])
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(output_path, 'w') as fname:
         fname.write(generator.serialize())
     print("Done.")

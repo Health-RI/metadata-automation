@@ -7,14 +7,14 @@ Converts Health-RI Excel metadata files to SHACLPlay-compatible Excel format.
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Optional
 
 from .utils import (
     slugify_property_label,
     parse_cardinality,
     get_current_datetime_iso
 )
-from .vocab_mappings import get_vocab_mapping, has_vocab_mapping
+from .vocab_mappings import get_vocab_mapping
 
 
 class SHACLPlayConverter:
@@ -61,6 +61,11 @@ class SHACLPlayConverter:
             header=0  # First row is header
         )
 
+        # Create a prefix lookup dictionary for easy access
+        self.prefix_lookup = {}
+        for idx, row in source_prefixes.iterrows():
+            self.prefix_lookup[row['prefix']] = row['namespace']
+
         # Convert to SHACLPlay format:
         # - Row 0: empty row (all NaN)
         # - Subsequent rows: ['PREFIX', prefix_value, namespace_value]
@@ -80,6 +85,23 @@ class SHACLPlayConverter:
         # Create DataFrame with no column headers
         self.prefixes_df = pd.DataFrame(all_rows)
         self.prefixes_df.reset_index(drop=True, inplace=True)
+
+    def _get_namespace_url(self, namespace_prefix: str) -> str:
+        """
+        Get the full namespace URL for a given prefix.
+
+        Args:
+            namespace_prefix: The prefix to look up (e.g., 'hri', 'eucaim')
+
+        Returns:
+            The full namespace URL (e.g., 'http://data.health-ri.nl/core/')
+
+        Raises:
+            KeyError: If the prefix is not found in the prefixes
+        """
+        if namespace_prefix not in self.prefix_lookup:
+            raise KeyError(f"Namespace prefix '{namespace_prefix}' not found in prefixes")
+        return self.prefix_lookup[namespace_prefix]
 
     def convert_class_sheet(
         self,
@@ -133,11 +155,15 @@ class SHACLPlayConverter:
         Returns:
             DataFrame for NodeShapes sheet
         """
+        # Extract namespace prefix from ontology_name (e.g., 'hri:Dataset' -> 'hri')
+        namespace_prefix = ontology_name.split(':')[0]
+
         # Create a deep copy of the template structure
         df = self.template_nodeshapes.copy(deep=True)
 
-        # Update metadata rows
-        shape_uri = f"http://data.health-ri.nl/core/p2/{class_name}Shape"
+        # Look up the namespace URL from prefixes
+        namespace_url = self._get_namespace_url(namespace_prefix)
+        shape_uri = f"{namespace_url}{class_name}Shape"
         df.iat[0, 1] = shape_uri  # Shapes URI
 
         # Update labels and description
@@ -157,7 +183,7 @@ class SHACLPlayConverter:
         # Add a new row for the actual NodeShape data (after the 13 template rows)
         # Create new row with the NodeShape data
         new_nodeshape_row = pd.Series([np.nan] * len(df.columns))
-        new_nodeshape_row.iloc[0] = f"hri:{class_name}Shape"  # URI
+        new_nodeshape_row.iloc[0] = f"{namespace_prefix}:{class_name}Shape"  # URI
         new_nodeshape_row.iloc[1] = class_name  # rdfs:label@en
         new_nodeshape_row.iloc[2] = np.nan  # rdfs:comment@en (usually empty)
         new_nodeshape_row.iloc[3] = "sh:NodeShape"  # rdf:type
@@ -185,11 +211,15 @@ class SHACLPlayConverter:
         Returns:
             DataFrame for PropertyShapes sheet
         """
+        # Extract namespace prefix from ontology_name (e.g., 'hri:Dataset' -> 'hri')
+        namespace_prefix = ontology_name.split(':')[0]
+
         # Start with template structure (rows 0-6 contain headers and metadata)
         df = self.template_propertyshapes.copy(deep=True)
 
-        # Update the Shapes URI in row 0
-        shape_uri = f"http://data.health-ri.nl/core/p2/{class_name}Shape"
+        # Look up the namespace URL from prefixes
+        namespace_url = self._get_namespace_url(namespace_prefix)
+        shape_uri = f"{namespace_url}{class_name}Shape"
         df.iat[0, 1] = shape_uri
 
         # Build property rows
@@ -204,7 +234,7 @@ class SHACLPlayConverter:
             if pd.isna(row['Property label']) or row['Property label'] == 'nan':
                 continue
 
-            property_row = self._convert_property_to_shaclplay(row, class_name)
+            property_row = self._convert_property_to_shaclplay(row, class_name, ontology_name)
             property_rows.append(property_row)
 
         # Combine header rows (0-6) with property rows
@@ -220,7 +250,8 @@ class SHACLPlayConverter:
     def _convert_property_to_shaclplay(
         self,
         property_row: pd.Series,
-        class_name: str
+        class_name: str,
+        ontology_name: str
     ) -> pd.Series:
         """
         Convert a single property row to SHACLPlay format.
@@ -228,20 +259,24 @@ class SHACLPlayConverter:
         Args:
             property_row: Row from class sheet
             class_name: Name of the class
+            ontology_name: Ontology name with prefix (e.g., 'hri:Dataset')
 
         Returns:
             Series representing PropertyShape row
         """
+        # Extract namespace prefix from ontology_name (e.g., 'hri:Dataset' -> 'hri')
+        namespace_prefix = ontology_name.split(':')[0]
+
         # Create a new row with proper column count (24 columns based on template)
         new_row = pd.Series([np.nan] * 24)
 
         # Column 0: URI (PropertyShape identifier)
         prop_label = property_row['Property label']
         slug = slugify_property_label(prop_label)
-        new_row[0] = f"hri:{class_name}Shape#{slug}"
+        new_row[0] = f"{namespace_prefix}:{class_name}Shape#{slug}"
 
         # Column 1: ^sh:property (parent NodeShape)
-        new_row[1] = f"hri:{class_name}Shape"
+        new_row[1] = f"{namespace_prefix}:{class_name}Shape"
 
         # Column 2: sh:path (property URI)
         new_row[2] = property_row['Property URI']
@@ -287,15 +322,19 @@ class SHACLPlayConverter:
         # Pattern 3: Range contains ":" but no "(IRI)" suffix → use sh:node from 'sh:node' column
         elif ':' in range_value and not range_value.strip().endswith('(IRI)') and sh_node_col and sh_node_col != 'nan':
             # Convert sh:node column value to full URI if needed
-            if sh_node_col.startswith('hri:'):
-                # Already in correct format (e.g., "hri:KindShape", "hri:RelationshipShape")
+            if ':' in sh_node_col:
+                # Prefixed format (e.g., "hri:KindShape", "eucaim:RelationshipShape")
+                sh_node_prefix = sh_node_col.split(':')[0]
                 shape_name = sh_node_col.split(':')[1]  # Gets "KindShape", "RelationshipShape", etc.
-                new_row[10] = f"http://data.health-ri.nl/core/p2/{shape_name}"
+                # Look up the namespace URL from prefixes
+                sh_node_namespace_url = self._get_namespace_url(sh_node_prefix)
+                new_row[10] = f"{sh_node_namespace_url}{shape_name}"
             elif ':' not in sh_node_col:
-                # Plain name (e.g., "KindShape") - add full URI
-                new_row[10] = f"http://data.health-ri.nl/core/p2/{sh_node_col}"
+                # Plain name (e.g., "KindShape") - use the current class namespace
+                namespace_url = self._get_namespace_url(namespace_prefix)
+                new_row[10] = f"{namespace_url}{sh_node_col}"
             else:
-                # Already a full URI or other prefixed form
+                # Already a full URI
                 new_row[10] = sh_node_col
             # No sh:nodeKind, no sh:datatype when using sh:node
 
