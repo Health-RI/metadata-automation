@@ -1,3 +1,4 @@
+import logging
 from typing import List, Optional, Union
 
 from pydantic import AnyHttpUrl, AnyUrl, ConfigDict, Field, field_validator
@@ -6,6 +7,7 @@ from rdflib.namespace import DCTERMS, FOAF
 from sempyro import LiteralField
 from sempyro.foaf import Agent
 from sempyro.geo import Location
+from sempyro.hri import hri
 from sempyro.namespaces import HEALTHDCATAP
 from sempyro.utils.validator_functions import validate_convert_email
 

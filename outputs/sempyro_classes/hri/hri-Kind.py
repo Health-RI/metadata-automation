@@ -1,11 +1,11 @@
-from pathlib import Path
-from typing import List, Union
+from typing import List, Optional, Union
 
+import Logging
 from pydantic import AnyHttpUrl, AnyUrl, ConfigDict, Field, field_validator
-from rdflib import Namespace
 from sempyro import LiteralField
+from sempyro.hri import HRI
 from sempyro.utils.validator_functions import validate_convert_email
-from sempyro.vcard import VCard
+from sempyro.vcard import Kind, VCARD
 
 
 metamodel_version = "None"

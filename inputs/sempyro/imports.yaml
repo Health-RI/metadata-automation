@@ -25,18 +25,25 @@ hri-Dataset: |
 
 hri-Catalog: |
   import logging
-  from typing import List, Union, Optional
+  from datetime import date
+  from typing import List, Union, Optional, ClassVar, Set
   
-  from pydantic import AnyHttpUrl, ConfigDict, Field
-  from rdflib.namespace import DCAT, DCTERMS
+  from pydantic import AnyHttpUrl, ConfigDict, Field, AwareDatetime, NaiveDatetime, field_validator
+  from rdflib.namespace import DCAT, DCTERMS, FOAF
   
   from sempyro.dcat import DCATCatalog, DCATDataset
   from sempyro.hri_dcat.hri_data_service import HRIDataService
   from sempyro.hri_dcat.hri_agent import HRIAgent
   from sempyro.hri_dcat.hri_vcard import HRIVCard
   from sempyro.namespaces import DCATAPv3
+  from sempyro.hri import HRI
+  from sempyro import LiteralField
+  from sempyro.geo import Location
+  from sempyro.time import PeriodOfTime
+  from sempyro.utils.validator_functions import convert_to_literal, date_handler
 
 hri-Agent: |
+  import logging
   from typing import List, Union, Optional
   
   from pydantic import AnyUrl, AnyHttpUrl, ConfigDict, Field, field_validator
@@ -48,17 +55,19 @@ hri-Agent: |
   from sempyro.geo import Location
   from sempyro.namespaces import HEALTHDCATAP
   from sempyro.utils.validator_functions import validate_convert_email
+  from sempyro.hri import hri
 
 hri-Kind: |
-  from pathlib import Path
-  from typing import List, Union
+  import Logging
+  from typing import List, Union, Optional
   
   from pydantic import AnyHttpUrl, AnyUrl, ConfigDict, Field, field_validator
-  from rdflib import Namespace
+  from rdflib import 
   
   from sempyro import LiteralField
   from sempyro.utils.validator_functions import validate_convert_email
-  from sempyro.vcard import VCard
+  from sempyro.vcard import Kind, VCARD
+  from sempyro.hri import HRI
 
 hri-Distribution: |
   from datetime import date, datetime

@@ -1,13 +1,19 @@
 import logging
-from typing import List, Optional, Union
+from datetime import date
+from typing import ClassVar, List, Optional, Set, Union
 
-from pydantic import AnyHttpUrl, ConfigDict, Field
-from rdflib.namespace import DCAT, DCTERMS
+from pydantic import AnyHttpUrl, AwareDatetime, ConfigDict, Field, NaiveDatetime, field_validator
+from rdflib.namespace import DCAT, DCTERMS, FOAF
+from sempyro import LiteralField
 from sempyro.dcat import DCATCatalog, DCATDataset
+from sempyro.geo import Location
+from sempyro.hri import HRI
 from sempyro.hri_dcat.hri_agent import HRIAgent
 from sempyro.hri_dcat.hri_data_service import HRIDataService
 from sempyro.hri_dcat.hri_vcard import HRIVCard
 from sempyro.namespaces import DCATAPv3
+from sempyro.time import PeriodOfTime
+from sempyro.utils.validator_functions import convert_to_literal, date_handler
 
 
 metamodel_version = "None"
