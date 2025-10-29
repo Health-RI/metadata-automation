@@ -1,0 +1,172 @@
+id: http://data.health-ri.nl/core/p2/DatasetSeries
+title: hri-DatasetSeries
+description: hri-DatasetSeries
+prefixes:
+  linkml: https://w3id.org/linkml/
+  dcat: https://www.w3.org/ns/dcat#
+  dct: http://purl.org/dc/terms/
+  xsd: http://www.w3.org/2001/XMLSchema#
+  adms: http://www.w3.org/ns/adms#
+  adms_status: http://purl.org/adms/status/
+  odrl2: http://www.w3.org/ns/odrl/2/
+  prov: http://www.w3.org/ns/prov#
+  dcatv3: https://www.w3.org/ns/dcat/3#
+  vcard: http://www.w3.org/2006/vcard/ns#
+  foaf: http://xmlns.com/foaf/0.1/
+  dash: http://datashapes.org/dash#
+  spdx: http://spdx.org/rdf/terms#
+  owl: http://www.w3.org/2002/07/owl#
+  disco: http://rdf-vocabulary.ddialliance.org/discovery#
+  skosthes: http://purl.org/iso25964/skos-thes#
+  skos: http://www.w3.org/2004/02/skos/core#
+  rdfs: http://www.w3.org/2000/01/rdf-schema#
+  qb: http://purl.org/linked-data/cube#
+  healthdcatap: http://healthdataportal.eu/ns/health#
+  doap: http://usefulinc.com/ns/doap#
+  sh: http://www.w3.org/ns/shacl#
+  euvoc: http://publications.europa.eu/ontology/euvoc#
+  hri: http://data.health-ri.nl/core/p2/
+  dcatap: http://data.europa.eu/r5r/
+  org: http://www.w3.org/ns/org#
+  skosxl: http://www.w3.org/2008/05/skos-xl#
+  rdf: http://www.w3.org/1999/02/22-rdf-syntax-ns#
+  dc: http://purl.org/dc/elements/1.1/
+  dqv: http://www.w3.org/ns/dqv#
+  dpv: https://w3id.org/dpv#
+  dqv-pd: https://w3id.org/dpv/dpv-pd#
+  eu: http://publications.europa.eu/resource/authority/access-right/
+  oa: http://www.w3.org/ns/oa#
+imports:
+- linkml:types
+- ../sempyro_types
+classes:
+  HRIDatasetseries:
+    class_uri: hri:DatasetSeries
+    annotations:
+      ontology: https://www.w3.org/TR/vocab-dcat-3/
+      IRI: '"DCATv3.DatasetSeries"'
+      namespace: HRI
+      prefix: hri
+    slots:
+    - applicable_legislation
+    - contact_point
+    - description
+    - frequency
+    - geographical_coverage
+    - modification_date
+    - publisher
+    - release_date
+    - temporal_coverage
+    - title
+    is_a: DCATDatasetseries
+  DCATDatasetseries:
+    class_uri: dcat:DatasetSeries
+slots:
+  applicable_legislation:
+    description: The legislation that is applicable to this resource.
+    slot_uri: dcatap:applicableLegislation
+    annotations:
+      rdf_term: DCATAPv3.applicableLegislation
+      rdf_type: uri
+    required: false
+    multivalued: true
+    range: AnyHttpUrl
+  contact_point:
+    description: Relevant contact information for the cataloged resource.
+    slot_uri: dcat:contactPoint
+    annotations:
+      rdf_term: DCAT.contactPoint
+      rdf_type: uri
+    required: true
+    multivalued: true
+    any_of:
+    - range: AnyHttpUrl
+    - range: VCard
+  description:
+    description: An account of the resource.
+    slot_uri: dct:description
+    annotations:
+      rdf_term: DCTERMS.description
+      rdf_type: rdfs_literal
+    required: true
+    multivalued: true
+    any_of:
+    - range: LiteralField
+    - range: str
+  frequency:
+    description: The frequency with which items are added to a collection.
+    slot_uri: dct:accrualPeriodicity
+    annotations:
+      rdf_term: DCTERMS.accrualPeriodicity
+      rdf_type: uri
+    required: false
+    multivalued: false
+    range: AnyHttpUrl
+  geographical_coverage:
+    description: Spatial characteristics of the resource.
+    slot_uri: dct:spatial
+    annotations:
+      rdf_term: DCTERMS.spatial
+      rdf_type: uri
+    required: false
+    multivalued: true
+    any_of:
+    - range: AnyHttpUrl
+    - range: Location
+  modification_date:
+    description: Date on which the resource was changed.
+    slot_uri: dct:modified
+    annotations:
+      rdf_term: DCTERMS.modified
+      rdf_type: datetime_literal
+    required: false
+    multivalued: false
+    any_of:
+    - range: str
+    - range: date
+    - range: AwareDatetime
+    - range: NaiveDatetime
+  publisher:
+    description: An entity responsible for making the resource available.
+    slot_uri: dct:publisher
+    annotations:
+      rdf_term: DCTERMS.publisher
+      rdf_type: uri
+    required: false
+    multivalued: false
+    any_of:
+    - range: AnyHttpUrl
+    - range: Agent
+  release_date:
+    description: Date of formal issuance of the resource.
+    slot_uri: dct:issued
+    annotations:
+      rdf_term: DCTERMS.issued
+      rdf_type: datetime_literal
+    required: false
+    multivalued: false
+    any_of:
+    - range: str
+    - range: date
+    - range: AwareDatetime
+    - range: NaiveDatetime
+  temporal_coverage:
+    description: Temporal characteristics of the resource.
+    slot_uri: dct:temporal
+    annotations:
+      rdf_term: DCTERMS.temporal
+      rdf_type: DCTERMS.PeriodOfTime
+    required: false
+    multivalued: true
+    range: PeriodOfTime
+  title:
+    description: A name given to the resource.
+    slot_uri: dct:title
+    annotations:
+      rdf_term: DCTERMS.title
+      rdf_type: rdfs_literal
+    required: true
+    multivalued: true
+    any_of:
+    - range: LiteralField
+    - range: str

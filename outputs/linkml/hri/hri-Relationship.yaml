@@ -1,0 +1,74 @@
+id: http://data.health-ri.nl/core/p2/Relationship
+title: hri-Relationship
+description: hri-Relationship
+prefixes:
+  linkml: https://w3id.org/linkml/
+  dcat: https://www.w3.org/ns/dcat#
+  dct: http://purl.org/dc/terms/
+  xsd: http://www.w3.org/2001/XMLSchema#
+  adms: http://www.w3.org/ns/adms#
+  adms_status: http://purl.org/adms/status/
+  odrl2: http://www.w3.org/ns/odrl/2/
+  prov: http://www.w3.org/ns/prov#
+  dcatv3: https://www.w3.org/ns/dcat/3#
+  vcard: http://www.w3.org/2006/vcard/ns#
+  foaf: http://xmlns.com/foaf/0.1/
+  dash: http://datashapes.org/dash#
+  spdx: http://spdx.org/rdf/terms#
+  owl: http://www.w3.org/2002/07/owl#
+  disco: http://rdf-vocabulary.ddialliance.org/discovery#
+  skosthes: http://purl.org/iso25964/skos-thes#
+  skos: http://www.w3.org/2004/02/skos/core#
+  rdfs: http://www.w3.org/2000/01/rdf-schema#
+  qb: http://purl.org/linked-data/cube#
+  healthdcatap: http://healthdataportal.eu/ns/health#
+  doap: http://usefulinc.com/ns/doap#
+  sh: http://www.w3.org/ns/shacl#
+  euvoc: http://publications.europa.eu/ontology/euvoc#
+  hri: http://data.health-ri.nl/core/p2/
+  dcatap: http://data.europa.eu/r5r/
+  org: http://www.w3.org/ns/org#
+  skosxl: http://www.w3.org/2008/05/skos-xl#
+  rdf: http://www.w3.org/1999/02/22-rdf-syntax-ns#
+  dc: http://purl.org/dc/elements/1.1/
+  dqv: http://www.w3.org/ns/dqv#
+  dpv: https://w3id.org/dpv#
+  dqv-pd: https://w3id.org/dpv/dpv-pd#
+  eu: http://publications.europa.eu/resource/authority/access-right/
+  oa: http://www.w3.org/ns/oa#
+imports:
+- linkml:types
+- ../sempyro_types
+- ../rdf_model
+classes:
+  HRIRelationship:
+    class_uri: hri:Relationship
+    annotations:
+      ontology: https://www.w3.org/TR/vocab-dcat-3/
+      IRI: '"DCAT.Relationship"'
+      namespace: HRI
+      prefix: hri
+    slots:
+    - had_role
+    - relation
+    is_a: RDFModel
+slots:
+  had_role:
+    description: The function of an entity or agent with respect to another entity
+      or resource.
+    slot_uri: dcat:hadRole
+    annotations:
+      rdf_term: DCAT.hadRole
+      rdf_type: uri
+    required: true
+    multivalued: true
+    range: AnyHttpUrl
+  relation:
+    description: A related resource.
+    slot_uri: dct:relation
+    annotations:
+      rdf_term: DCTERMS.relation
+      rdf_type: uri
+    required: true
+    multivalued: true
+    range: AnyHttpUrl

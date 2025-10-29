@@ -1,9 +1,37 @@
+import re
 from pathlib import Path
 from typing import Dict, Any
 
 import yaml
+from linkml.generators.pydanticgen.template import Import, ObjectImport, Imports
 
 from metadata_automation.sempyro.sempyro_generator import CustomPydanticGenerator
+
+def load_yaml(yaml_path: str | Path) -> Dict[str, Any]:
+    """
+    Load a YAML file and return its contents as a dictionary.
+
+    Args:
+        yaml_path: Path to the YAML file (string or Path object)
+
+    Returns:
+        Dictionary containing the YAML file contents
+
+    Raises:
+        FileNotFoundError: If the YAML file doesn't exist
+        yaml.YAMLError: If there's an error parsing the YAML file
+    """
+    path = Path(yaml_path)
+
+    if not path.exists():
+        raise FileNotFoundError(f"YAML file not found: {yaml_path}")
+
+    try:
+        with open(path, 'r', encoding='utf-8') as file:
+            return yaml.safe_load(file)
+    except yaml.YAMLError as e:
+        raise yaml.YAMLError(f"Error parsing YAML file: {e}")
+
 
 def add_validation_logic_to_schema(link_dict: Dict[str, Any]) -> None:
     validation_logic_path = Path("./inputs/sempyro/validation_logic.yaml")
@@ -120,12 +148,60 @@ def add_rdf_model_to_yaml(link_dict: Dict[str, Any]) -> None:
     return None
 
 
+def parse_import_statements(import_text: str) -> 'Imports':
+    """
+    Convert Python import statements to structured Import objects.
+
+    Args:
+        import_text: String containing Python import statements
+
+    Returns:
+        Imports object containing all parsed imports
+    """
+    lines = import_text.strip().split('\n')
+    imports = Imports()
+
+    for line in lines:
+        line = line.strip()
+        if not line or line.startswith('#'):
+            continue
+
+        # Handle "import module" or "import module as alias"
+        if line.startswith('import ') and ' from ' not in line:
+            match = re.match(r'import\s+([\w.]+)(?:\s+as\s+(\w+))?', line)
+            if match:
+                module, alias = match.groups()
+                imports += Import(module=module, alias=alias) if alias else Import(module=module)
+
+        # Handle "from module import ..."
+        elif line.startswith('from '):
+            match = re.match(r'from\s+([\w.]+)\s+import\s+(.+)', line)
+            if match:
+                module, imports_str = match.groups()
+
+                # Parse imported objects
+                objects = []
+                items = [item.strip() for item in imports_str.split(',')]
+
+                for item in items:
+                    # Handle "name as alias"
+                    if ' as ' in item:
+                        name, alias = item.split(' as ')
+                        objects.append(ObjectImport(name=name.strip(), alias=alias.strip()))
+                    else:
+                        objects.append(ObjectImport(name=item.strip()))
+
+                imports += Import(module=module, objects=objects)
+
+    return imports
+
+
 def generate_from_linkml(link_dict):
     print(f"Generating from {link_dict['schema_path']}...")
 
     generator = CustomPydanticGenerator(
         schema=link_dict['schema_path'],
-        imports=link_dict['imports'],
+        imports=parse_import_statements(link_dict['imports']),
         black=True,
         template_dir="metadata_automation/sempyro/templates",
         mergeimports=False

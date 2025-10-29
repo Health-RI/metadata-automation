@@ -9,6 +9,7 @@
 @prefix dqv: <http://www.w3.org/ns/dqv#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix qb: <http://purl.org/linked-data/cube#> .
+@prefix oa: <http://www.w3.org/ns/oa#> .
 @prefix healthdcatap: <http://healthdataportal.eu/ns/health#> .
 @prefix dct: <http://purl.org/dc/terms/> .
 @prefix doap: <http://usefulinc.com/ns/doap#> .
@@ -34,29 +35,31 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix skosxl: <http://www.w3.org/2008/05/skos-xl#> .
 
-hri:DatasetSeriesShape a owl:Ontology, sh:NodeShape;
-  rdfs:label "Excel template for DatasetSeries class"@en, "DatasetSeries"@en;
+hri:aux-DatasetSeriesShape a owl:Ontology;
+  rdfs:label "Excel template for DatasetSeries class"@en;
   rdfs:comment "Excel template for DatasetSeries class"@en;
   dct:description "This is an excel template for DatasetSeries class in Health RI Core plateau 2."@en;
-  owl:versionInfo "0.1";
-  sh:targetClass dcat:DatasetSeries;
-  sh:property <http://data.health-ri.nl/core/p2/DatasetSeriesShape#applicable-legislation>,
-    <http://data.health-ri.nl/core/p2/DatasetSeriesShape#contact-point>, <http://data.health-ri.nl/core/p2/DatasetSeriesShape#description>,
-    <http://data.health-ri.nl/core/p2/DatasetSeriesShape#frequency>, <http://data.health-ri.nl/core/p2/DatasetSeriesShape#geographical-coverage>,
-    <http://data.health-ri.nl/core/p2/DatasetSeriesShape#modification-date>, <http://data.health-ri.nl/core/p2/DatasetSeriesShape#publisher>,
-    <http://data.health-ri.nl/core/p2/DatasetSeriesShape#release-date>, <http://data.health-ri.nl/core/p2/DatasetSeriesShape#temporal-coverage>,
-    <http://data.health-ri.nl/core/p2/DatasetSeriesShape#title> .
+  owl:versionInfo "0.1" .
 
-<http://data.health-ri.nl/core/p2/DatasetSeriesShape#applicable-legislation> sh:path
-    dcatap:applicableLegislation;
+hri:DatasetSeriesShape a sh:NodeShape;
+  rdfs:label "DatasetSeries"@en;
+  sh:targetClass dcat:DatasetSeries;
+  sh:property <http://data.health-ri.nl/core/p2/DatasetSeriesShape#dcatap:applicableLegislation>,
+    <http://data.health-ri.nl/core/p2/DatasetSeriesShape#dcat:contactPoint>, <http://data.health-ri.nl/core/p2/DatasetSeriesShape#dct:description>,
+    <http://data.health-ri.nl/core/p2/DatasetSeriesShape#dct:accrualPeriodicity>, <http://data.health-ri.nl/core/p2/DatasetSeriesShape#dct:spatial>,
+    <http://data.health-ri.nl/core/p2/DatasetSeriesShape#dct:modified>, <http://data.health-ri.nl/core/p2/DatasetSeriesShape#dct:publisher>,
+    <http://data.health-ri.nl/core/p2/DatasetSeriesShape#dct:issued>, <http://data.health-ri.nl/core/p2/DatasetSeriesShape#dct:temporal>,
+    <http://data.health-ri.nl/core/p2/DatasetSeriesShape#dct:title> .
+
+<http://data.health-ri.nl/core/p2/DatasetSeriesShape#dcatap:applicableLegislation>
+  sh:path dcatap:applicableLegislation;
   sh:name "applicable legislation"@en;
   sh:description "The legislation that is applicable to this resource."@en;
-  sh:minCount 0;
   sh:nodeKind sh:IRI;
   dash:viewer dash:URIViewer;
   dash:editor dash:URIEditor .
 
-<http://data.health-ri.nl/core/p2/DatasetSeriesShape#contact-point> sh:path dcat:contactPoint;
+<http://data.health-ri.nl/core/p2/DatasetSeriesShape#dcat:contactPoint> sh:path dcat:contactPoint;
   sh:name "contact point"@en;
   sh:description "Relevant contact information for the cataloged resource."@en;
   sh:minCount 1;
@@ -64,7 +67,7 @@ hri:DatasetSeriesShape a owl:Ontology, sh:NodeShape;
   dash:viewer dash:DetailsViewer;
   dash:editor dash:BlankNodeEditor .
 
-<http://data.health-ri.nl/core/p2/DatasetSeriesShape#description> sh:path dct:description;
+<http://data.health-ri.nl/core/p2/DatasetSeriesShape#dct:description> sh:path dct:description;
   sh:name "description"@en;
   sh:description "An account of the resource."@en;
   sh:minCount 1;
@@ -72,28 +75,25 @@ hri:DatasetSeriesShape a owl:Ontology, sh:NodeShape;
   dash:viewer dash:LiteralViewer;
   dash:editor dash:TextFieldEditor .
 
-<http://data.health-ri.nl/core/p2/DatasetSeriesShape#frequency> sh:path dct:accrualPeriodicity;
+<http://data.health-ri.nl/core/p2/DatasetSeriesShape#dct:accrualPeriodicity> sh:path
+    dct:accrualPeriodicity;
   sh:name "frequency"@en;
   sh:description "The frequency with which items are added to a collection."@en;
-  sh:minCount 0;
   sh:maxCount 1;
   sh:nodeKind sh:IRI;
   dash:viewer dash:URIViewer;
   dash:editor dash:URIEditor .
 
-<http://data.health-ri.nl/core/p2/DatasetSeriesShape#geographical-coverage> sh:path
-    dct:spatial;
+<http://data.health-ri.nl/core/p2/DatasetSeriesShape#dct:spatial> sh:path dct:spatial;
   sh:name "geographical coverage"@en;
   sh:description "Spatial characteristics of the resource."@en;
-  sh:minCount 0;
   sh:nodeKind sh:IRI;
   dash:viewer dash:URIViewer;
   dash:editor dash:URIEditor .
 
-<http://data.health-ri.nl/core/p2/DatasetSeriesShape#modification-date> sh:path dct:modified;
+<http://data.health-ri.nl/core/p2/DatasetSeriesShape#dct:modified> sh:path dct:modified;
   sh:name "modification date"@en;
   sh:description "Date on which the resource was changed."@en;
-  sh:minCount 0;
   sh:maxCount 1;
   sh:nodeKind sh:Literal;
   sh:datatype xsd:dateTime;
@@ -101,19 +101,17 @@ hri:DatasetSeriesShape a owl:Ontology, sh:NodeShape;
   dash:viewer dash:LiteralViewer;
   dash:editor dash:DateTimePickerEditor .
 
-<http://data.health-ri.nl/core/p2/DatasetSeriesShape#publisher> sh:path dct:publisher;
+<http://data.health-ri.nl/core/p2/DatasetSeriesShape#dct:publisher> sh:path dct:publisher;
   sh:name "publisher"@en;
   sh:description "An entity responsible for making the resource available."@en;
-  sh:minCount 0;
   sh:maxCount 1;
   sh:node hri:AgentShape;
   dash:viewer dash:DetailsViewer;
   dash:editor dash:BlankNodeEditor .
 
-<http://data.health-ri.nl/core/p2/DatasetSeriesShape#release-date> sh:path dct:issued;
+<http://data.health-ri.nl/core/p2/DatasetSeriesShape#dct:issued> sh:path dct:issued;
   sh:name "release date"@en;
   sh:description "Date of formal issuance of the resource."@en;
-  sh:minCount 0;
   sh:maxCount 1;
   sh:nodeKind sh:Literal;
   sh:datatype xsd:dateTime;
@@ -121,15 +119,14 @@ hri:DatasetSeriesShape a owl:Ontology, sh:NodeShape;
   dash:viewer dash:LiteralViewer;
   dash:editor dash:DateTimePickerEditor .
 
-<http://data.health-ri.nl/core/p2/DatasetSeriesShape#temporal-coverage> sh:path dct:temporal;
+<http://data.health-ri.nl/core/p2/DatasetSeriesShape#dct:temporal> sh:path dct:temporal;
   sh:name "temporal coverage"@en;
   sh:description "Temporal characteristics of the resource."@en;
-  sh:minCount 0;
   sh:node hri:PeriodOfTimeShape;
   dash:viewer dash:DetailsViewer;
   dash:editor dash:BlankNodeEditor .
 
-<http://data.health-ri.nl/core/p2/DatasetSeriesShape#title> sh:path dct:title;
+<http://data.health-ri.nl/core/p2/DatasetSeriesShape#dct:title> sh:path dct:title;
   sh:name "title"@en;
   sh:description "A name given to the resource."@en;
   sh:minCount 1;

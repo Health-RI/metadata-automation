@@ -9,6 +9,7 @@
 @prefix dqv: <http://www.w3.org/ns/dqv#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix qb: <http://purl.org/linked-data/cube#> .
+@prefix oa: <http://www.w3.org/ns/oa#> .
 @prefix healthdcatap: <http://healthdataportal.eu/ns/health#> .
 @prefix dct: <http://purl.org/dc/terms/> .
 @prefix doap: <http://usefulinc.com/ns/doap#> .
@@ -34,15 +35,18 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix skosxl: <http://www.w3.org/2008/05/skos-xl#> .
 
-hri:RelationshipShape a owl:Ontology, sh:NodeShape;
-  rdfs:label "Excel template for Relationship class"@en, "Relationship"@en;
+hri:aux-RelationshipShape a owl:Ontology;
+  rdfs:label "Excel template for Relationship class"@en;
   rdfs:comment "Excel template for Relationship class"@en;
   dct:description "This is an excel template for Relationship class in Health RI Core plateau 2."@en;
-  owl:versionInfo "0.1";
-  sh:targetClass dcat:Relationship;
-  sh:property <http://data.health-ri.nl/core/p2/RelationshipShape#had-role>, <http://data.health-ri.nl/core/p2/RelationshipShape#relation> .
+  owl:versionInfo "0.1" .
 
-<http://data.health-ri.nl/core/p2/RelationshipShape#had-role> sh:path dcat:hadRole;
+hri:RelationshipShape a sh:NodeShape;
+  rdfs:label "Relationship"@en;
+  sh:targetClass dcat:Relationship;
+  sh:property <http://data.health-ri.nl/core/p2/RelationshipShape#dcat:hadRole>, <http://data.health-ri.nl/core/p2/RelationshipShape#dct:relation> .
+
+<http://data.health-ri.nl/core/p2/RelationshipShape#dcat:hadRole> sh:path dcat:hadRole;
   sh:name "had role"@en;
   sh:description "The function of an entity or agent with respect to another entity or resource."@en;
   sh:minCount 1;
@@ -50,7 +54,7 @@ hri:RelationshipShape a owl:Ontology, sh:NodeShape;
   dash:viewer dash:URIViewer;
   dash:editor dash:URIEditor .
 
-<http://data.health-ri.nl/core/p2/RelationshipShape#relation> sh:path dct:relation;
+<http://data.health-ri.nl/core/p2/RelationshipShape#dct:relation> sh:path dct:relation;
   sh:name "relation"@en;
   sh:description "A related resource."@en;
   sh:minCount 1;

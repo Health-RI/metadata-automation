@@ -37,8 +37,126 @@ types:
     description: A location
 
   LiteralField:
-    uri: rfds:Literal
+    uri: rdfs:Literal
     base: LiteralField
     description: Literal
 
+  AccessRights:
+    uri: xsd:anyURI
+    base: AccessRights
+    description: AccessRights
 
+  DCATDistribution:
+    uri: xsd:anyURI
+    base: DCATDistribution
+    description: DCATDistribution
+
+  HRIVCard:
+    uri: xsd:anyURI
+    base: HRIVCard
+    description: DCATDistribution
+
+  HRIAgent:
+    uri: xsd:anyURI
+    base: HRIAgent
+    description: DCATDistribution
+
+  DCATDatasetSeries:
+    uri: xsd:anyURI
+    base: DCATDatasetSeries
+    description: DCATDistribution
+
+  AwareDatetime:
+    uri: xsd:anyURI
+    base: AwareDatetime
+    description: DCATDistribution
+
+  NaiveDatetime:
+    uri: xsd:anyURI
+    base: NaiveDatetime
+    description: DCATDistribution
+
+  Identifier:
+    uri: xsd:anyURI
+    base: Identifier
+    description: DCATDistribution
+
+  Attribution:
+    uri: xsd:anyURI
+    base: Attribution
+    description: DCATDistribution
+
+  Relationship:
+    uri: xsd:anyURI
+    base: Relationship
+    description: DCATDistribution
+
+  QualityCertificate:
+    uri: xsd:anyURI
+    base: QualityCertificate
+    description: DCATDistribution
+
+  PeriodOfTime:
+    uri: xsd:anyURI
+    base: PeriodOfTime
+    description: DCATDistribution
+
+  DatasetStatus:
+    uri: xsd:anyURI
+    base: DatasetStatus
+    description: DCATDistribution
+
+  DatasetTheme:
+    uri: xsd:anyURI
+    base: DatasetTheme
+    description: DCATDistribution
+
+  Activity:
+    uri: xsd:anyURI
+    base: Activity
+    description: DCATDistribution
+
+  URIRef:
+    uri: xsd:anyURI
+    base: URIRef
+    description: DCATDistribution
+
+  DCATDataset:
+    uri: xsd:anyURI
+    base: DCATDataset
+    description: DCATDistribution
+
+  HRIDataService:
+    uri: xsd:anyURI
+    base: HRIDataService
+    description: DCATDistribution
+
+  Checksum:
+    uri: xsd:anyURI
+    base: Checksum
+    description: DCATDistribution
+
+  GeonovumLicenses:
+    uri: xsd:anyURI
+    base: GeonovumLicenses
+    description: DCATDistribution
+
+  DistributionStatus:
+    uri: xsd:anyURI
+    base: DistributionStatus
+    description: DCATDistribution
+
+  VCard:
+    uri: xsd:anyURI
+    base: VCard
+    description: DCATDistribution
+
+  Agent:
+    uri: xsd:anyURI
+    base: Agent
+    description: DCATDistribution
+
+  DCATResource:
+    uri: xsd:anyURI
+    base: DCATResource
+    description: DCATDistribution

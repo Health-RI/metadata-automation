@@ -9,6 +9,7 @@
 @prefix dqv: <http://www.w3.org/ns/dqv#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix qb: <http://purl.org/linked-data/cube#> .
+@prefix oa: <http://www.w3.org/ns/oa#> .
 @prefix healthdcatap: <http://healthdataportal.eu/ns/health#> .
 @prefix dct: <http://purl.org/dc/terms/> .
 @prefix doap: <http://usefulinc.com/ns/doap#> .
@@ -34,24 +35,26 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix skosxl: <http://www.w3.org/2008/05/skos-xl#> .
 
-hri:KindShape a owl:Ontology, sh:NodeShape;
-  rdfs:label "Excel template for Kind class"@en, "Kind"@en;
+hri:aux-KindShape a owl:Ontology;
+  rdfs:label "Excel template for Kind class"@en;
   rdfs:comment "Excel template for Kind class"@en;
   dct:description "This is an excel template for Kind class in Health RI Core plateau 2."@en;
-  owl:versionInfo "0.1";
-  sh:targetClass vcard:Kind;
-  sh:property <http://data.health-ri.nl/core/p2/KindShape#contact-page>, <http://data.health-ri.nl/core/p2/KindShape#has-email>,
-    <http://data.health-ri.nl/core/p2/KindShape#formatted-name> .
+  owl:versionInfo "0.1" .
 
-<http://data.health-ri.nl/core/p2/KindShape#contact-page> sh:path vcard:hasURL;
+hri:KindShape a sh:NodeShape;
+  rdfs:label "Kind"@en;
+  sh:targetClass vcard:Kind;
+  sh:property <http://data.health-ri.nl/core/p2/KindShape#vcard:hasURL>, <http://data.health-ri.nl/core/p2/KindShape#vcard:hasEmail>,
+    <http://data.health-ri.nl/core/p2/KindShape#vcard:fn> .
+
+<http://data.health-ri.nl/core/p2/KindShape#vcard:hasURL> sh:path vcard:hasURL;
   sh:name "contact page"@en;
   sh:description "To specify a uniform resource locator associated with the object."@en;
-  sh:minCount 0;
   sh:nodeKind sh:IRI;
   dash:viewer dash:URIViewer;
   dash:editor dash:URIEditor .
 
-<http://data.health-ri.nl/core/p2/KindShape#has-email> sh:path vcard:hasEmail;
+<http://data.health-ri.nl/core/p2/KindShape#vcard:hasEmail> sh:path vcard:hasEmail;
   sh:name "has email"@en;
   sh:description "To specify the electronic mail address for communication with the object."@en;
   sh:minCount 1;
@@ -61,7 +64,7 @@ hri:KindShape a owl:Ontology, sh:NodeShape;
   dash:viewer dash:URIViewer;
   dash:editor dash:URIEditor .
 
-<http://data.health-ri.nl/core/p2/KindShape#formatted-name> sh:path vcard:fn;
+<http://data.health-ri.nl/core/p2/KindShape#vcard:fn> sh:path vcard:fn;
   sh:name "formatted name"@en;
   sh:description "The formatted text corresponding to the name of the object."@en;
   sh:minCount 1;

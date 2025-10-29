@@ -9,6 +9,7 @@
 @prefix dqv: <http://www.w3.org/ns/dqv#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix qb: <http://purl.org/linked-data/cube#> .
+@prefix oa: <http://www.w3.org/ns/oa#> .
 @prefix healthdcatap: <http://healthdataportal.eu/ns/health#> .
 @prefix dct: <http://purl.org/dc/terms/> .
 @prefix doap: <http://usefulinc.com/ns/doap#> .
@@ -34,18 +35,20 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix skosxl: <http://www.w3.org/2008/05/skos-xl#> .
 
-hri:PeriodOfTimeShape a owl:Ontology, sh:NodeShape;
-  rdfs:label "Excel template for PeriodOfTime class"@en, "PeriodOfTime"@en;
+hri:aux-PeriodOfTimeShape a owl:Ontology;
+  rdfs:label "Excel template for PeriodOfTime class"@en;
   rdfs:comment "Excel template for PeriodOfTime class"@en;
   dct:description "This is an excel template for PeriodOfTime class in Health RI Core plateau 2."@en;
-  owl:versionInfo "0.1";
-  sh:targetClass dct:PeriodOfTime;
-  sh:property <http://data.health-ri.nl/core/p2/PeriodOfTimeShape#end-date>, <http://data.health-ri.nl/core/p2/PeriodOfTimeShape#start-date> .
+  owl:versionInfo "0.1" .
 
-<http://data.health-ri.nl/core/p2/PeriodOfTimeShape#end-date> sh:path dcat:endDate;
+hri:PeriodOfTimeShape a sh:NodeShape;
+  rdfs:label "PeriodOfTime"@en;
+  sh:targetClass dct:PeriodOfTime;
+  sh:property <http://data.health-ri.nl/core/p2/PeriodOfTimeShape#dcat:endDate>, <http://data.health-ri.nl/core/p2/PeriodOfTimeShape#dcat:startDate> .
+
+<http://data.health-ri.nl/core/p2/PeriodOfTimeShape#dcat:endDate> sh:path dcat:endDate;
   sh:name "end date"@en;
   sh:description "The end of the period."@en;
-  sh:minCount 0;
   sh:maxCount 1;
   sh:nodeKind sh:Literal;
   sh:datatype xsd:dateTime;
@@ -53,10 +56,9 @@ hri:PeriodOfTimeShape a owl:Ontology, sh:NodeShape;
   dash:viewer dash:LiteralViewer;
   dash:editor dash:DateTimePickerEditor .
 
-<http://data.health-ri.nl/core/p2/PeriodOfTimeShape#start-date> sh:path dcat:startDate;
+<http://data.health-ri.nl/core/p2/PeriodOfTimeShape#dcat:startDate> sh:path dcat:startDate;
   sh:name "start date"@en;
   sh:description "The start of the period."@en;
-  sh:minCount 0;
   sh:maxCount 1;
   sh:nodeKind sh:Literal;
   sh:datatype xsd:dateTime;

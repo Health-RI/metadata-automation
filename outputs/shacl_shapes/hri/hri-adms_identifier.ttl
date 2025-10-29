@@ -9,6 +9,7 @@
 @prefix dqv: <http://www.w3.org/ns/dqv#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix qb: <http://purl.org/linked-data/cube#> .
+@prefix oa: <http://www.w3.org/ns/oa#> .
 @prefix healthdcatap: <http://healthdataportal.eu/ns/health#> .
 @prefix dct: <http://purl.org/dc/terms/> .
 @prefix doap: <http://usefulinc.com/ns/doap#> .
@@ -34,15 +35,18 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix skosxl: <http://www.w3.org/2008/05/skos-xl#> .
 
-hri:IdentifierShape a owl:Ontology, sh:NodeShape;
-  rdfs:label "Excel template for Identifier class"@en, "Identifier"@en;
+hri:aux-IdentifierShape a owl:Ontology;
+  rdfs:label "Excel template for Identifier class"@en;
   rdfs:comment "Excel template for Identifier class"@en;
   dct:description "This is an excel template for Identifier class in Health RI Core plateau 2."@en;
-  owl:versionInfo "0.1";
-  sh:targetClass adms:Identifier;
-  sh:property <http://data.health-ri.nl/core/p2/IdentifierShape#notation>, <http://data.health-ri.nl/core/p2/IdentifierShape#schema-agency> .
+  owl:versionInfo "0.1" .
 
-<http://data.health-ri.nl/core/p2/IdentifierShape#notation> sh:path skos:notation;
+hri:IdentifierShape a sh:NodeShape;
+  rdfs:label "Identifier"@en;
+  sh:targetClass adms:Identifier;
+  sh:property <http://data.health-ri.nl/core/p2/IdentifierShape#skos:notation>, <http://data.health-ri.nl/core/p2/IdentifierShape#adms:schemaAgency> .
+
+<http://data.health-ri.nl/core/p2/IdentifierShape#skos:notation> sh:path skos:notation;
   sh:name "notation"@en;
   sh:description "A string that is an identifier in the context of the identifier scheme referenced by its datatype."@en;
   sh:minCount 1;
@@ -51,10 +55,9 @@ hri:IdentifierShape a owl:Ontology, sh:NodeShape;
   dash:viewer dash:LiteralViewer;
   dash:editor dash:TextFieldEditor .
 
-<http://data.health-ri.nl/core/p2/IdentifierShape#schema-agency> sh:path adms:schemaAgency;
+<http://data.health-ri.nl/core/p2/IdentifierShape#adms:schemaAgency> sh:path adms:schemaAgency;
   sh:name "schema agency"@en;
   sh:description "The name of the agency that issued the identifier."@en;
-  sh:minCount 0;
   sh:maxCount 1;
   sh:nodeKind sh:Literal;
   dash:viewer dash:LiteralViewer;

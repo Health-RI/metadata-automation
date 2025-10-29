@@ -51,7 +51,7 @@ def parse_cardinality(cardinality: str) -> Tuple[Optional[int], Optional[int]]:
     # Check if it's a range (e.g., "0..n", "1..n")
     if '..' in cardinality:
         parts = cardinality.split('..')
-        min_count = int(parts[0].strip()) if parts[0].strip() else None
+        min_count = int(parts[0].strip()) if parts[0].strip() != '0' else None
         max_part = parts[1].strip()
         max_count = None if max_part == 'n' else int(max_part)
         return (min_count, max_count)

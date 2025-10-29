@@ -1,0 +1,284 @@
+id: http://data.health-ri.nl/core/p2/Catalog
+title: hri-Catalog
+description: hri-Catalog
+prefixes:
+  linkml: https://w3id.org/linkml/
+  dcat: https://www.w3.org/ns/dcat#
+  dct: http://purl.org/dc/terms/
+  xsd: http://www.w3.org/2001/XMLSchema#
+  adms: http://www.w3.org/ns/adms#
+  adms_status: http://purl.org/adms/status/
+  odrl2: http://www.w3.org/ns/odrl/2/
+  prov: http://www.w3.org/ns/prov#
+  dcatv3: https://www.w3.org/ns/dcat/3#
+  vcard: http://www.w3.org/2006/vcard/ns#
+  foaf: http://xmlns.com/foaf/0.1/
+  dash: http://datashapes.org/dash#
+  spdx: http://spdx.org/rdf/terms#
+  owl: http://www.w3.org/2002/07/owl#
+  disco: http://rdf-vocabulary.ddialliance.org/discovery#
+  skosthes: http://purl.org/iso25964/skos-thes#
+  skos: http://www.w3.org/2004/02/skos/core#
+  rdfs: http://www.w3.org/2000/01/rdf-schema#
+  qb: http://purl.org/linked-data/cube#
+  healthdcatap: http://healthdataportal.eu/ns/health#
+  doap: http://usefulinc.com/ns/doap#
+  sh: http://www.w3.org/ns/shacl#
+  euvoc: http://publications.europa.eu/ontology/euvoc#
+  hri: http://data.health-ri.nl/core/p2/
+  dcatap: http://data.europa.eu/r5r/
+  org: http://www.w3.org/ns/org#
+  skosxl: http://www.w3.org/2008/05/skos-xl#
+  rdf: http://www.w3.org/1999/02/22-rdf-syntax-ns#
+  dc: http://purl.org/dc/elements/1.1/
+  dqv: http://www.w3.org/ns/dqv#
+  dpv: https://w3id.org/dpv#
+  dqv-pd: https://w3id.org/dpv/dpv-pd#
+  eu: http://publications.europa.eu/resource/authority/access-right/
+  oa: http://www.w3.org/ns/oa#
+imports:
+- linkml:types
+- ../sempyro_types
+classes:
+  HRICatalog:
+    class_uri: hri:Catalog
+    annotations:
+      ontology: https://www.w3.org/TR/vocab-dcat-3/
+      IRI: '"DCAT.Catalog"'
+      namespace: HRI
+      prefix: hri
+      validator_logic: "_validate_literal_fields: ClassVar[Set[str]] = {\"title\"\
+        , \"description\", \"keyword\", \"version\", \"version_notes\"}\n\n    @field_validator(*_validate_literal_fields,\
+        \ mode=\"before\")\n    @classmethod\n    def validate_literal(cls, value:\
+        \ List[Union[str, LiteralField]]) -> List[LiteralField]:\n        return convert_to_literal(value)\n\
+        \n    @field_validator(\"release_date\", \"modification_date\", mode=\"before\"\
+        )\n    @classmethod\n    def date_validator(cls, value):\n        return date_handler(value)\n\
+        \n    @field_validator(\"temporal_resolution\", mode=\"after\")\n    @classmethod\n\
+        \    def validate_xsd_duration(cls, value: Union[str, LiteralField]) -> LiteralField:\n\
+        \        if isinstance(value, str):\n            return LiteralField(value=value,\
+        \ datatype=\"xsd:duration\")\n        if isinstance(value, LiteralField) and\
+        \ value.datatype != \"xsd:duration\":\n            return LiteralField(value=value.value,\
+        \ datatype=\"xsd:duration\")\n        return value\n"
+    slots:
+    - applicable_legislation
+    - catalog
+    - contact_point
+    - creator
+    - dataset
+    - description
+    - geographical_coverage
+    - has_part
+    - home_page
+    - language
+    - licence
+    - modification_date
+    - publisher
+    - release_date
+    - rights
+    - service
+    - temporal_coverage
+    - themes
+    - title
+    is_a: DCATCatalog
+  DCATCatalog:
+    class_uri: dcat:Catalog
+slots:
+  applicable_legislation:
+    description: The legislation that is applicable to this resource.
+    slot_uri: dcatap:applicableLegislation
+    annotations:
+      rdf_term: DCATAPv3.applicableLegislation
+      rdf_type: uri
+    required: false
+    multivalued: true
+    range: AnyHttpUrl
+  catalog:
+    description: A catalog that is listed in the catalog.
+    slot_uri: dcat:catalog
+    annotations:
+      rdf_term: DCAT.catalog
+      rdf_type: uri
+    required: false
+    multivalued: true
+    range: AnyHttpUrl
+  contact_point:
+    description: Relevant contact information for the cataloged resource.
+    slot_uri: dcat:contactPoint
+    annotations:
+      rdf_term: DCAT.contactPoint
+      rdf_type: uri
+    required: true
+    multivalued: false
+    any_of:
+    - range: AnyHttpUrl
+    - range: HRIVCard
+  creator:
+    description: An entity responsible for making the resource.
+    slot_uri: dct:creator
+    annotations:
+      rdf_term: DCTERMS.creator
+      rdf_type: uri
+    required: false
+    multivalued: true
+    any_of:
+    - range: AnyHttpUrl
+    - range: HRIAgent
+  dataset:
+    description: A dataset that is listed in the catalog.
+    slot_uri: dcat:dataset
+    annotations:
+      rdf_term: DCAT.dataset
+      rdf_type: uri
+    required: true
+    multivalued: true
+    any_of:
+    - range: AnyHttpUrl
+    - range: DCATDataset
+  description:
+    description: An account of the resource.
+    slot_uri: dct:description
+    annotations:
+      rdf_term: DCTERMS.description
+      rdf_type: rdfs_literal
+    required: true
+    multivalued: true
+    any_of:
+    - range: LiteralField
+    - range: str
+  geographical_coverage:
+    description: Spatial characteristics of the resource.
+    slot_uri: dct:spatial
+    annotations:
+      rdf_term: DCTERMS.spatial
+      rdf_type: uri
+    required: false
+    multivalued: true
+    any_of:
+    - range: AnyHttpUrl
+    - range: Location
+  has_part:
+    description: A related resource that is included either physically or logically
+      in the described resource.
+    slot_uri: dct:hasPart
+    annotations:
+      rdf_term: DCTERMS.hasPart
+      rdf_type: uri
+    required: false
+    multivalued: true
+    any_of:
+    - range: AnyHttpUrl
+    - range: DCATCatalog
+  home_page:
+    description: A homepage for some thing.
+    slot_uri: foaf:homepage
+    annotations:
+      rdf_term: FOAF.homepage
+      rdf_type: uri
+    required: false
+    multivalued: false
+    range: AnyHttpUrl
+  language:
+    description: A language of the resource.
+    slot_uri: dct:language
+    annotations:
+      rdf_term: DCTERMS.language
+      rdf_type: uri
+    required: false
+    multivalued: true
+    range: AnyHttpUrl
+  licence:
+    description: A legal document giving official permission to do something with
+      the resource.
+    slot_uri: dct:license
+    annotations:
+      rdf_term: DCTERMS.license
+      rdf_type: uri
+    required: false
+    multivalued: false
+    range: AnyHttpUrl
+  modification_date:
+    description: Date on which the resource was changed.
+    slot_uri: dct:modified
+    annotations:
+      rdf_term: DCTERMS.modified
+      rdf_type: datetime_literal
+    required: false
+    multivalued: false
+    any_of:
+    - range: str
+    - range: date
+    - range: AwareDatetime
+    - range: NaiveDatetime
+  publisher:
+    description: An entity responsible for making the resource available.
+    slot_uri: dct:publisher
+    annotations:
+      rdf_term: DCTERMS.publisher
+      rdf_type: uri
+    required: true
+    multivalued: false
+    any_of:
+    - range: AnyHttpUrl
+    - range: HRIAgent
+  release_date:
+    description: Date of formal issuance of the resource.
+    slot_uri: dct:issued
+    annotations:
+      rdf_term: DCTERMS.issued
+      rdf_type: datetime_literal
+    required: false
+    multivalued: false
+    any_of:
+    - range: str
+    - range: date
+    - range: AwareDatetime
+    - range: NaiveDatetime
+  rights:
+    description: Information about rights held in and over the resource.
+    slot_uri: dct:rights
+    annotations:
+      rdf_term: DCTERMS.rights
+      rdf_type: uri
+    required: false
+    multivalued: false
+    any_of:
+    - range: LiteralField
+    - range: AnyHttpUrl
+  service:
+    description: A service that is listed in the catalog.
+    slot_uri: dcat:service
+    annotations:
+      rdf_term: DCAT.service
+      rdf_type: uri
+    required: false
+    multivalued: true
+    any_of:
+    - range: AnyHttpUrl
+    - range: HRIDataService
+  temporal_coverage:
+    description: Temporal characteristics of the resource.
+    slot_uri: dct:temporal
+    annotations:
+      rdf_term: DCTERMS.temporal
+      rdf_type: DCTERMS.PeriodOfTime
+    required: false
+    multivalued: true
+    range: PeriodOfTime
+  themes:
+    description: A main category of the resource. A resource can have multiple themes.
+    slot_uri: dcat:themeTaxonomy
+    annotations:
+      rdf_term: DCAT.themeTaxonomy
+      rdf_type: uri
+    required: false
+    multivalued: true
+    range: AnyHttpUrl
+  title:
+    description: A name given to the resource.
+    slot_uri: dct:title
+    annotations:
+      rdf_term: DCTERMS.type
+      rdf_type: uri
+    required: true
+    multivalued: true
+    range: AnyHttpUrl

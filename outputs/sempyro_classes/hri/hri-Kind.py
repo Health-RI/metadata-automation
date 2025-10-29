@@ -1,19 +1,10 @@
-import logging
-from abc import ABCMeta
-from datetime import date, datetime
-from enum import Enum
 from pathlib import Path
-from typing import ClassVar, List, Optional, Set, Union
+from typing import List, Union
 
-from pydantic import AnyHttpUrl, AwareDatetime, ConfigDict, Field, NaiveDatetime, field_validator
-from rdflib import DCAT, DCTERMS, ODRL2, PROV, URIRef
-from sempyro import LiteralField, RDFModel
-from sempyro.foaf import Agent
-from sempyro.geo import Location
-from sempyro.namespaces import ADMS, ADMSStatus, DCATv3
-from sempyro.odrl import ODRLPolicy
-from sempyro.time import PeriodOfTime
-from sempyro.utils.validator_functions import convert_to_literal, date_handler
+from pydantic import AnyHttpUrl, AnyUrl, ConfigDict, Field, field_validator
+from rdflib import Namespace
+from sempyro import LiteralField
+from sempyro.utils.validator_functions import validate_convert_email
 from sempyro.vcard import VCard
 
 
@@ -23,7 +14,7 @@ version = "None"
 logger = logging.getLogger(__name__)
 
 
-class HRIKind(RDFModel):
+class HRIKind(Kind):
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
         use_enum_values=True,
@@ -34,16 +25,26 @@ class HRIKind(RDFModel):
             "$prefix": "hri",
         },
     )
-    contact_page: Optional[list[AnyUrl]] = Field(
+    contact_page: Optional[list[AnyHttpUrl]] = Field(
         default=None,
         description="""To specify a uniform resource locator associated with the object.""",
         json_schema_extra={"rdf_term": VCARD.hasURL, "rdf_type": "uri"},
     )
-    has_email: str = Field(
+
+    has_email: AnyUrl = Field(
         description="""To specify the electronic mail address for communication with the object.""",
         json_schema_extra={"rdf_term": VCARD.hasEmail, "rdf_type": "uri"},
     )
-    formatted_name: AnyHttpUrl = Field(
+
+    formatted_name: Union[LiteralField, str] = Field(
         description="""The formatted text corresponding to the name of the object.""",
         json_schema_extra={"rdf_term": VCARD.fn, "rdf_type": "rdfs_literal"},
     )
+
+    @field_validator("hasEmail", mode="before")
+    @classmethod
+    def _validate_email(cls, value: Union[str, AnyUrl, List[Union[str, AnyUrl]]]) -> List[AnyUrl]:
+        """
+        Checks if provided value is a valid email or mailto URI, fulfills an email to mailto URI
+        """
+        return validate_convert_email(value)

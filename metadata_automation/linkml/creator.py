@@ -173,7 +173,7 @@ class LinkMLCreator():
                 # Use any_of to create Union type in LinkML
                 slot_def['any_of'] = [{'range': r} for r in range_values]
             else:
-                slot_def['range'] = sempyro_range
+                slot_def['range'] = sempyro_range.strip()
 
             slots[slot_name] = slot_def
 

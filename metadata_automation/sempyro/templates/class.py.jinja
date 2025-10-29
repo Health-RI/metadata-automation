@@ -22,6 +22,7 @@ class {{ name }}({% if bases is string %}{{ bases }}{% else %}{{ bases | join(',
         {% if attributes %}
             {% for attr in attributes.values() %}
     {{ attr }}
+
             {% endfor -%}
         {% endif %}
         {% if validators %}

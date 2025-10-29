@@ -9,6 +9,7 @@
 @prefix dqv: <http://www.w3.org/ns/dqv#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix qb: <http://purl.org/linked-data/cube#> .
+@prefix oa: <http://www.w3.org/ns/oa#> .
 @prefix healthdcatap: <http://healthdataportal.eu/ns/health#> .
 @prefix dct: <http://purl.org/dc/terms/> .
 @prefix doap: <http://usefulinc.com/ns/doap#> .
@@ -34,27 +35,28 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix skosxl: <http://www.w3.org/2008/05/skos-xl#> .
 
-hri:AttributionShape a owl:Ontology, sh:NodeShape;
-  rdfs:label "Excel template for Attribution class"@en, "Attribution"@en;
+hri:aux-AttributionShape a owl:Ontology;
+  rdfs:label "Excel template for Attribution class"@en;
   rdfs:comment "Excel template for Attribution class"@en;
   dct:description "This is an excel template for Attribution class in Health RI Core plateau 2."@en;
-  owl:versionInfo "0.1";
-  sh:targetClass prov:Attribution;
-  sh:property <http://data.health-ri.nl/core/p2/AttributionShape#agent>, <http://data.health-ri.nl/core/p2/AttributionShape#role> .
+  owl:versionInfo "0.1" .
 
-<http://data.health-ri.nl/core/p2/AttributionShape#agent> sh:path prov:agent;
+hri:AttributionShape a sh:NodeShape;
+  rdfs:label "Attribution"@en;
+  sh:targetClass prov:Attribution;
+  sh:property <http://data.health-ri.nl/core/p2/AttributionShape#prov:agent>, <http://data.health-ri.nl/core/p2/AttributionShape#dcat:hadRole> .
+
+<http://data.health-ri.nl/core/p2/AttributionShape#prov:agent> sh:path prov:agent;
   sh:name "agent"@en;
   sh:description "The prov:agent property references an prov:Agent which influenced a resource."@en;
-  sh:minCount 0;
   sh:maxCount 1;
   sh:node hri:AgentShape;
   dash:viewer dash:DetailsViewer;
   dash:editor dash:BlankNodeEditor .
 
-<http://data.health-ri.nl/core/p2/AttributionShape#role> sh:path dcat:hadRole;
+<http://data.health-ri.nl/core/p2/AttributionShape#dcat:hadRole> sh:path dcat:hadRole;
   sh:name "role"@en;
   sh:description "The function of an entity or agent with respect to another entity or resource."@en;
-  sh:minCount 0;
   sh:maxCount 1;
   sh:nodeKind sh:IRI;
   dash:viewer dash:LabelViewer;

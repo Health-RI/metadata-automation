@@ -163,7 +163,7 @@ class SHACLPlayConverter:
 
         # Look up the namespace URL from prefixes
         namespace_url = self._get_namespace_url(namespace_prefix)
-        shape_uri = f"{namespace_url}{class_name}Shape"
+        shape_uri = f"{namespace_url}aux-{class_name}Shape"
         df.iat[0, 1] = shape_uri  # Shapes URI
 
         # Update labels and description
@@ -182,7 +182,7 @@ class SHACLPlayConverter:
 
         # Add a new row for the actual NodeShape data (after the 13 template rows)
         # Create new row with the NodeShape data
-        new_nodeshape_row = pd.Series([np.nan] * len(df.columns))
+        new_nodeshape_row = pd.Series([np.nan] * len(df.columns), dtype=str)
         new_nodeshape_row.iloc[0] = f"{namespace_prefix}:{class_name}Shape"  # URI
         new_nodeshape_row.iloc[1] = class_name  # rdfs:label@en
         new_nodeshape_row.iloc[2] = np.nan  # rdfs:comment@en (usually empty)
@@ -268,18 +268,23 @@ class SHACLPlayConverter:
         namespace_prefix = ontology_name.split(':')[0]
 
         # Create a new row with proper column count (24 columns based on template)
-        new_row = pd.Series([np.nan] * 24)
+        new_row = pd.Series([np.nan] * 24, dtype=str)
 
         # Column 0: URI (PropertyShape identifier)
         prop_label = property_row['Property label']
-        slug = slugify_property_label(prop_label)
-        new_row[0] = f"{namespace_prefix}:{class_name}Shape#{slug}"
+        prop_uri = property_row['Property URI']
+        if f"{namespace_prefix}:{class_name}" == 'hri:Dataset':
+            slug = slugify_property_label(prop_label)
+            new_row[0] = f"{namespace_prefix}:{class_name}Shape#{slug}"
+        else:
+            new_row[0] = f"{namespace_prefix}:{class_name}Shape#{prop_uri}"
+
 
         # Column 1: ^sh:property (parent NodeShape)
         new_row[1] = f"{namespace_prefix}:{class_name}Shape"
 
         # Column 2: sh:path (property URI)
-        new_row[2] = property_row['Property URI']
+        new_row[2] = prop_uri
 
         # Column 3: sh:name@en (property label)
         new_row[3] = prop_label

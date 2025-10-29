@@ -30,6 +30,7 @@ python gen_shaclplay.py
 ## Usage
 
 The core source of information is the input Excel file. An example for the Health-RI v2 metadata model is given in `./inputs`.
+This is based on **v2.0.0** of the Health-RI metadata model.
 This is a duplicate of the Excel file from the [Health-RI metadata Github repository](https://github.com/Health-RI/health-ri-metadata/blob/v2.0.0/Documents/Metadata_CoreGenericHealth_v2.xlsx) 
 with additional columns.
 Other inputs can also be required per generator script. See the sections below for more information on that.
@@ -79,6 +80,9 @@ In the Excel file, besides the general columns, information is needed in the fol
   - `dash.viewer` and `dash.editor`: Entries for `dash:viewer` and `dash:editor` needed for 
   - `Pattern`: Regular expressions pattern that the property value should adhere to.
   - `Default value`: Default value for the property.
+
+To allow for a drop-in replacement of the current Health-RI SHACLs, properties for hri:Dataset are based on the 'Property label',
+for all other classes they are based on 'Property URI'.
 
 **Controlled Vocabulary Mappings**:
 
@@ -134,6 +138,9 @@ In the Excel file, besides the general columns, information is needed in the fol
 - Sheet per class:
     - `Sempyro range`: Comma separated list of the types in the range of this property. 
 
+Any namespace objects and Enums are not created in this automation pipeline. If you want to use them, they should 
+be defined separately and imported using the imports, explained below.
+
 **SeMPyRO types**:
 
 All types in the `Sempyro range` column should be known in the list in `./inputs/sempyro/sempyro_types.yaml`. 
@@ -149,9 +156,24 @@ and creating the Pydantic class name by making the `namespace` all caps and conc
 **Imports**:
 
 The generated SeMPyRO Pydantic classes are in the form of Python code, for which imports should be defined. 
-This can be done in `./inputs/sempyro/imports.py`. These imports are linked to the classes using the list of dictionaries
+This can be done in `./inputs/sempyro/imports.yaml`. These imports are linked to the classes using the list of dictionaries
 `link_dicts` in `gen_sempyro.py`.
 
 #### Outputs:
 This generator script produces Python files in the path `output_path` in each of the dictionaries in `link_dicts`.
+
+## Future work
+
+### SeMPyro inheritance
+The generated SeMPyRO classes currently present all properties that are defined in the Excel file, 
+without dealing with inheritance from superclasses. The properties of the newly generated classes should be removed 
+if they already exist in a superclass, given that they have identical names and behaviour.
+
+### Command line interface
+Currently the submiting input files is done through changing variables in the scripts. This is not user friendly and 
+should be changed into a CLI.
+
+### Reducing manual work
+For example in `gen_sempyro.py` it is currently required to specify an input path, an imports text and an output path
+per class, while they follow a specific structure. This can be simplified, resulting in less manual work.
 

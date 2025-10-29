@@ -9,6 +9,7 @@
 @prefix dqv: <http://www.w3.org/ns/dqv#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix qb: <http://purl.org/linked-data/cube#> .
+@prefix oa: <http://www.w3.org/ns/oa#> .
 @prefix healthdcatap: <http://healthdataportal.eu/ns/health#> .
 @prefix dct: <http://purl.org/dc/terms/> .
 @prefix doap: <http://usefulinc.com/ns/doap#> .
@@ -34,15 +35,18 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix skosxl: <http://www.w3.org/2008/05/skos-xl#> .
 
-hri:ChecksumShape a owl:Ontology, sh:NodeShape;
-  rdfs:label "Excel template for Checksum class"@en, "Checksum"@en;
+hri:aux-ChecksumShape a owl:Ontology;
+  rdfs:label "Excel template for Checksum class"@en;
   rdfs:comment "Excel template for Checksum class"@en;
   dct:description "This is an excel template for Checksum class in Health RI Core plateau 2."@en;
-  owl:versionInfo "0.1";
-  sh:targetClass spdx:Checksum;
-  sh:property <http://data.health-ri.nl/core/p2/ChecksumShape#algorithm>, <http://data.health-ri.nl/core/p2/ChecksumShape#checksum-value> .
+  owl:versionInfo "0.1" .
 
-<http://data.health-ri.nl/core/p2/ChecksumShape#algorithm> sh:path spdx:algorithm;
+hri:ChecksumShape a sh:NodeShape;
+  rdfs:label "Checksum"@en;
+  sh:targetClass spdx:Checksum;
+  sh:property <http://data.health-ri.nl/core/p2/ChecksumShape#spdx:algorithm>, <http://data.health-ri.nl/core/p2/ChecksumShape#spdx:checksumValue> .
+
+<http://data.health-ri.nl/core/p2/ChecksumShape#spdx:algorithm> sh:path spdx:algorithm;
   sh:name "algorithm"@en;
   sh:description "Identifies the algorithm used to produce the subject Checksum."@en;
   sh:minCount 1;
@@ -51,7 +55,7 @@ hri:ChecksumShape a owl:Ontology, sh:NodeShape;
   dash:viewer dash:URIViewer;
   dash:editor dash:URIEditor .
 
-<http://data.health-ri.nl/core/p2/ChecksumShape#checksum-value> sh:path spdx:checksumValue;
+<http://data.health-ri.nl/core/p2/ChecksumShape#spdx:checksumValue> sh:path spdx:checksumValue;
   sh:name "checksum value"@en;
   sh:description "The checksumValue property provides a lower case hexidecimal encoded digest value produced using a specific algorithm."@en;
   sh:minCount 1;
