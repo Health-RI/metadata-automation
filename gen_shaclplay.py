@@ -14,10 +14,10 @@ from metadata_automation.shaclplay.utils import write_shaclplay_excel
 
 # Configuration
 # EXCEL_FILE_PATH = "./inputs/EUCAIM.xlsx"
-EXCEL_FILE_PATH = "./inputs/Metadata_CoreGenericHealth_v2.xlsx"
+EXCEL_FILE_PATH = "./inputs/GDI_v1.1.xlsx"
 TEMPLATE_PATH = Path("./inputs/shacls/shaclplay-template.xlsx")
 # FOLDER_NAME = "eucaim"
-FOLDER_NAME = "hri"
+FOLDER_NAME = "gdi"
 OUTPUT_PATH = Path("./outputs/shaclplay") / FOLDER_NAME
 
 def main():

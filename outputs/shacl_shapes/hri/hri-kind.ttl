@@ -50,6 +50,7 @@ hri:KindShape a sh:NodeShape;
 <http://data.health-ri.nl/core/p2/KindShape#vcard:hasURL> sh:path vcard:hasURL;
   sh:name "contact page"@en;
   sh:description "To specify a uniform resource locator associated with the object."@en;
+  sh:maxCount 1;
   sh:nodeKind sh:IRI;
   dash:viewer dash:URIViewer;
   dash:editor dash:URIEditor .

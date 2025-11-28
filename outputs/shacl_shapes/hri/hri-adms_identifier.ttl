@@ -44,7 +44,8 @@ hri:aux-IdentifierShape a owl:Ontology;
 hri:IdentifierShape a sh:NodeShape;
   rdfs:label "Identifier"@en;
   sh:targetClass adms:Identifier;
-  sh:property <http://data.health-ri.nl/core/p2/IdentifierShape#skos:notation>, <http://data.health-ri.nl/core/p2/IdentifierShape#adms:schemaAgency> .
+  sh:property <http://data.health-ri.nl/core/p2/IdentifierShape#skos:notation>, <http://data.health-ri.nl/core/p2/IdentifierShape#adms:schemaAgency>,
+    <http://data.health-ri.nl/core/p2/IdentifierShape#foaf:name> .
 
 <http://data.health-ri.nl/core/p2/IdentifierShape#skos:notation> sh:path skos:notation;
   sh:name "notation"@en;
@@ -58,6 +59,15 @@ hri:IdentifierShape a sh:NodeShape;
 <http://data.health-ri.nl/core/p2/IdentifierShape#adms:schemaAgency> sh:path adms:schemaAgency;
   sh:name "schema agency"@en;
   sh:description "The name of the agency that issued the identifier."@en;
+  sh:maxCount 1;
+  sh:nodeKind sh:Literal;
+  dash:viewer dash:LiteralViewer;
+  dash:editor dash:TextFieldEditor .
+
+<http://data.health-ri.nl/core/p2/IdentifierShape#foaf:name> sh:path foaf:name;
+  sh:name "name"@en;
+  sh:description "Name of the entity."@en;
+  sh:minCount 1;
   sh:maxCount 1;
   sh:nodeKind sh:Literal;
   dash:viewer dash:LiteralViewer;

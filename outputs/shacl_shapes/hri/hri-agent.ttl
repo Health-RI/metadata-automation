@@ -109,8 +109,6 @@ hri:AgentShape a sh:NodeShape;
 <http://data.health-ri.nl/core/p2/AgentShape#foaf:homepage> sh:path foaf:homepage;
   sh:name "URL"@en;
   sh:description "A homepage for some thing."@en;
-  sh:minCount 1;
-  sh:maxCount 1;
   sh:nodeKind sh:IRI;
   dash:viewer dash:URIViewer;
   dash:editor dash:URIEditor .

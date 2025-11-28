@@ -12,7 +12,7 @@ import pandas as pd
 
 # Configuration
 # SHACLPLAY_INPUT_DIR = Path("./outputs/shaclplay/eucaim")
-SHACLPLAY_INPUT_DIR = Path("./outputs/shaclplay/hri")
+SHACLPLAY_INPUT_DIR = Path("outputs/shaclplay/gdi")
 SHACL_OUTPUT_BASE_DIR = Path("./outputs/shacl_shapes/")
 XLS2RDF_JAR = Path("./inputs/shacls/xls2rdf-app-3.2.1-onejar.jar")
 

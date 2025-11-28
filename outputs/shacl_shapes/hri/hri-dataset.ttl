@@ -75,17 +75,17 @@ hri:DatasetShape a sh:NodeShape;
   sh:minCount 1;
   sh:maxCount 1;
   sh:nodeKind sh:IRI;
-  sh:in _:0b4a7742bbb14f68ac56023668054acc2;
+  sh:in _:73ebf3258c9f4275ba779652d21a6ba42;
   dash:viewer dash:URIViewer;
   dash:editor dash:EnumSelectEditor .
 
-_:0b4a7742bbb14f68ac56023668054acc2 rdf:first eu:PUBLIC;
-  rdf:rest _:0b4a7742bbb14f68ac56023668054acc3 .
+_:73ebf3258c9f4275ba779652d21a6ba42 rdf:first eu:PUBLIC;
+  rdf:rest _:73ebf3258c9f4275ba779652d21a6ba43 .
 
-_:0b4a7742bbb14f68ac56023668054acc3 rdf:first eu:RESTRICTED;
-  rdf:rest _:0b4a7742bbb14f68ac56023668054acc4 .
+_:73ebf3258c9f4275ba779652d21a6ba43 rdf:first eu:RESTRICTED;
+  rdf:rest _:73ebf3258c9f4275ba779652d21a6ba44 .
 
-_:0b4a7742bbb14f68ac56023668054acc4 rdf:first eu:NON_PUBLIC;
+_:73ebf3258c9f4275ba779652d21a6ba44 rdf:first eu:NON_PUBLIC;
   rdf:rest rdf:nil .
 
 <http://data.health-ri.nl/core/p2/DatasetShape#analytics> sh:path healthdcatap:analytics;
@@ -128,8 +128,6 @@ _:0b4a7742bbb14f68ac56023668054acc4 rdf:first eu:NON_PUBLIC;
 <http://data.health-ri.nl/core/p2/DatasetShape#contact-point> sh:path dcat:contactPoint;
   sh:name "contact point"@en;
   sh:description "Relevant contact information for the cataloged resource."@en;
-  sh:minCount 1;
-  sh:maxCount 1;
   sh:node hri:KindShape;
   dash:viewer dash:URIViewer;
   dash:editor dash:BlankNodeEditor .
@@ -153,6 +151,7 @@ _:0b4a7742bbb14f68ac56023668054acc4 rdf:first eu:NON_PUBLIC;
 <http://data.health-ri.nl/core/p2/DatasetShape#distribution> sh:path dcat:distribution;
   sh:name "distribution"@en;
   sh:description "An available Distribution for the Dataset."@en;
+  sh:minCount 1;
   sh:nodeKind sh:IRI;
   dash:viewer dash:URIViewer;
   dash:editor dash:URIEditor .
@@ -309,7 +308,6 @@ _:0b4a7742bbb14f68ac56023668054acc4 rdf:first eu:NON_PUBLIC;
 <http://data.health-ri.nl/core/p2/DatasetShape#publisher> sh:path dct:publisher;
   sh:name "publisher"@en;
   sh:description "An entity responsible for making the resource available."@en;
-  sh:minCount 1;
   sh:maxCount 1;
   sh:node hri:AgentShape;
   dash:viewer dash:DetailsViewer;
