@@ -6,10 +6,10 @@ and appropriate dash:editor settings.
 """
 
 VOCAB_MAPPINGS = {
-    'http://publications.europa.eu/resource/authority/access-right': {
-        'sh_in': '( eu:PUBLIC eu:RESTRICTED eu:NON_PUBLIC )',
-        'editor': 'dash:EnumSelectEditor',
-        'example_property': 'access rights'
+    "http://publications.europa.eu/resource/authority/access-right": {
+        "sh_in": "( eu:PUBLIC eu:RESTRICTED eu:NON_PUBLIC )",
+        "editor": "dash:EnumSelectEditor",
+        "example_property": "access rights",
     },
     # Add more mappings as they are discovered or manually specified
     # Format: URL -> {'sh_in': '( value1 value2 ... )', 'editor': 'dash:EnumSelectEditor'}

@@ -5,7 +5,15 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, Union
 
-from pydantic import AnyHttpUrl, AwareDatetime, ConfigDict, Field, NaiveDatetime, field_validator, model_validator
+from pydantic import (
+    AnyHttpUrl,
+    AwareDatetime,
+    ConfigDict,
+    Field,
+    NaiveDatetime,
+    field_validator,
+    model_validator,
+)
 from rdflib import DCAT, DCTERMS, TIME, URIRef
 from sempyro import LiteralField, RDFModel
 from sempyro.namespaces import Greg
@@ -33,11 +41,17 @@ class HRIPeriodoftime(RDFModel):
     end_date: Optional[LiteralField] = Field(
         default=None,
         description="""The end of the period.""",
-        json_schema_extra={"rdf_term": DCAT.startDate, "rdf_type": "rdfs_literal"},
+        json_schema_extra={
+            "rdf_term": DCAT.startDate,
+            "rdf_type": "rdfs_literal",
+        },
     )
 
     start_date: Optional[LiteralField] = Field(
         default=None,
         description="""The start of the period.""",
-        json_schema_extra={"rdf_term": DCAT.endDate, "rdf_type": "rdfs_literal"},
+        json_schema_extra={
+            "rdf_term": DCAT.endDate,
+            "rdf_type": "rdfs_literal",
+        },
     )

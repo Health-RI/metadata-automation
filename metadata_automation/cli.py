@@ -221,7 +221,9 @@ def shacl(
             )
             exit
 
-        click.echo(f"Found {len(excel_files)} SHACLPlay Excel files to convert")
+        click.echo(
+            f"Found {len(excel_files)} SHACLPlay Excel files to convert"
+        )
         click.echo()
 
         # Process each file
@@ -232,7 +234,9 @@ def shacl(
                     ns = namespace
                 else:
                     df = pd.read_excel(
-                        excel_file, sheet_name="NodeShapes (classes)", header=None
+                        excel_file,
+                        sheet_name="NodeShapes (classes)",
+                        header=None,
                     )
                     nodeshape_uri = df.iloc[13, 0]
 
