@@ -1,0 +1,39 @@
+[project]
+name = "metadata-automation"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "black==25.1.0",
+    "click==8.3.1",
+    "linkml==1.9.2",
+    "linkml-runtime==1.9.3",
+    "pandas==2.3.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=9.0.2",
+]
+
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["metadata_automation"]
+
+[tool.ruff]
+line-length = 79
+
+[tool.hatch.envs.test]
+dependencies = [
+    "pytest>=9.0.2",
+]
+
+[[tool.hatch.envs.test.matrix]]
+python = ["3.13"]
+
+[project.scripts]
+metadata-automation = "metadata_automation.cli:main"
