@@ -14,7 +14,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=9.0.2",
+    "pytest",
 ]
 
 [build-system]
@@ -29,11 +29,11 @@ line-length = 79
 
 [tool.hatch.envs.test]
 dependencies = [
-    "pytest>=9.0.2",
+    "pytest",
 ]
 
 [[tool.hatch.envs.test.matrix]]
-python = ["3.13"]
+python = ["3.13", "3.14"]
 
 [project.scripts]
 metadata-automation = "metadata_automation.cli:main"

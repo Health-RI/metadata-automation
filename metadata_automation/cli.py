@@ -28,34 +28,30 @@ def main() -> None:
 
 @main.command()
 @click.option(
-    "--excel-file",
+    "-i", 
+    "--input-excel",
     type=click.Path(exists=True),
     required=True,
     help="Path to source metadata Excel file.",
 )
 @click.option(
+    "-t",
     "--template-path",
     type=click.Path(exists=True),
-    required=True,
+    default="./inputs/shacls/shaclplay-template.xlsx",
     help="Path to SHACLPlay template Excel file.",
 )
 @click.option(
+    "-o",
     "--output-path",
     type=click.Path(),
-    default="./outputs/shaclplay",
+    default="./outputs/shaclplay/default",
     help="Output directory for SHACLPlay Excel files.",
 )
-@click.option(
-    "--namespace",
-    type=str,
-    default="hri",
-    help="Namespace prefix for generated files (e.g., 'hri', 'eucaim').",
-)
 def shaclplay(
-    excel_file: str,
+    input_excel: str,
     template_path: str,
     output_path: str,
-    namespace: str,
 ) -> None:
     """
     Generate SHACLPlay Excel files from metadata.
@@ -70,9 +66,9 @@ def shaclplay(
     - One sheet per class with property definitions
     """
     try:
-        excel_path = Path(excel_file)
+        excel_path = Path(input_excel)
         template_p = Path(template_path)
-        output_dir = Path(output_path) / namespace
+        output_dir = Path(output_path)
 
         click.echo("=" * 80)
         click.echo("SHACLPlay Excel Generator")
@@ -157,17 +153,19 @@ def shaclplay(
 
     except Exception as e:
         click.echo(f"Error: {e}", err=True)
-        exit
+        exit()
 
 
 @main.command()
 @click.option(
-    "--shaclplay-path",
+    "-i",
+    "--input-path",
     type=click.Path(exists=True),
     required=True,
     help="Path to directory containing SHACLPlay Excel files.",
 )
 @click.option(
+    "-o",
     "--output-path",
     type=click.Path(),
     default="./outputs/shacl_shapes",
@@ -179,17 +177,10 @@ def shaclplay(
     default=None,
     help="Namespace prefix for output files (overrides auto-detection).",
 )
-@click.option(
-    "--xls2rdf-jar",
-    type=click.Path(exists=True),
-    default="./inputs/shacls/xls2rdf-app-3.2.1-onejar.jar",
-    help="Path to xls2rdf JAR file.",
-)
-def shacl(
-    shaclplay_path: str,
+def shacl_from_shaclplay(
+    input_path: str,
     output_path: str,
     namespace: str,
-    xls2rdf_jar: str,
 ) -> None:
     """Generate SHACL Turtle files from SHACLPlay Excel files.
 
@@ -197,9 +188,9 @@ def shacl(
     tool. Requires Java to be installed and available in PATH.
     """
     try:
-        shaclplay_dir = Path(shaclplay_path)
+        shaclplay_dir = Path(input_path)
         output_dir = Path(output_path)
-        jar_path = Path(xls2rdf_jar)
+        jar_path = Path("./inputs/shacls/xls2rdf-app-3.2.1-onejar.jar")
 
         click.echo("=" * 80)
         click.echo("SHACL Turtle Generator from SHACLPlay Excel")
@@ -209,17 +200,17 @@ def shacl(
         # Check if xls2rdf JAR exists
         if not jar_path.exists():
             click.echo(f"Error: xls2rdf JAR not found at {jar_path}", err=True)
-            raise click.Exit(1)
+            exit()
 
         # Find all SHACLPlay Excel files
-        excel_files = list(shaclplay_dir.glob("*.xlsx"))
+        excel_files = list(shaclplay_dir.glob("SHACL-*.xlsx"))
 
         if not excel_files:
             click.echo(
                 f"No SHACLPlay Excel files found in {shaclplay_dir}",
                 err=True,
             )
-            exit
+            exit()
 
         click.echo(
             f"Found {len(excel_files)} SHACLPlay Excel files to convert"
@@ -313,7 +304,7 @@ def shacl(
 
     except Exception as e:
         click.echo(f"Error: {e}", err=True)
-        exit
+        exit()
 
 
 if __name__ == "__main__":
