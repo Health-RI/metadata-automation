@@ -12,6 +12,9 @@ from pathlib import Path
 import click
 import pandas as pd
 
+from metadata_automation.linkml.creator import LinkMLCreator
+from metadata_automation.sempyro.cleanup import remove_unwanted_classes
+from metadata_automation.sempyro.utils import generate_from_linkml, load_yaml
 from metadata_automation.shaclplay.converter import SHACLPlayConverter
 from metadata_automation.shaclplay.utils import write_shaclplay_excel
 
@@ -28,7 +31,7 @@ def main() -> None:
 
 @main.command()
 @click.option(
-    "-i", 
+    "-i",
     "--input-excel",
     type=click.Path(exists=True),
     required=True,
@@ -153,7 +156,9 @@ def shaclplay(
 
     except Exception as e:
         click.echo(f"Error: {e}", err=True)
-        exit()
+        if click.get_current_context().obj:
+            traceback.print_exc()
+        exit(1)
 
 
 @main.command()
@@ -172,6 +177,7 @@ def shaclplay(
     help="Output directory for SHACL Turtle files.",
 )
 @click.option(
+    "-n",
     "--namespace",
     type=str,
     default=None,
@@ -200,7 +206,7 @@ def shacl_from_shaclplay(
         # Check if xls2rdf JAR exists
         if not jar_path.exists():
             click.echo(f"Error: xls2rdf JAR not found at {jar_path}", err=True)
-            exit()
+            exit(1)
 
         # Find all SHACLPlay Excel files
         excel_files = list(shaclplay_dir.glob("SHACL-*.xlsx"))
@@ -210,7 +216,7 @@ def shacl_from_shaclplay(
                 f"No SHACLPlay Excel files found in {shaclplay_dir}",
                 err=True,
             )
-            exit()
+            exit(1)
 
         click.echo(
             f"Found {len(excel_files)} SHACLPlay Excel files to convert"
@@ -304,7 +310,215 @@ def shacl_from_shaclplay(
 
     except Exception as e:
         click.echo(f"Error: {e}", err=True)
-        exit()
+        if click.get_current_context().obj:
+            traceback.print_exc()
+        exit(1)
+
+
+@main.command()
+@click.option(
+    "-i",
+    "--input-excel",
+    type=click.Path(exists=True),
+    required=True,
+    help="Path to source metadata Excel file.",
+)
+@click.option(
+    "-n",
+    "--namespace",
+    type=str,
+    default=None,
+    help="Namespace prefix (auto-detected from Excel if not provided).",
+)
+def sempyro(
+    input_excel: str,
+    namespace: str,
+) -> None:
+    """Generate SeMPyRO Pydantic classes from metadata.
+
+    Converts metadata Excel file to LinkML schemas and then generates
+    SeMPyRO Pydantic classes with RDF capabilities.
+
+    \b
+    The Excel file must contain:
+    - A 'classes' sheet with class configuration including ontology_name
+    - One sheet per class with property definitions
+    """
+    try:
+        excel_path = Path(input_excel)
+        linkml_output_path = Path("./outputs/linkml")
+        sempyro_output_path = Path("./outputs/sempyro_classes")
+        imports_p = Path("./inputs/sempyro/imports.yaml")
+        exclude_list = ["Info", "User Guide"]
+
+        click.echo("=" * 80)
+        click.echo("SeMPyRO Pydantic Class Generator")
+        click.echo("=" * 80)
+        click.echo()
+
+        # Auto-detect namespace if not provided
+        if namespace is None:
+            click.echo("Auto-detecting namespace from Excel file...")
+            try:
+                classes_df = pd.read_excel(excel_path, sheet_name="classes")
+                if (
+                    "ontology_name" in classes_df.columns
+                    and len(classes_df) > 0
+                ):
+                    first_ontology = classes_df["ontology_name"].iloc[0]
+                    if ":" in str(first_ontology):
+                        namespace = first_ontology.split(":")[0]
+                        click.echo(f"  Detected namespace: {namespace}")
+                    else:
+                        click.echo(
+                            "  Warning: Could not parse namespace from ontology_name",
+                            err=True,
+                        )
+                        click.echo(
+                            "  Please provide namespace with --namespace option"
+                        )
+                        exit(1)
+                else:
+                    click.echo(
+                        "  Error: 'ontology_name' column not found in classes sheet",
+                        err=True,
+                    )
+                    exit(1)
+            except Exception as e:
+                click.echo(f"  Error reading classes sheet: {e}", err=True)
+                exit(1)
+        else:
+            click.echo(f"Using provided namespace: {namespace}")
+
+        click.echo()
+
+        click.echo("[1/4] Generating LinkML schemas...")
+        linkml_creator = LinkMLCreator(linkml_output_path)
+        linkml_creator.load_excel(str(excel_path), exclude_list)
+        linkml_creator.build_sempyro()
+        linkml_creator.write_to_file()
+        click.echo("  ✓ LinkML schemas generated")
+        click.echo()
+
+        click.echo("[2/4] Loading imports configuration...")
+        if not imports_p.exists():
+            click.echo(
+                f"  Error: Imports file not found at {imports_p}", err=True
+            )
+            exit(1)
+
+        imports = load_yaml(imports_p)
+        click.echo(f"  ✓ Loaded imports for {len(imports)} classes")
+        click.echo()
+        click.echo("[3/4] Generating SeMPyRO Pydantic classes...")
+
+        class_names = [
+            "Dataset",
+            "Agent",
+            "Catalog",
+            "Kind",
+            "Distribution",
+            "Datasetseries",
+            "Dataservice",
+            "Identifier",
+            "PeriodOfTime",
+            "Attribution",
+            "Relationship",
+            "QualityCertificate",
+            "Checksum",
+        ]
+
+        linkml_definitions_path = linkml_output_path / namespace
+        sempyro_class_output_path = sempyro_output_path / namespace
+        sempyro_class_output_path.mkdir(parents=True, exist_ok=True)
+
+        success_count = 0
+        error_count = 0
+
+        for class_name in class_names:
+            class_key = f"{namespace}-{class_name}"
+            schema_file = linkml_definitions_path / f"{class_key}.yaml"
+            output_file = sempyro_class_output_path / f"{class_key}.py"
+
+            click.echo(f"  Processing {class_name}...")
+            if not schema_file.exists():
+                click.echo(f"    ⚠ Schema file not found: {schema_file}")
+                error_count += 1
+                continue
+
+            if class_key not in imports:
+                click.echo(
+                    f"    ⚠ No imports configuration found for {class_key}"
+                )
+                error_count += 1
+                continue
+
+            try:
+                link_dict = {
+                    "schema_path": schema_file,
+                    "imports": imports[class_key],
+                    "output_path": str(output_file),
+                }
+                generate_from_linkml(link_dict)
+                remove_unwanted_classes(output_file, schema_file)
+
+                click.echo(f"    ✓ Generated {output_file.name}")
+                success_count += 1
+
+            except Exception as e:
+                click.echo(f"    ✗ Error: {e}")
+                if click.get_current_context().obj:
+                    traceback.print_exc()
+                error_count += 1
+
+        click.echo()
+
+        # Format generated files with uv
+        if success_count > 0:
+            click.echo("[4/4] Formatting generated Python files with uv...")
+            try:
+                format_cmd = [
+                    "uv",
+                    "format",
+                    "--directory",
+                    str(sempyro_class_output_path),
+                ]
+
+                result = subprocess.run(
+                    format_cmd, capture_output=True, text=True, check=True
+                )
+
+                click.echo(
+                    f"  ✓ Formatted files in {sempyro_class_output_path}"
+                )
+
+                if result.stdout:
+                    click.echo(f"  {result.stdout.strip()}")
+
+            except subprocess.CalledProcessError as e:
+                click.echo(f"  ⚠ Warning: uv format failed")
+                if e.stderr:
+                    click.echo(f"  {e.stderr.strip()}")
+            except FileNotFoundError:
+                click.echo(
+                    f"  ⚠ Warning: uv not found. Install from: https://docs.astral.sh/uv/"
+                )
+            click.echo()
+
+        click.echo("=" * 80)
+        click.echo("Generation complete!")
+        click.echo(f"  Successfully generated: {success_count} classes")
+        if error_count > 0:
+            click.echo(f"  Errors: {error_count} classes")
+        click.echo(f"  LinkML schemas: {linkml_output_path}")
+        click.echo(f"  SeMPyRO classes: {sempyro_output_path}")
+        click.echo("=" * 80)
+
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        if click.get_current_context().obj:
+            traceback.print_exc()
+        exit(1)
 
 
 if __name__ == "__main__":

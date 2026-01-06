@@ -544,7 +544,7 @@ requires-dist = [
     { name = "linkml", specifier = "==1.9.2" },
     { name = "linkml-runtime", specifier = "==1.9.3" },
     { name = "pandas", specifier = "==2.3.1" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=9.0.2" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = "==9.0.2" },
 ]
 provides-extras = ["dev"]
 
