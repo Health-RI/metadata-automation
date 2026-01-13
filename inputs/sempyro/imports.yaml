@@ -84,7 +84,7 @@ hri-Distribution: |
   from sempyro.namespaces import DCATAPv3, ADMS
   from sempyro.time import PeriodOfTime
 
-hri-Datasetseries: |
+hri-DatasetSeries: |
   from pathlib import Path
   from typing import List, Union
   
@@ -97,7 +97,7 @@ hri-Datasetseries: |
   from sempyro.vcard import VCard
   from sempyro.namespaces import DCATv3, DCATAPv3
 
-hri-Dataservice: |
+hri-DataService: |
   from datetime import date
   from pathlib import Path
   from typing import List, Union, ClassVar, Set

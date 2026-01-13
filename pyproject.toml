@@ -10,6 +10,7 @@ dependencies = [
     "linkml==1.9.2",
     "linkml-runtime==1.9.3",
     "pandas==2.3.1",
+    "ruff>=0.14.11",
 ]
 
 [project.optional-dependencies]
@@ -26,14 +27,6 @@ packages = ["metadata_automation"]
 
 [tool.ruff]
 line-length = 79
-
-[tool.hatch.envs.test]
-dependencies = [
-    "pytest",
-]
-
-[[tool.hatch.envs.test.matrix]]
-python = ["3.13", "3.14"]
 
 [project.scripts]
 metadata-automation = "metadata_automation.cli:main"

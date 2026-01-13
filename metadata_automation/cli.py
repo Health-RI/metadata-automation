@@ -6,6 +6,7 @@ and SeMPyRO Pydantic classes.
 """
 
 import subprocess
+import sys
 import traceback
 from pathlib import Path
 
@@ -410,23 +411,31 @@ def sempyro(
         imports = load_yaml(imports_p)
         click.echo(f"  ✓ Loaded imports for {len(imports)} classes")
         click.echo()
-        click.echo("[3/4] Generating SeMPyRO Pydantic classes...")
 
-        class_names = [
-            "Dataset",
-            "Agent",
-            "Catalog",
-            "Kind",
-            "Distribution",
-            "Datasetseries",
-            "Dataservice",
-            "Identifier",
-            "PeriodOfTime",
-            "Attribution",
-            "Relationship",
-            "QualityCertificate",
-            "Checksum",
-        ]
+        # Extract class names from the Excel file
+        try:
+            classes_df = pd.read_excel(excel_path, sheet_name="classes")
+            if "ontology_name" not in classes_df.columns:
+                click.echo(
+                    "  Error: 'ontology_name' column not found in classes sheet",
+                    err=True,
+                )
+                exit(1)
+
+            class_names = [
+                ont_name.split(":")[-1]
+                for ont_name in classes_df["ontology_name"]
+                if pd.notna(ont_name)
+            ]
+            click.echo(f"  ✓ Found {len(class_names)} classes in Excel file")
+        except Exception as e:
+            click.echo(
+                f"  Error reading class names from Excel: {e}", err=True
+            )
+            exit(1)
+
+        click.echo()
+        click.echo("[3/4] Generating SeMPyRO Pydantic classes...")
 
         linkml_definitions_path = linkml_output_path / namespace
         sempyro_class_output_path = sempyro_output_path / namespace
@@ -473,14 +482,21 @@ def sempyro(
 
         click.echo()
 
-        # Format generated files with uv
+        # Format generated files with ruff
         if success_count > 0:
-            click.echo("[4/4] Formatting generated Python files with uv...")
+            click.echo("[4/4] Formatting generated Python files with ruff...")
             try:
+                # Find ruff in the same environment as this Python interpreter
+                python_bin_dir = Path(sys.executable).parent
+                ruff_path = python_bin_dir / "ruff"
+                
+                # Fall back to system ruff if not found in environment
+                if not ruff_path.exists():
+                    ruff_path = "ruff"
+                
                 format_cmd = [
-                    "uv",
+                    str(ruff_path),
                     "format",
-                    "--directory",
                     str(sempyro_class_output_path),
                 ]
 
@@ -496,12 +512,12 @@ def sempyro(
                     click.echo(f"  {result.stdout.strip()}")
 
             except subprocess.CalledProcessError as e:
-                click.echo(f"  ⚠ Warning: uv format failed")
+                click.echo(f"  ⚠ Warning: ruff format failed")
                 if e.stderr:
                     click.echo(f"  {e.stderr.strip()}")
             except FileNotFoundError:
                 click.echo(
-                    f"  ⚠ Warning: uv not found. Install from: https://docs.astral.sh/uv/"
+                    f"  ⚠ Warning: ruff not found. Install with: pip install ruff"
                 )
             click.echo()
 

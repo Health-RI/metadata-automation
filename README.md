@@ -9,31 +9,65 @@ This repository contains a pipeline for generating metadata-related artifacts, s
 ├── metadata_automation/            # Code for this repository; a folder per artifact type.
 ├── inputs/                         # Additional inputs 
 ├── outputs/                        # Resulting artifacts; a folder per artifact type.
-├── gen_*.py                        # Generator scripts per artifact type
 └── README.md
 ```
 
-## Installation and usage
+## Installation
 
-To use the scripts in this repository, install the requirements:
+### Option 1: Using UV (Recommended)
+
+UV is a fast, modern Python package manager. Install the CLI globally in an isolated environment:
 
 ```bash
-pip install -r requirements.txt
+# Install uv (if not installed already)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install metadata-automation CLI
+cd /path/to/metadata-automation
+uv tool install . # add --editable argument if editable mode is wanted
 ```
 
-After this the generator scripts can be run, for example:
+After installation, the CLI is available globally:
 
 ```bash
-python gen_shaclplay.py
+metadata-automation --help
+```
+
+### Option 2: Using pip with Virtual Environment
+
+Use Python's built-in virtual environment with pip:
+
+```bash
+# Create a virtual environment
+cd /path/to/metadata-automation
+python3 -m venv .venv
+
+# Activate the virtual environment
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install the package
+pip install -e .
+```
+
+After installation, the CLI is available in the activated virtual environment:
+```bash
+source .venv/bin/activate
+metadata-automation --help
 ```
 
 ## Usage
+
+View all available commands:
+
+```bash
+metadata-automation --help
+```
 
 The core source of information is the input Excel file. An example for the Health-RI v2 metadata model is given in `./inputs`.
 This is based on **v2.0.0** of the Health-RI metadata model.
 This is a duplicate of the Excel file from the [Health-RI metadata Github repository](https://github.com/Health-RI/health-ri-metadata/blob/v2.0.0/Documents/Metadata_CoreGenericHealth_v2.xlsx) 
 with additional columns.
-Other inputs can also be required per generator script. See the sections below for more information on that.
+Other inputs can also be required per command. See the sections below for more information on that.
 
 In the Excel file there are three types of sheets:
 - prefixes: Links prefixes with namespaces
@@ -48,11 +82,19 @@ In the Excel file there are three types of sheets:
   - `Range`: Data type of the property
   - `Cardinality`: Cardinality of the property, e.g., `1..n`.
 
+### `shaclplay`: Generating SHACLPlay Excel files
 
-### `gen_shaclplay.py`: Generating SHACLPlay Excel files
 ```bash
-python gen_shaclplay.py
+metadata-automation shaclplay -i ./inputs/source_excel.xlsx -o ./outputs/shaclplay/default
 ```
+
+#### Command Options
+
+- `-i, --input-excel`: Path to source metadata Excel file (required)
+- `-t, --template-path`: Path to SHACLPlay template Excel file (default: `./inputs/shacls/shaclplay-template.xlsx`)
+- `-o, --output-path`: Output directory for SHACLPlay Excel files (default: `./outputs/shaclplay/default`)
+
+#### Description
 
 This script converts the Health-RI metadata Excel file directly to SHACLPlay-compatible Excel format without going through LinkML. The generated files can be imported into [SHACLPlay](https://shacl-play.sparna.fr/) for visual SHACL shape editing and validation.
 
@@ -66,9 +108,8 @@ The conversion process:
 - Maps controlled vocabulary URLs to sh:in value lists (where configured)
 - Generates properly formatted 3-sheet Excel files (prefixes, NodeShapes, PropertyShapes)
 
-#### Inputs:
-**Source Excel file**:
-
+#### Inputs
+**Source Excel file**:\
 In the Excel file, besides the general columns, information is needed in the following columns:
 - `classes` sheet: 
   - `ontology_name`: Name of the class with the corresponding namespace, formatted `{namespace}:{class_name}`, e.g., `hri:Dataset`.
@@ -77,56 +118,87 @@ In the Excel file, besides the general columns, information is needed in the fol
   - `Controlled vocabulary (if applicable)`: Terms in this column can be mapped to vocabularies using the system described in 'Controlled Vocabulary Mappings' below.
   - `Range`: If the range is another class, not `rdfs:Literal` or an `xsd` datatype, but an IRI should be supplied instead of the complete contents of that class, provide `(IRI)` at the end of the range, e.g., `dpv:LegalBasis (IRI)`.
   - `sh:node`: If the range is another class that should be integrated, e.g., when using `hri:Agent` for `dct:creator`, use this column to provide the node shape. In this case `hri:AgentShape`.
-  - `dash.viewer` and `dash.editor`: Entries for `dash:viewer` and `dash:editor` needed for 
+  - `dash.viewer` and `dash.editor`: Entries for `dash:viewer` and `dash:editor` for UI customization in SHACLPlay.
   - `Pattern`: Regular expressions pattern that the property value should adhere to.
   - `Default value`: Default value for the property.
 
 To allow for a drop-in replacement of the current Health-RI SHACLs, properties for hri:Dataset are based on the 'Property label',
 for all other classes they are based on 'Property URI'.
 
-**Controlled Vocabulary Mappings**:
-
+**Controlled Vocabulary Mappings:**\
 The converter includes a mapping system for controlled vocabularies in `metadata_automation/shaclplay/vocab_mappings.py`. Currently mapped:
 - `access-right` → `( eu:PUBLIC eu:RESTRICTED eu:NON_PUBLIC )`
 
 Additional vocabulary mappings can be added by extending the `VOCAB_MAPPINGS` dictionary.
 
-**Template**:
-
+**Template:**\
 For the generation of SHACLPlay Excel files, an empty template file is needed. In this repository there is one in 
 `./inputs/shacls/shaclplay-template.xlsx`.
 
-#### Outputs:
-This generator script produces SHACLPlay Excel files in the folder `FOLDER_NAME`, in the folder `OUTPUT_PATH` as 
-defined in `gen_shaclplay.py`.
+#### Outputs
 
-### `gen_shacls_from_shaclplay.py`: Converting SHACLPlay Excel to SHACL Turtle files
+SHACLPlay Excel files are generated in the specified output directory.
 
-This script converts the SHACLPlay Excel files to SHACL Turtle format using the xls2rdf tool. 
+### `shacl_from_shaclplay`: Converting SHACLPlay Excel to SHACL Turtle files
+
+```bash
+metadata-automation shacl_from_shaclplay -i ./outputs/shaclplay/default -o ./outputs/shacl_shapes
+```
+
+#### Command Options
+
+- `-i, --input-path`: Path to directory containing SHACLPlay Excel files (required)
+- `-o, --output-path`: Output directory for SHACL Turtle files (default: `./outputs/shacl_shapes`)
+- `-n, --namespace`: Namespace prefix for output files (optional, auto-detected from Excel if not provided)
+
+#### Description
+
+This command converts the SHACLPlay Excel files to SHACL Turtle format using the xls2rdf tool. 
 It converts each to Turtle format using `xls2rdf-app-3.2.1-onejar.jar`, (https://github.com/sparna-git/xls2rdf) provided in `./inputs/shacls/`.
 
 **Requirements:**
 - Java must be installed and available in your PATH
 
-#### Inputs:
+#### Inputs
 
-There are no additional inputs besides the SHACLPlay Excel files provided in `SHACLPLAY_INPUT_DIR`.
+**SHACLPlay Excel files:**\
+The command processes all SHACLPlay Excel files from the input directory. These files are typically generated by the `shaclplay` command.
 
-#### Outputs:
+**Namespace parameter:**\
+The namespace is used to determine the output file naming and can be:
+- **Auto-detected** from the Excel file's NodeShapes sheet (if not provided with `-n`)
+- **Explicitly specified** with the `-n, --namespace` option to override auto-detection
+- Used to construct output file paths: `{output-path}/{namespace}/{namespace}-{classname}.ttl`
 
-The resulting SHACLs are written to `{SHACL_OUTPUT_BASE_DIR}/{namespace}/{namespace}-{classname}.ttl`.
+#### Outputs
 
-### `gen_sempyro.py`: Generating Sempyro Classes
+The resulting SHACLs are written to `{output-path}/{namespace}/{namespace}-{classname}.ttl`.
 
-This generator script converts the initial Excel file to LinkML YAML files, and subsequently to SeMPyRO Pydantic classes.
+### `sempyro`: Generating SeMPyRo Classes
 
-The Pydantic generation uses adapted Jinja templates located in `./templates/sempyro/`. These templates are necessary to:
-- Handle Sempyro-specific class generation
+```bash
+metadata-automation sempyro -i ./inputs/source_excel.xlsx -n hri
+```
+
+#### Command Options
+
+- `-i, --input-excel`: Path to source metadata Excel file (required)
+- `-n, --namespace`: Namespace prefix (optional)
+  - If not provided, automatically detected from the Excel file's `ontology_name` column in the `classes` sheet
+  - Used to organize output classes: `{namespace}-{ClassName}`, e.g., `hri-Dataset`
+  - Used for LinkML schema and SeMPyRO class organization
+
+#### Description
+
+This command converts the initial Excel file to LinkML YAML files, and subsequently to SeMPyRO Pydantic classes.
+
+The Pydantic generation uses adapted Jinja templates located in `./metadata_automation/sempyro/templates/`. These templates are necessary to:
+- Handle SeMPyRO-specific class generation
 - Customize output formatting
 
-#### Inputs:
-**Source Excel file**:
+#### Inputs
 
+**Source Excel file:**\
 In the Excel file, besides the general columns, information is needed in the following columns:
 - `classes` sheet:
     - `ontology_name`: Name of the class with the corresponding namespace, formatted `{namespace}:{class_name}`, e.g., `hri:Dataset`.
@@ -141,26 +213,24 @@ In the Excel file, besides the general columns, information is needed in the fol
 Any namespace objects and Enums are not created in this automation pipeline. If you want to use them, they should 
 be defined separately and imported using the imports, explained below.
 
-**SeMPyRO types**:
-
+**SeMPyRO types:**\
 All types in the `Sempyro range` column should be known in the list in `./inputs/sempyro/sempyro_types.yaml`. 
 
-**Validation logic**:
-
+**Validation logic:**\
 If any validators should be included in the resulting SeMPyRO Pydantic classes, add them in `./inputs/sempyro/validation_logic.yaml`.
 These code snippets will be linked to the corresponding classes on the class name used in the final Pydantic class. 
 This name is constructed by taking the `ontology_name`, e.g., 'dcat:Dataset' following the `{namespace}:{class_name}` format, 
 and creating the Pydantic class name by making the `namespace` all caps and concatenating it with the `class_name`, i.e.,
 `{namespace.upper()}{class_name}`, resulting in `DCATDataset`.
 
-**Imports**:
-
+**Imports:**\
 The generated SeMPyRO Pydantic classes are in the form of Python code, for which imports should be defined. 
-This can be done in `./inputs/sempyro/imports.yaml`. These imports are linked to the classes using the list of dictionaries
-`link_dicts` in `gen_sempyro.py`.
+This can be done in `./inputs/sempyro/imports.yaml`. The imports are automatically linked to classes based on the naming convention `{namespace}-{ClassName}`, e.g., `hri-Dataset`.
 
-#### Outputs:
-This generator script produces Python files in the path `output_path` in each of the dictionaries in `link_dicts`.
+#### Outputs
+
+Python files are generated in `./outputs/sempyro_classes/{namespace}/` and automatically formatted with ruff.
+LinkML schemas are generated in `./outputs/linkml/{namespace}/`.
 
 ## Future work
 
@@ -168,12 +238,4 @@ This generator script produces Python files in the path `output_path` in each of
 The generated SeMPyRO classes currently present all properties that are defined in the Excel file, 
 without dealing with inheritance from superclasses. The properties of the newly generated classes should be removed 
 if they already exist in a superclass, given that they have identical names and behaviour.
-
-### Command line interface
-Currently the submiting input files is done through changing variables in the scripts. This is not user friendly and 
-should be changed into a CLI.
-
-### Reducing manual work
-For example in `gen_sempyro.py` it is currently required to specify an input path, an imports text and an output path
-per class, while they follow a specific structure. This can be simplified, resulting in less manual work.
 
