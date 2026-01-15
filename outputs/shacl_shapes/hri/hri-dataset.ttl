@@ -75,17 +75,17 @@ hri:DatasetShape a sh:NodeShape;
   sh:minCount 1;
   sh:maxCount 1;
   sh:nodeKind sh:IRI;
-  sh:in _:0b4a7742bbb14f68ac56023668054acc2;
+  sh:in _:82143e23330a4118b273972c1974b5da2;
   dash:viewer dash:URIViewer;
   dash:editor dash:EnumSelectEditor .
 
-_:0b4a7742bbb14f68ac56023668054acc2 rdf:first eu:PUBLIC;
-  rdf:rest _:0b4a7742bbb14f68ac56023668054acc3 .
+_:82143e23330a4118b273972c1974b5da2 rdf:first eu:PUBLIC;
+  rdf:rest _:82143e23330a4118b273972c1974b5da3 .
 
-_:0b4a7742bbb14f68ac56023668054acc3 rdf:first eu:RESTRICTED;
-  rdf:rest _:0b4a7742bbb14f68ac56023668054acc4 .
+_:82143e23330a4118b273972c1974b5da3 rdf:first eu:RESTRICTED;
+  rdf:rest _:82143e23330a4118b273972c1974b5da4 .
 
-_:0b4a7742bbb14f68ac56023668054acc4 rdf:first eu:NON_PUBLIC;
+_:82143e23330a4118b273972c1974b5da4 rdf:first eu:NON_PUBLIC;
   rdf:rest rdf:nil .
 
 <http://data.health-ri.nl/core/p2/DatasetShape#analytics> sh:path healthdcatap:analytics;

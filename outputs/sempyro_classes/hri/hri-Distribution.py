@@ -2,7 +2,13 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import List, Union
 
-from pydantic import AnyHttpUrl, AwareDatetime, ConfigDict, Field, NaiveDatetime
+from pydantic import (
+    AnyHttpUrl,
+    AwareDatetime,
+    ConfigDict,
+    Field,
+    NaiveDatetime,
+)
 from rdflib.namespace import DCAT, DCTERMS, FOAF
 from sempyro import LiteralField
 from sempyro.dcat import DCATDistribution
@@ -43,12 +49,18 @@ class HRIDistribution(DCATDistribution):
     applicable_legislation: Optional[list[AnyHttpUrl]] = Field(
         default=None,
         description="""The legislation that is applicable to this resource.""",
-        json_schema_extra={"rdf_term": DCATAPv3.applicableLegislation, "rdf_type": "uri"},
+        json_schema_extra={
+            "rdf_term": DCATAPv3.applicableLegislation,
+            "rdf_type": "uri",
+        },
     )
 
     byte_size: Union[LiteralField, int] = Field(
         description="""The size of a distribution in bytes.""",
-        json_schema_extra={"rdf_term": DCAT.byteSize, "rdf_type": "xsd:integer"},
+        json_schema_extra={
+            "rdf_term": DCAT.byteSize,
+            "rdf_type": "xsd:integer",
+        },
     )
 
     checksum: Optional[Checksum] = Field(
@@ -66,7 +78,10 @@ class HRIDistribution(DCATDistribution):
     description: Optional[list[LiteralField]] = Field(
         default=None,
         description="""An account of the resource.""",
-        json_schema_extra={"rdf_term": DCTERMS.description, "rdf_type": "rdfs_literal"},
+        json_schema_extra={
+            "rdf_term": DCTERMS.description,
+            "rdf_type": "rdfs_literal",
+        },
     )
 
     documentation: Optional[list[AnyHttpUrl]] = Field(
@@ -109,10 +124,15 @@ class HRIDistribution(DCATDistribution):
         json_schema_extra={"rdf_term": DCAT.mediaType, "rdf_type": "uri"},
     )
 
-    modification_date: Optional[Union[AwareDatetime, NaiveDatetime, date, str]] = Field(
+    modification_date: Optional[
+        Union[AwareDatetime, NaiveDatetime, date, str]
+    ] = Field(
         default=None,
         description="""Date on which the resource was changed.""",
-        json_schema_extra={"rdf_term": DCTERMS.modified, "rdf_type": "datetime_literal"},
+        json_schema_extra={
+            "rdf_term": DCTERMS.modified,
+            "rdf_type": "datetime_literal",
+        },
     )
 
     packaging_format: Optional[AnyHttpUrl] = Field(
@@ -121,16 +141,24 @@ class HRIDistribution(DCATDistribution):
         json_schema_extra={"rdf_term": DCAT.packageFormat, "rdf_type": "uri"},
     )
 
-    release_date: Optional[Union[AwareDatetime, NaiveDatetime, date, str]] = Field(
-        default=None,
-        description="""Date of formal issuance of the resource.""",
-        json_schema_extra={"rdf_term": DCTERMS.issued, "rdf_type": "datetime_literal"},
+    release_date: Optional[Union[AwareDatetime, NaiveDatetime, date, str]] = (
+        Field(
+            default=None,
+            description="""Date of formal issuance of the resource.""",
+            json_schema_extra={
+                "rdf_term": DCTERMS.issued,
+                "rdf_type": "datetime_literal",
+            },
+        )
     )
 
     retention_period: Optional[Union[AnyHttpUrl, PeriodOfTime]] = Field(
         default=None,
         description="""A temporal period which the dataset is available for secondary use.""",
-        json_schema_extra={"rdf_term": DCTERMS.accrualPeriodicity, "rdf_type": "uri"},
+        json_schema_extra={
+            "rdf_term": DCTERMS.accrualPeriodicity,
+            "rdf_type": "uri",
+        },
     )
 
     rights: AnyHttpUrl = Field(
@@ -147,26 +175,39 @@ class HRIDistribution(DCATDistribution):
     temporal_resolution: Optional[Union[LiteralField, str]] = Field(
         default=None,
         description="""Minimum time period resolvable in the dataset.""",
-        json_schema_extra={"rdf_term": DCAT.spatialResolutionInMeters, "rdf_type": "xsd:duration"},
+        json_schema_extra={
+            "rdf_term": DCAT.spatialResolutionInMeters,
+            "rdf_type": "xsd:duration",
+        },
     )
 
     title: Optional[list[LiteralField]] = Field(
         default=None,
         description="""A name given to the resource.""",
-        json_schema_extra={"rdf_term": DCTERMS.title, "rdf_type": "rdfs_literal"},
+        json_schema_extra={
+            "rdf_term": DCTERMS.title,
+            "rdf_type": "rdfs_literal",
+        },
     )
 
     @field_validator("title", "description", mode="before")
     @classmethod
-    def validate_literal(cls, value: List[Union[str, LiteralField]]) -> List[LiteralField]:
+    def validate_literal(
+        cls, value: List[Union[str, LiteralField]]
+    ) -> List[LiteralField]:
         return convert_to_literal(value)
 
     @field_validator("temporal_resolution", mode="after")
     @classmethod
-    def validate_xsd_duration(cls, value: Union[str, LiteralField]) -> LiteralField:
+    def validate_xsd_duration(
+        cls, value: Union[str, LiteralField]
+    ) -> LiteralField:
         if isinstance(value, str):
             return LiteralField(value=value, datatype="xsd:duration")
-        if isinstance(value, LiteralField) and value.datatype != "xsd:duration":
+        if (
+            isinstance(value, LiteralField)
+            and value.datatype != "xsd:duration"
+        ):
             return LiteralField(value=value.value, datatype="xsd:duration")
         return value
 

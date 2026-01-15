@@ -42,23 +42,33 @@ class HRIAgent(Agent):
 
     identifier: list[Union[LiteralField, str]] = Field(
         description="""An unambiguous reference to the resource within a given context.""",
-        json_schema_extra={"rdf_term": DCTERMS.identifier, "rdf_type": "rdfs_literal"},
+        json_schema_extra={
+            "rdf_term": DCTERMS.identifier,
+            "rdf_type": "rdfs_literal",
+        },
     )
 
     name: list[Union[LiteralField, str]] = Field(
-        description="""A name for some thing.""", json_schema_extra={"rdf_term": FOAF.name, "rdf_type": "rdfs_literal"}
+        description="""A name for some thing.""",
+        json_schema_extra={"rdf_term": FOAF.name, "rdf_type": "rdfs_literal"},
     )
 
     publisher_note: Optional[Union[LiteralField, str]] = Field(
         default=None,
         description="""A description of the publisher activities.""",
-        json_schema_extra={"rdf_term": HEALTHDCATAP.publisherNote, "rdf_type": "rdfs_literal"},
+        json_schema_extra={
+            "rdf_term": HEALTHDCATAP.publisherNote,
+            "rdf_type": "rdfs_literal",
+        },
     )
 
     publisher_type: Optional[Union[AnyUrl, URIRef]] = Field(
         default=None,
         description="""A type of organisation that makes the Dataset available.""",
-        json_schema_extra={"rdf_term": HEALTHDCATAP.publisherType, "rdf_type": "uri"},
+        json_schema_extra={
+            "rdf_term": HEALTHDCATAP.publisherType,
+            "rdf_type": "uri",
+        },
     )
 
     type: Optional[AnyHttpUrl] = Field(
@@ -68,12 +78,15 @@ class HRIAgent(Agent):
     )
 
     URL: AnyUrl = Field(
-        description="""A homepage for some thing.""", json_schema_extra={"rdf_term": FOAF.homepage, "rdf_type": "uri"}
+        description="""A homepage for some thing.""",
+        json_schema_extra={"rdf_term": FOAF.homepage, "rdf_type": "uri"},
     )
 
     @field_validator("mbox", mode="before")
     @classmethod
-    def _validate_email(cls, value: Union[str, AnyUrl, List[Union[str, AnyUrl]]]) -> List[AnyUrl]:
+    def _validate_email(
+        cls, value: Union[str, AnyUrl, List[Union[str, AnyUrl]]]
+    ) -> List[AnyUrl]:
         """
         Checks if provided value is a valid email or mailto URI, fulfills an email to mailto URI
         """

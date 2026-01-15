@@ -2,7 +2,14 @@ import logging
 from datetime import date
 from typing import ClassVar, List, Optional, Set, Union
 
-from pydantic import AnyHttpUrl, AwareDatetime, ConfigDict, Field, NaiveDatetime, field_validator
+from pydantic import (
+    AnyHttpUrl,
+    AwareDatetime,
+    ConfigDict,
+    Field,
+    NaiveDatetime,
+    field_validator,
+)
 from rdflib.namespace import DCAT, DCTERMS, FOAF
 from sempyro import LiteralField
 from sempyro.dcat import DCATCatalog, DCATDataset
@@ -36,7 +43,10 @@ class HRICatalog(DCATCatalog):
     applicable_legislation: Optional[list[AnyHttpUrl]] = Field(
         default=None,
         description="""The legislation that is applicable to this resource.""",
-        json_schema_extra={"rdf_term": DCATAPv3.applicableLegislation, "rdf_type": "uri"},
+        json_schema_extra={
+            "rdf_term": DCATAPv3.applicableLegislation,
+            "rdf_type": "uri",
+        },
     )
 
     catalog: Optional[list[AnyHttpUrl]] = Field(
@@ -63,7 +73,10 @@ class HRICatalog(DCATCatalog):
 
     description: list[Union[LiteralField, str]] = Field(
         description="""An account of the resource.""",
-        json_schema_extra={"rdf_term": DCTERMS.description, "rdf_type": "rdfs_literal"},
+        json_schema_extra={
+            "rdf_term": DCTERMS.description,
+            "rdf_type": "rdfs_literal",
+        },
     )
 
     geographical_coverage: Optional[list[Union[AnyHttpUrl, Location]]] = Field(
@@ -96,10 +109,15 @@ class HRICatalog(DCATCatalog):
         json_schema_extra={"rdf_term": DCTERMS.license, "rdf_type": "uri"},
     )
 
-    modification_date: Optional[Union[AwareDatetime, NaiveDatetime, date, str]] = Field(
+    modification_date: Optional[
+        Union[AwareDatetime, NaiveDatetime, date, str]
+    ] = Field(
         default=None,
         description="""Date on which the resource was changed.""",
-        json_schema_extra={"rdf_term": DCTERMS.modified, "rdf_type": "datetime_literal"},
+        json_schema_extra={
+            "rdf_term": DCTERMS.modified,
+            "rdf_type": "datetime_literal",
+        },
     )
 
     publisher: Union[AnyHttpUrl, HRIAgent] = Field(
@@ -107,10 +125,15 @@ class HRICatalog(DCATCatalog):
         json_schema_extra={"rdf_term": DCTERMS.publisher, "rdf_type": "uri"},
     )
 
-    release_date: Optional[Union[AwareDatetime, NaiveDatetime, date, str]] = Field(
-        default=None,
-        description="""Date of formal issuance of the resource.""",
-        json_schema_extra={"rdf_term": DCTERMS.issued, "rdf_type": "datetime_literal"},
+    release_date: Optional[Union[AwareDatetime, NaiveDatetime, date, str]] = (
+        Field(
+            default=None,
+            description="""Date of formal issuance of the resource.""",
+            json_schema_extra={
+                "rdf_term": DCTERMS.issued,
+                "rdf_type": "datetime_literal",
+            },
+        )
     )
 
     rights: Optional[Union[AnyHttpUrl, LiteralField]] = Field(
@@ -128,7 +151,10 @@ class HRICatalog(DCATCatalog):
     temporal_coverage: Optional[list[PeriodOfTime]] = Field(
         default=None,
         description="""Temporal characteristics of the resource.""",
-        json_schema_extra={"rdf_term": DCTERMS.temporal, "rdf_type": "DCTERMS.PeriodOfTime"},
+        json_schema_extra={
+            "rdf_term": DCTERMS.temporal,
+            "rdf_type": "DCTERMS.PeriodOfTime",
+        },
     )
 
     themes: Optional[list[AnyHttpUrl]] = Field(
@@ -138,14 +164,23 @@ class HRICatalog(DCATCatalog):
     )
 
     title: list[AnyHttpUrl] = Field(
-        description="""A name given to the resource.""", json_schema_extra={"rdf_term": DCTERMS.type, "rdf_type": "uri"}
+        description="""A name given to the resource.""",
+        json_schema_extra={"rdf_term": DCTERMS.type, "rdf_type": "uri"},
     )
 
-    _validate_literal_fields: ClassVar[Set[str]] = {"title", "description", "keyword", "version", "version_notes"}
+    _validate_literal_fields: ClassVar[Set[str]] = {
+        "title",
+        "description",
+        "keyword",
+        "version",
+        "version_notes",
+    }
 
     @field_validator(*_validate_literal_fields, mode="before")
     @classmethod
-    def validate_literal(cls, value: List[Union[str, LiteralField]]) -> List[LiteralField]:
+    def validate_literal(
+        cls, value: List[Union[str, LiteralField]]
+    ) -> List[LiteralField]:
         return convert_to_literal(value)
 
     @field_validator("release_date", "modification_date", mode="before")
@@ -155,9 +190,14 @@ class HRICatalog(DCATCatalog):
 
     @field_validator("temporal_resolution", mode="after")
     @classmethod
-    def validate_xsd_duration(cls, value: Union[str, LiteralField]) -> LiteralField:
+    def validate_xsd_duration(
+        cls, value: Union[str, LiteralField]
+    ) -> LiteralField:
         if isinstance(value, str):
             return LiteralField(value=value, datatype="xsd:duration")
-        if isinstance(value, LiteralField) and value.datatype != "xsd:duration":
+        if (
+            isinstance(value, LiteralField)
+            and value.datatype != "xsd:duration"
+        ):
             return LiteralField(value=value.value, datatype="xsd:duration")
         return value

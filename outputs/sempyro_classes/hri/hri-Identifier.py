@@ -27,11 +27,17 @@ class HRIIdentifier(RDFModel):
     notation: Optional[Union[LiteralField, str]] = Field(
         default=None,
         description="""A string that is an identifier in the context of the identifier scheme referenced by its datatype. """,
-        json_schema_extra={"rdf_term": SKOS.notation, "rdf_type": "rdfs_literal"},
+        json_schema_extra={
+            "rdf_term": SKOS.notation,
+            "rdf_type": "rdfs_literal",
+        },
     )
 
     schema_agency: Optional[Union[LiteralField, str]] = Field(
         default=None,
         description="""The name of the agency that issued the identifier.""",
-        json_schema_extra={"rdf_term": ADMS.schemaAgency, "rdf_type": "rdfs_literal"},
+        json_schema_extra={
+            "rdf_term": ADMS.schemaAgency,
+            "rdf_type": "rdfs_literal",
+        },
     )

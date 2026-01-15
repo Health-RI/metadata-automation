@@ -20,6 +20,7 @@ TEMPLATE_PATH = Path("./inputs/shacls/shaclplay-template.xlsx")
 FOLDER_NAME = "hri"
 OUTPUT_PATH = Path("./outputs/shaclplay") / FOLDER_NAME
 
+
 def main():
     """Main conversion function."""
     print("=" * 80)
@@ -37,16 +38,16 @@ def main():
 
     # Read the classes sheet to get configuration for each class
     print(f"Reading classes configuration from {EXCEL_FILE_PATH}...")
-    classes_df = pd.read_excel(EXCEL_FILE_PATH, sheet_name='classes')
+    classes_df = pd.read_excel(EXCEL_FILE_PATH, sheet_name="classes")
     print(f"  Found {len(classes_df)} classes to process")
     print()
 
     # Process each class
     for idx, class_row in classes_df.iterrows():
-        sheet_name = class_row['sheet_name']
-        ontology_name = class_row['ontology_name']
-        target_class = class_row['target_ontology_name']
-        description = class_row.get('description', None)
+        sheet_name = class_row["sheet_name"]
+        ontology_name = class_row["ontology_name"]
+        target_class = class_row["target_ontology_name"]
+        description = class_row.get("description", None)
 
         # Convert NaN to None for description
         if pd.isna(description):
@@ -62,7 +63,7 @@ def main():
             print(f"  Loaded {len(class_df)} properties")
 
             # Extract class name from ontology_name (e.g., "hri:Dataset" -> "Dataset")
-            class_name = ontology_name.split(':')[-1]
+            class_name = ontology_name.split(":")[-1]
 
             # Convert to SHACLPlay format
             nodeshapes_df, propertyshapes_df = converter.convert_class_sheet(
@@ -70,7 +71,7 @@ def main():
                 class_name=class_name,
                 ontology_name=ontology_name,
                 target_class=target_class,
-                description=description
+                description=description,
             )
 
             # Get prefixes
@@ -82,7 +83,7 @@ def main():
                 prefixes_df=prefixes_df,
                 nodeshapes_df=nodeshapes_df,
                 propertyshapes_df=propertyshapes_df,
-                output_path=output_file
+                output_path=output_file,
             )
 
             print(f"  ✓ Generated {output_file}")

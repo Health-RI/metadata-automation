@@ -34,13 +34,19 @@ class HRIDataservice(DCATDataservice):
     )
     access_rights: AccessRights = Field(
         description="""Information about who access the resource or an indication of its security status.""",
-        json_schema_extra={"rdf_term": DCTERMS.accessRights, "rdf_type": "uri"},
+        json_schema_extra={
+            "rdf_term": DCTERMS.accessRights,
+            "rdf_type": "uri",
+        },
     )
 
     applicable_legislation: Optional[list[AnyHttpUrl]] = Field(
         default=None,
         description="""The legislation that is applicable to this resource.""",
-        json_schema_extra={"rdf_term": DCATAPv3.applicableLegislation, "rdf_type": "uri"},
+        json_schema_extra={
+            "rdf_term": DCATAPv3.applicableLegislation,
+            "rdf_type": "uri",
+        },
     )
 
     application_profile: Optional[list[AnyHttpUrl]] = Field(
@@ -68,12 +74,18 @@ class HRIDataservice(DCATDataservice):
 
     description: list[Union[LiteralField, str]] = Field(
         description="""An account of the resource.""",
-        json_schema_extra={"rdf_term": DCTERMS.description, "rdf_type": "rdfs_literal"},
+        json_schema_extra={
+            "rdf_term": DCTERMS.description,
+            "rdf_type": "rdfs_literal",
+        },
     )
 
     end_point_description: AnyHttpUrl = Field(
         description="""A description of the services available via the end-points, including their operations, parameters etc.""",
-        json_schema_extra={"rdf_term": DCAT.endpointDescription, "rdf_type": "uri"},
+        json_schema_extra={
+            "rdf_term": DCAT.endpointDescription,
+            "rdf_type": "uri",
+        },
     )
 
     end_point_URL: Union[AnyHttpUrl, DCATResource] = Field(
@@ -90,18 +102,27 @@ class HRIDataservice(DCATDataservice):
     HVD_Category: Optional[list[AnyHttpUrl]] = Field(
         default=None,
         description="""A data category defined in the High Value Dataset Implementing Regulation.""",
-        json_schema_extra={"rdf_term": DCATAPv3.hvdCategory, "rdf_type": "uri"},
+        json_schema_extra={
+            "rdf_term": DCATAPv3.hvdCategory,
+            "rdf_type": "uri",
+        },
     )
 
     identifier: Union[LiteralField, str] = Field(
         description="""An unambiguous reference to the resource within a given context.""",
-        json_schema_extra={"rdf_term": DCTERMS.identifier, "rdf_type": "rdfs_literal"},
+        json_schema_extra={
+            "rdf_term": DCTERMS.identifier,
+            "rdf_type": "rdfs_literal",
+        },
     )
 
     keyword: Optional[list[LiteralField]] = Field(
         default=None,
         description="""A keyword or tag describing the resource.""",
-        json_schema_extra={"rdf_term": DCAT.keyword, "rdf_type": "rdfs_literal"},
+        json_schema_extra={
+            "rdf_term": DCAT.keyword,
+            "rdf_type": "rdfs_literal",
+        },
     )
 
     landing_Page: Optional[list[AnyHttpUrl]] = Field(
@@ -121,10 +142,15 @@ class HRIDataservice(DCATDataservice):
         json_schema_extra={"rdf_term": DCTERMS.license, "rdf_type": "uri"},
     )
 
-    modification_date: Optional[Union[AwareDatetime, NaiveDatetime, date, str]] = Field(
+    modification_date: Optional[
+        Union[AwareDatetime, NaiveDatetime, date, str]
+    ] = Field(
         default=None,
         description="""Date on which the resource was changed.""",
-        json_schema_extra={"rdf_term": DCTERMS.modified, "rdf_type": "datetime_literal"},
+        json_schema_extra={
+            "rdf_term": DCTERMS.modified,
+            "rdf_type": "datetime_literal",
+        },
     )
 
     other_identifier: Optional[list[Union[AnyHttpUrl, Identifier]]] = Field(
@@ -151,5 +177,8 @@ class HRIDataservice(DCATDataservice):
 
     title: list[Union[LiteralField, str]] = Field(
         description="""A name given to the resource.""",
-        json_schema_extra={"rdf_term": DCTERMS.title, "rdf_type": "rdfs_literal"},
+        json_schema_extra={
+            "rdf_term": DCTERMS.title,
+            "rdf_type": "rdfs_literal",
+        },
     )

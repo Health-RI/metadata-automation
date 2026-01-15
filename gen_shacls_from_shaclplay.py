@@ -32,20 +32,26 @@ def extract_namespace_from_excel(excel_file: Path) -> str:
     """
     try:
         # Read NodeShapes sheet without headers
-        df = pd.read_excel(excel_file, sheet_name='NodeShapes (classes)', header=None)
+        df = pd.read_excel(
+            excel_file, sheet_name="NodeShapes (classes)", header=None
+        )
 
         # The NodeShape URI is in row 13, column 0 (e.g., "hri:DatasetShape")
         nodeshape_uri = df.iloc[13, 0]
 
         # Extract namespace prefix (part before the colon)
-        if ':' in str(nodeshape_uri):
-            namespace = nodeshape_uri.split(':')[0]
+        if ":" in str(nodeshape_uri):
+            namespace = nodeshape_uri.split(":")[0]
             return namespace
         else:
-            raise ValueError(f"No namespace prefix found in NodeShape URI: {nodeshape_uri}")
+            raise ValueError(
+                f"No namespace prefix found in NodeShape URI: {nodeshape_uri}"
+            )
 
     except Exception as e:
-        print(f"Warning: Could not extract namespace from {excel_file.name}: {e}")
+        print(
+            f"Warning: Could not extract namespace from {excel_file.name}: {e}"
+        )
         print("Falling back to directory name")
         return SHACLPLAY_INPUT_DIR.name
 
@@ -107,17 +113,16 @@ def main():
                 "-jar",
                 str(XLS2RDF_JAR),
                 "convert",
-                "-i", str(excel_file),
-                "-o", str(output_file),
+                "-i",
+                str(excel_file),
+                "-o",
+                str(output_file),
                 "-sh",
-                "-np"
+                "-np",
             ]
 
             result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                check=True
+                cmd, capture_output=True, text=True, check=True
             )
 
             print(f"  ✓ Successfully generated {output_file}")

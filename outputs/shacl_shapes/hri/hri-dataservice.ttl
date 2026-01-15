@@ -63,17 +63,17 @@ hri:DataServiceShape a sh:NodeShape;
   sh:minCount 1;
   sh:maxCount 1;
   sh:nodeKind sh:IRI;
-  sh:in _:9d7f527c2e954ee0bc330040338bd17b2;
+  sh:in _:051042a758dc47cb9ffe9be7c87492b62;
   dash:viewer dash:URIViewer;
   dash:editor dash:EnumSelectEditor .
 
-_:9d7f527c2e954ee0bc330040338bd17b2 rdf:first eu:PUBLIC;
-  rdf:rest _:9d7f527c2e954ee0bc330040338bd17b3 .
+_:051042a758dc47cb9ffe9be7c87492b62 rdf:first eu:PUBLIC;
+  rdf:rest _:051042a758dc47cb9ffe9be7c87492b63 .
 
-_:9d7f527c2e954ee0bc330040338bd17b3 rdf:first eu:RESTRICTED;
-  rdf:rest _:9d7f527c2e954ee0bc330040338bd17b4 .
+_:051042a758dc47cb9ffe9be7c87492b63 rdf:first eu:RESTRICTED;
+  rdf:rest _:051042a758dc47cb9ffe9be7c87492b64 .
 
-_:9d7f527c2e954ee0bc330040338bd17b4 rdf:first eu:NON_PUBLIC;
+_:051042a758dc47cb9ffe9be7c87492b64 rdf:first eu:NON_PUBLIC;
   rdf:rest rdf:nil .
 
 <http://data.health-ri.nl/core/p2/DataServiceShape#dcatap:applicableLegislation> sh:path

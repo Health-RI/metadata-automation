@@ -4,20 +4,21 @@ from pathlib import Path
 
 import yaml
 
+
 def extract_local_definitions(yaml_file: Path) -> Set[str]:
     """Extract names of locally defined enums and classes from LinkML YAML."""
-    with open(yaml_file, 'r') as f:
+    with open(yaml_file, "r") as f:
         schema = yaml.safe_load(f)
 
     local_names = set()
 
     # Extract enum names
-    if 'enums' in schema:
-        local_names.update(schema['enums'].keys())
+    if "enums" in schema:
+        local_names.update(schema["enums"].keys())
 
     # Extract class names
-    if 'classes' in schema:
-        local_names.update(schema['classes'].keys())
+    if "classes" in schema:
+        local_names.update(schema["classes"].keys())
 
     return local_names
 
@@ -28,7 +29,7 @@ def find_class_ranges(python_file: Path) -> List[Tuple[str, int, int]]:
 
     Returns a list of tuples: (class_name, start_line, end_line)
     """
-    with open(python_file, 'r') as f:
+    with open(python_file, "r") as f:
         source = f.read()
         source_lines = source.splitlines()
 
@@ -51,7 +52,7 @@ def find_class_ranges(python_file: Path) -> List[Tuple[str, int, int]]:
                 line = source_lines[i].strip()
                 if line:  # Found a non-empty line
                     # Check if it's the start of a new class/function/statement
-                    if not line.startswith(' ') and not line.startswith('\t'):
+                    if not line.startswith(" ") and not line.startswith("\t"):
                         actual_end = i - 1
                         break
                     else:
@@ -66,7 +67,9 @@ def find_class_ranges(python_file: Path) -> List[Tuple[str, int, int]]:
     return class_ranges
 
 
-def remove_unwanted_classes(python_file: Path, yaml_file: Path, output_file: Path = None) -> None:
+def remove_unwanted_classes(
+    python_file: Path, yaml_file: Path, output_file: Path = None
+) -> None:
     """
     Remove classes that are not locally defined in the YAML file.
 
@@ -86,7 +89,7 @@ def remove_unwanted_classes(python_file: Path, yaml_file: Path, output_file: Pat
     print(f"Found local definitions: {local_definitions}")
 
     # Read all source lines
-    with open(python_file, 'r') as f:
+    with open(python_file, "r") as f:
         source_lines = f.readlines()
 
     # Find all class ranges
@@ -117,7 +120,7 @@ def remove_unwanted_classes(python_file: Path, yaml_file: Path, output_file: Pat
     blank_count = 0
 
     for line in output_lines:
-        if line.strip() == '':
+        if line.strip() == "":
             blank_count += 1
             if blank_count <= 2:  # Allow up to 2 consecutive blank lines
                 cleaned_lines.append(line)
@@ -126,8 +129,10 @@ def remove_unwanted_classes(python_file: Path, yaml_file: Path, output_file: Pat
             cleaned_lines.append(line)
 
     # Write the filtered output
-    with open(output_file, 'w') as f:
+    with open(output_file, "w") as f:
         f.writelines(cleaned_lines)
 
     print(f"Filtered Pydantic classes written to: {output_file}")
-    print(f"Kept {len(local_definitions)} local definitions, removed {len(removed_classes)} imported classes")
+    print(
+        f"Kept {len(local_definitions)} local definitions, removed {len(removed_classes)} imported classes"
+    )

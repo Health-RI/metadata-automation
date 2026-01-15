@@ -21,9 +21,9 @@ def slugify_property_label(label: str) -> str:
     """
     # Convert to lowercase and replace spaces with hyphens
     slug = label.lower().strip()
-    slug = re.sub(r'\s+', '-', slug)
+    slug = re.sub(r"\s+", "-", slug)
     # Remove any characters that aren't alphanumeric or hyphens
-    slug = re.sub(r'[^a-z0-9-]', '', slug)
+    slug = re.sub(r"[^a-z0-9-]", "", slug)
     return slug
 
 
@@ -43,17 +43,17 @@ def parse_cardinality(cardinality: str) -> Tuple[Optional[int], Optional[int]]:
         "1..n" -> (1, None)
         "0..1" -> (0, 1)
     """
-    if not cardinality or str(cardinality) == 'nan':
+    if not cardinality or str(cardinality) == "nan":
         return (None, None)
 
     cardinality = str(cardinality).strip()
 
     # Check if it's a range (e.g., "0..n", "1..n")
-    if '..' in cardinality:
-        parts = cardinality.split('..')
-        min_count = int(parts[0].strip()) if parts[0].strip() != '0' else None
+    if ".." in cardinality:
+        parts = cardinality.split("..")
+        min_count = int(parts[0].strip()) if parts[0].strip() != "0" else None
         max_part = parts[1].strip()
-        max_count = None if max_part == 'n' else int(max_part)
+        max_count = None if max_part == "n" else int(max_part)
         return (min_count, max_count)
     else:
         # Single value (e.g., "1")
@@ -68,13 +68,15 @@ def get_current_datetime_iso() -> str:
     Returns:
         ISO datetime string (e.g., "2025-02-10T00:00:00")
     """
-    return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
-def write_shaclplay_excel(prefixes_df: pd.DataFrame,
-                          nodeshapes_df: pd.DataFrame,
-                          propertyshapes_df: pd.DataFrame,
-                          output_path: Path) -> None:
+def write_shaclplay_excel(
+    prefixes_df: pd.DataFrame,
+    nodeshapes_df: pd.DataFrame,
+    propertyshapes_df: pd.DataFrame,
+    output_path: Path,
+) -> None:
     """
     Write SHACLPlay data to Excel file with three sheets.
 
@@ -88,10 +90,21 @@ def write_shaclplay_excel(prefixes_df: pd.DataFrame,
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Write to Excel with three sheets
-    with pd.ExcelWriter(output_path, engine='openpyxl') as writer:
-        prefixes_df.to_excel(writer, sheet_name='prefixes', index=False, header=False)
-        nodeshapes_df.to_excel(writer, sheet_name='NodeShapes (classes)', index=False, header=False)
-        propertyshapes_df.to_excel(writer, sheet_name='PropertyShapes (properties)', index=False, header=False)
+    with pd.ExcelWriter(output_path, engine="openpyxl") as writer:
+        prefixes_df.to_excel(
+            writer, sheet_name="prefixes", index=False, header=False
+        )
+        nodeshapes_df.to_excel(
+            writer,
+            sheet_name="NodeShapes (classes)",
+            index=False,
+            header=False,
+        )
+        propertyshapes_df.to_excel(
+            writer,
+            sheet_name="PropertyShapes (properties)",
+            index=False,
+            header=False,
+        )
 
     print(f"Written SHACLPlay Excel to {output_path}")
-

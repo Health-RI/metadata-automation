@@ -30,5 +30,8 @@ class HRIChecksum(RDFModel):
 
     checksum_value: Union[LiteralField, str] = Field(
         description="""The checksumValue property provides a lower case hexidecimal encoded digest value produced using a specific algorithm.""",
-        json_schema_extra={"rdf_term": SPDX.checksumValue, "rdf_type": "xsd:Binary"},
+        json_schema_extra={
+            "rdf_term": SPDX.checksumValue,
+            "rdf_type": "xsd:Binary",
+        },
     )

@@ -29,5 +29,6 @@ class HRIRelationship(RDFModel):
     )
 
     relation: list[AnyHttpUrl] = Field(
-        description="""A related resource.""", json_schema_extra={"rdf_term": DCTERMS.relation, "rdf_type": "uri"}
+        description="""A related resource.""",
+        json_schema_extra={"rdf_term": DCTERMS.relation, "rdf_type": "uri"},
     )
