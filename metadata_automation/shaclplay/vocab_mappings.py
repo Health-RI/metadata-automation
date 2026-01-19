@@ -11,6 +11,11 @@ VOCAB_MAPPINGS = {
         "editor": "dash:EnumSelectEditor",
         "example_property": "access rights",
     },
+    "https://publications.europa.eu/resource/authority/distribution-status": {
+        "sh_in": "( status:COMPLETED status:DEVELOP status:WITHDRAWN status:DEPRECATED )",
+        "editor": "dash:EnumSelectEditor",
+        "example_property": "status",
+    },
     # Add more mappings as they are discovered or manually specified
     # Format: URL -> {'sh_in': '( value1 value2 ... )', 'editor': 'dash:EnumSelectEditor'}
 }
