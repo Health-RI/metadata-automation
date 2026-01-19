@@ -197,7 +197,8 @@ def shacl_from_shaclplay(
     try:
         shaclplay_dir = Path(input_path)
         output_dir = Path(output_path)
-        jar_path = Path("./inputs/shacls/xls2rdf-app-3.2.1-onejar.jar")
+        jar_path = Path(__file__).parent.parent.resolve() / "inputs/shacls/xls2rdf-app-3.2.1-onejar.jar"
+
 
         click.echo("=" * 80)
         click.echo("SHACL Turtle Generator from SHACLPlay Excel")
