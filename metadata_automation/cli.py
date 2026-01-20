@@ -39,13 +39,6 @@ def main() -> None:
     help="Path to source metadata Excel file.",
 )
 @click.option(
-    "-t",
-    "--template-path",
-    type=click.Path(exists=True),
-    default="./inputs/shacls/shaclplay-template.xlsx",
-    help="Path to SHACLPlay template Excel file.",
-)
-@click.option(
     "-o",
     "--output-path",
     type=click.Path(),
@@ -54,7 +47,6 @@ def main() -> None:
 )
 def shaclplay(
     input_excel: str,
-    template_path: str,
     output_path: str,
 ) -> None:
     """
@@ -71,7 +63,7 @@ def shaclplay(
     """
     try:
         excel_path = Path(input_excel)
-        template_p = Path(template_path)
+        template_p = Path(__file__).parent.resolve() / "inputs/shacls/shaclplay-template.xlsx"
         output_dir = Path(output_path)
 
         click.echo("=" * 80)
