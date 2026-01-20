@@ -276,11 +276,7 @@ class SHACLPlayConverter:
         # Column 0: URI (PropertyShape identifier)
         prop_label = property_row["Property label"]
         prop_uri = property_row["Property URI"]
-        if f"{namespace_prefix}:{class_name}" == "hri:Dataset":
-            slug = slugify_property_label(prop_label)
-            new_row[0] = f"{namespace_prefix}:{class_name}Shape#{slug}"
-        else:
-            new_row[0] = f"{namespace_prefix}:{class_name}Shape#{prop_uri}"
+        new_row[0] = f"{namespace_prefix}:{class_name}Shape#{prop_uri}"
 
         # Column 1: ^sh:property (parent NodeShape)
         new_row[1] = f"{namespace_prefix}:{class_name}Shape"
