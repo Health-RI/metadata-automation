@@ -62,7 +62,7 @@ class SHACLPlayConverter:
         # Create a prefix lookup dictionary for easy access
         self.prefix_lookup = {}
         for idx, row in source_prefixes.iterrows():
-            self.prefix_lookup[row["prefix"]] = row["namespace"]
+            self.prefix_lookup[str(row["prefix"]).strip()] = str(row["namespace"]).strip()
 
         # Convert to SHACLPlay format:
         # - Row 0: empty row (all NaN)
@@ -276,7 +276,14 @@ class SHACLPlayConverter:
         # Column 0: URI (PropertyShape identifier)
         prop_label = property_row["Property label"]
         prop_uri = property_row["Property URI"]
-        new_row[0] = f"{namespace_prefix}:{class_name}Shape#{prop_uri}"
+
+        # Separate the class/shape name from the property name using a '#'.
+        # If a namespace URL ends in '#', use a '/'.
+        if self._get_namespace_url(namespace_prefix).endswith('#'):
+            new_row[0] = f"{namespace_prefix}:{class_name}Shape/{prop_uri}"
+        else:
+            new_row[0] = f"{namespace_prefix}:{class_name}Shape#{prop_uri}"
+
 
         # Column 1: ^sh:property (parent NodeShape)
         new_row[1] = f"{namespace_prefix}:{class_name}Shape"
@@ -375,7 +382,10 @@ class SHACLPlayConverter:
             if vocab_mapping:
                 new_row[17] = vocab_mapping["sh_in"]
 
-        # Columns 18-19: sh:languageIn, sh:uniqueLang (leave empty)
+        # Columns 18: sh:languageIn (leave empty)
+
+        # Columns 19: sh:uniqueLang
+        new_row[19] = property_row.get("sh:uniqueLang", False)
 
         # Column 20: sh:defaultValue
         default_value = property_row.get("Default value", "")
