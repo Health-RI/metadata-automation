@@ -45,9 +45,17 @@ def main() -> None:
     default="./outputs/shaclplay/default",
     help="Output directory for SHACLPlay Excel files.",
 )
+@click.option(
+    "-n",
+    "--namespace",
+    type=str,
+    default=None,
+    help="Namespace prefix to override all class and property namespaces.",
+)
 def shaclplay(
     input_excel: str,
     output_path: str,
+    namespace: str,
 ) -> None:
     """
     Generate SHACLPlay Excel files from metadata.
@@ -63,7 +71,7 @@ def shaclplay(
     """
     try:
         excel_path = Path(input_excel)
-        template_p = Path(__file__).parent.resolve() / "inputs/shacls/shaclplay-template.xlsx"
+        template_p = Path(__file__).parent.parent.resolve() / "inputs/shacls/shaclplay-template.xlsx"
         output_dir = Path(output_path)
 
         click.echo("=" * 80)
@@ -96,6 +104,13 @@ def shaclplay(
             if pd.isna(description):
                 description = None
 
+            # Override namespace if provided (only for ontology_name)
+            if namespace:
+                # Extract the class name from the original ontology_name
+                class_name_only = ontology_name.split(":")[-1]
+                # Override ontology_name with the new namespace
+                ontology_name = f"{namespace}:{class_name_only}"
+
             click.echo(f"Processing {sheet_name} class...")
             click.echo(f"  Ontology: {ontology_name}")
             click.echo(f"  Target: {target_class}")
@@ -119,6 +134,7 @@ def shaclplay(
                     ontology_name=ontology_name,
                     target_class=target_class,
                     description=description,
+                    namespace_override=namespace,
                 )
 
                 # Get prefixes
@@ -169,17 +185,9 @@ def shaclplay(
     default="./outputs/shacl_shapes",
     help="Output directory for SHACL Turtle files.",
 )
-@click.option(
-    "-n",
-    "--namespace",
-    type=str,
-    default=None,
-    help="Namespace prefix for output files (overrides auto-detection).",
-)
 def shacl_from_shaclplay(
     input_path: str,
     output_path: str,
-    namespace: str,
 ) -> None:
     """Generate SHACL Turtle files from SHACLPlay Excel files.
 
@@ -220,27 +228,24 @@ def shacl_from_shaclplay(
         # Process each file
         for excel_file in excel_files:
             try:
-                # Extract namespace from the Excel file if not specified
-                if namespace:
-                    ns = namespace
-                else:
-                    df = pd.read_excel(
-                        excel_file,
-                        sheet_name="NodeShapes (classes)",
-                        header=None,
-                    )
-                    nodeshape_uri = df.iloc[13, 0]
+                # Extract namespace from the Excel file
+                df = pd.read_excel(
+                    excel_file,
+                    sheet_name="NodeShapes (classes)",
+                    header=None,
+                )
+                nodeshape_uri = df.iloc[13, 0]
 
-                    if ":" in str(nodeshape_uri):
-                        ns = nodeshape_uri.split(":")[0]
-                    else:
-                        ns = shaclplay_dir.name
+                if ":" in str(nodeshape_uri):
+                    ns = nodeshape_uri.split(":")[0]
+                else:
+                    ns = shaclplay_dir.name
 
             except Exception as e:
                 click.echo(
                     f"Warning: Could not extract namespace from {excel_file.name}: {e}"
                 )
-                ns = namespace if namespace else shaclplay_dir.name
+                ns = shaclplay_dir.name
 
             output_file_dir = output_dir / ns
             class_name = excel_file.stem.replace("SHACL-", "")

@@ -110,6 +110,7 @@ class SHACLPlayConverter:
         ontology_name: str,
         target_class: str,
         description: str = None,
+        namespace_override: str = None,
     ) -> tuple[pd.DataFrame, pd.DataFrame]:
         """
         Convert a class sheet from Health-RI format to SHACLPlay format.
@@ -120,18 +121,19 @@ class SHACLPlayConverter:
             ontology_name: Ontology name with prefix (e.g., 'hri:Dataset')
             target_class: Target class URI (e.g., 'dcat:Dataset')
             description: Optional description of the class
+            namespace_override: Optional namespace to override all class and property namespaces
 
         Returns:
             Tuple of (nodeshapes_df, propertyshapes_df)
         """
         # Build NodeShapes sheet
         nodeshapes_df = self._build_nodeshapes(
-            class_name, ontology_name, target_class, description
+            class_name, ontology_name, target_class, description, namespace_override
         )
 
         # Build PropertyShapes sheet
         propertyshapes_df = self._build_propertyshapes(
-            class_sheet_df, class_name, ontology_name
+            class_sheet_df, class_name, ontology_name, namespace_override
         )
 
         return nodeshapes_df, propertyshapes_df
@@ -142,6 +144,7 @@ class SHACLPlayConverter:
         ontology_name: str,
         target_class: str,
         description: Optional[str],
+        namespace_override: str = None,
     ) -> pd.DataFrame:
         """
         Build the NodeShapes sheet.
@@ -151,12 +154,14 @@ class SHACLPlayConverter:
             ontology_name: Ontology name (e.g., 'hri:Dataset')
             target_class: Target class (e.g., 'dcat:Dataset')
             description: Optional description
+            namespace_override: Optional namespace to override the extracted namespace
 
         Returns:
             DataFrame for NodeShapes sheet
         """
         # Extract namespace prefix from ontology_name (e.g., 'hri:Dataset' -> 'hri')
-        namespace_prefix = ontology_name.split(":")[0]
+        # Use override if provided
+        namespace_prefix = namespace_override if namespace_override else ontology_name.split(":")[0]
 
         # Create a deep copy of the template structure
         df = self.template_nodeshapes.copy(deep=True)
@@ -199,7 +204,7 @@ class SHACLPlayConverter:
         return df
 
     def _build_propertyshapes(
-        self, class_sheet_df: pd.DataFrame, class_name: str, ontology_name: str
+        self, class_sheet_df: pd.DataFrame, class_name: str, ontology_name: str, namespace_override: str = None
     ) -> pd.DataFrame:
         """
         Build the PropertyShapes sheet.
@@ -208,12 +213,14 @@ class SHACLPlayConverter:
             class_sheet_df: DataFrame of the class properties
             class_name: Name of the class
             ontology_name: Ontology name with prefix
+            namespace_override: Optional namespace to override the extracted namespace
 
         Returns:
             DataFrame for PropertyShapes sheet
         """
         # Extract namespace prefix from ontology_name (e.g., 'hri:Dataset' -> 'hri')
-        namespace_prefix = ontology_name.split(":")[0]
+        # Use override if provided
+        namespace_prefix = namespace_override if namespace_override else ontology_name.split(":")[0]
 
         # Start with template structure (rows 0-6 contain headers and metadata)
         df = self.template_propertyshapes.copy(deep=True)
@@ -239,7 +246,7 @@ class SHACLPlayConverter:
                 continue
 
             property_row = self._convert_property_to_shaclplay(
-                row, class_name, ontology_name
+                row, class_name, ontology_name, namespace_prefix
             )
             property_rows.append(property_row)
 
@@ -254,7 +261,7 @@ class SHACLPlayConverter:
         return result_df
 
     def _convert_property_to_shaclplay(
-        self, property_row: pd.Series, class_name: str, ontology_name: str
+        self, property_row: pd.Series, class_name: str, ontology_name: str, namespace_prefix: str
     ) -> pd.Series:
         """
         Convert a single property row to SHACLPlay format.
@@ -263,12 +270,11 @@ class SHACLPlayConverter:
             property_row: Row from class sheet
             class_name: Name of the class
             ontology_name: Ontology name with prefix (e.g., 'hri:Dataset')
+            namespace_prefix: Namespace prefix to use (may be overridden)
 
         Returns:
             Series representing PropertyShape row
         """
-        # Extract namespace prefix from ontology_name (e.g., 'hri:Dataset' -> 'hri')
-        namespace_prefix = ontology_name.split(":")[0]
 
         # Create a new row with proper column count (24 columns based on template)
         new_row = pd.Series([np.nan] * 24, dtype=str)
