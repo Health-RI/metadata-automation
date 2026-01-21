@@ -18,7 +18,7 @@
 @prefix euvoc: <http://publications.europa.eu/ontology/euvoc#> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
-@prefix hri: <http://data.health-ri.nl/core/p2/> .
+@prefix hri: <http://data.health-ri.nl/core/p2#> .
 @prefix linkml: <https://w3id.org/linkml/> .
 @prefix adms: <http://www.w3.org/ns/adms#> .
 @prefix dcatap: <http://data.europa.eu/r5r/> .
@@ -32,6 +32,7 @@
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix dash: <http://datashapes.org/dash#> .
 @prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix status: <http://publications.europa.eu/resource/authority/distribution-status/> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix skosxl: <http://www.w3.org/2008/05/skos-xl#> .
 
@@ -44,9 +45,9 @@ hri:aux-AttributionShape a owl:Ontology;
 hri:AttributionShape a sh:NodeShape;
   rdfs:label "Attribution"@en;
   sh:targetClass prov:Attribution;
-  sh:property <http://data.health-ri.nl/core/p2/AttributionShape#prov:agent>, <http://data.health-ri.nl/core/p2/AttributionShape#dcat:hadRole> .
+  sh:property <http://data.health-ri.nl/core/p2#AttributionShape/prov:agent>, <http://data.health-ri.nl/core/p2#AttributionShape/dcat:hadRole> .
 
-<http://data.health-ri.nl/core/p2/AttributionShape#prov:agent> sh:path prov:agent;
+<http://data.health-ri.nl/core/p2#AttributionShape/prov:agent> sh:path prov:agent;
   sh:name "agent"@en;
   sh:description "The prov:agent property references an prov:Agent which influenced a resource."@en;
   sh:maxCount 1;
@@ -54,7 +55,7 @@ hri:AttributionShape a sh:NodeShape;
   dash:viewer dash:DetailsViewer;
   dash:editor dash:BlankNodeEditor .
 
-<http://data.health-ri.nl/core/p2/AttributionShape#dcat:hadRole> sh:path dcat:hadRole;
+<http://data.health-ri.nl/core/p2#AttributionShape/dcat:hadRole> sh:path dcat:hadRole;
   sh:name "role"@en;
   sh:description "The function of an entity or agent with respect to another entity or resource."@en;
   sh:maxCount 1;

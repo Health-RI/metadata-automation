@@ -64,7 +64,7 @@ metadata-automation --help
 ```
 
 The core source of information is the input Excel file. An example for the Health-RI v2 metadata model is given in `./inputs`.
-This is based on **v2.0.0** of the Health-RI metadata model.
+This is based on **v2.0.2** of the Health-RI metadata model.
 This is a duplicate of the Excel file from the [Health-RI metadata Github repository](https://github.com/Health-RI/health-ri-metadata/blob/v2.0.0/Documents/Metadata_CoreGenericHealth_v2.xlsx) 
 with additional columns.
 Other inputs can also be required per command. See the sections below for more information on that.

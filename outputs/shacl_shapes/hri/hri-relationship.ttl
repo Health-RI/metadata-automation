@@ -18,7 +18,7 @@
 @prefix euvoc: <http://publications.europa.eu/ontology/euvoc#> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
-@prefix hri: <http://data.health-ri.nl/core/p2/> .
+@prefix hri: <http://data.health-ri.nl/core/p2#> .
 @prefix linkml: <https://w3id.org/linkml/> .
 @prefix adms: <http://www.w3.org/ns/adms#> .
 @prefix dcatap: <http://data.europa.eu/r5r/> .
@@ -32,6 +32,7 @@
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix dash: <http://datashapes.org/dash#> .
 @prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix status: <http://publications.europa.eu/resource/authority/distribution-status/> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix skosxl: <http://www.w3.org/2008/05/skos-xl#> .
 
@@ -44,9 +45,9 @@ hri:aux-RelationshipShape a owl:Ontology;
 hri:RelationshipShape a sh:NodeShape;
   rdfs:label "Relationship"@en;
   sh:targetClass dcat:Relationship;
-  sh:property <http://data.health-ri.nl/core/p2/RelationshipShape#dcat:hadRole>, <http://data.health-ri.nl/core/p2/RelationshipShape#dct:relation> .
+  sh:property <http://data.health-ri.nl/core/p2#RelationshipShape/dcat:hadRole>, <http://data.health-ri.nl/core/p2#RelationshipShape/dct:relation> .
 
-<http://data.health-ri.nl/core/p2/RelationshipShape#dcat:hadRole> sh:path dcat:hadRole;
+<http://data.health-ri.nl/core/p2#RelationshipShape/dcat:hadRole> sh:path dcat:hadRole;
   sh:name "had role"@en;
   sh:description "The function of an entity or agent with respect to another entity or resource."@en;
   sh:minCount 1;
@@ -54,7 +55,7 @@ hri:RelationshipShape a sh:NodeShape;
   dash:viewer dash:URIViewer;
   dash:editor dash:URIEditor .
 
-<http://data.health-ri.nl/core/p2/RelationshipShape#dct:relation> sh:path dct:relation;
+<http://data.health-ri.nl/core/p2#RelationshipShape/dct:relation> sh:path dct:relation;
   sh:name "relation"@en;
   sh:description "A related resource."@en;
   sh:minCount 1;

@@ -18,7 +18,7 @@
 @prefix euvoc: <http://publications.europa.eu/ontology/euvoc#> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
-@prefix hri: <http://data.health-ri.nl/core/p2/> .
+@prefix hri: <http://data.health-ri.nl/core/p2#> .
 @prefix linkml: <https://w3id.org/linkml/> .
 @prefix adms: <http://www.w3.org/ns/adms#> .
 @prefix dcatap: <http://data.europa.eu/r5r/> .
@@ -32,6 +32,7 @@
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix dash: <http://datashapes.org/dash#> .
 @prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix status: <http://publications.europa.eu/resource/authority/distribution-status/> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix skosxl: <http://www.w3.org/2008/05/skos-xl#> .
 
@@ -44,39 +45,39 @@ hri:aux-DataServiceShape a owl:Ontology;
 hri:DataServiceShape a sh:NodeShape;
   rdfs:label "DataService"@en;
   sh:targetClass dcat:DataService;
-  sh:property <http://data.health-ri.nl/core/p2/DataServiceShape#dct:accessRights>,
-    <http://data.health-ri.nl/core/p2/DataServiceShape#dcatap:applicableLegislation>,
-    <http://data.health-ri.nl/core/p2/DataServiceShape#dct:conformsTo>, <http://data.health-ri.nl/core/p2/DataServiceShape#dcat:contactPoint>,
-    <http://data.health-ri.nl/core/p2/DataServiceShape#dct:creator>, <http://data.health-ri.nl/core/p2/DataServiceShape#dct:rights>,
-    <http://data.health-ri.nl/core/p2/DataServiceShape#dct:description>, <http://data.health-ri.nl/core/p2/DataServiceShape#dcat:endpointDescription>,
-    <http://data.health-ri.nl/core/p2/DataServiceShape#dcat:endPointURL>, <http://data.health-ri.nl/core/p2/DataServiceShape#dct:format>,
-    <http://data.health-ri.nl/core/p2/DataServiceShape#dcatap:hvdCategory>, <http://data.health-ri.nl/core/p2/DataServiceShape#dct:identifier>,
-    <http://data.health-ri.nl/core/p2/DataServiceShape#dcat:keyword>, <http://data.health-ri.nl/core/p2/DataServiceShape#dcat:landingPage>,
-    <http://data.health-ri.nl/core/p2/DataServiceShape#dct:language>, <http://data.health-ri.nl/core/p2/DataServiceShape#dct:license>,
-    <http://data.health-ri.nl/core/p2/DataServiceShape#dct:modified>, <http://data.health-ri.nl/core/p2/DataServiceShape#adms:identifier>,
-    <http://data.health-ri.nl/core/p2/DataServiceShape#dct:publisher>, <http://data.health-ri.nl/core/p2/DataServiceShape#dcat:servesDataset>,
-    <http://data.health-ri.nl/core/p2/DataServiceShape#dcat:theme>, <http://data.health-ri.nl/core/p2/DataServiceShape#dct:title> .
+  sh:property <http://data.health-ri.nl/core/p2#DataServiceShape/dct:accessRights>,
+    <http://data.health-ri.nl/core/p2#DataServiceShape/dcatap:applicableLegislation>,
+    <http://data.health-ri.nl/core/p2#DataServiceShape/dct:conformsTo>, <http://data.health-ri.nl/core/p2#DataServiceShape/dcat:contactPoint>,
+    <http://data.health-ri.nl/core/p2#DataServiceShape/dct:creator>, <http://data.health-ri.nl/core/p2#DataServiceShape/dct:rights>,
+    <http://data.health-ri.nl/core/p2#DataServiceShape/dct:description>, <http://data.health-ri.nl/core/p2#DataServiceShape/dcat:endpointDescription>,
+    <http://data.health-ri.nl/core/p2#DataServiceShape/dcat:endPointURL>, <http://data.health-ri.nl/core/p2#DataServiceShape/dct:format>,
+    <http://data.health-ri.nl/core/p2#DataServiceShape/dcatap:hvdCategory>, <http://data.health-ri.nl/core/p2#DataServiceShape/dct:identifier>,
+    <http://data.health-ri.nl/core/p2#DataServiceShape/dcat:keyword>, <http://data.health-ri.nl/core/p2#DataServiceShape/dcat:landingPage>,
+    <http://data.health-ri.nl/core/p2#DataServiceShape/dct:language>, <http://data.health-ri.nl/core/p2#DataServiceShape/dct:license>,
+    <http://data.health-ri.nl/core/p2#DataServiceShape/dct:modified>, <http://data.health-ri.nl/core/p2#DataServiceShape/adms:identifier>,
+    <http://data.health-ri.nl/core/p2#DataServiceShape/dct:publisher>, <http://data.health-ri.nl/core/p2#DataServiceShape/dcat:servesDataset>,
+    <http://data.health-ri.nl/core/p2#DataServiceShape/dcat:theme>, <http://data.health-ri.nl/core/p2#DataServiceShape/dct:title> .
 
-<http://data.health-ri.nl/core/p2/DataServiceShape#dct:accessRights> sh:path dct:accessRights;
+<http://data.health-ri.nl/core/p2#DataServiceShape/dct:accessRights> sh:path dct:accessRights;
   sh:name "access rights"@en;
   sh:description "Information about who access the resource or an indication of its security status."@en;
   sh:minCount 1;
   sh:maxCount 1;
   sh:nodeKind sh:IRI;
-  sh:in _:051042a758dc47cb9ffe9be7c87492b62;
+  sh:in _:48992dd8bf874e368a8b0f20a87c6a052;
   dash:viewer dash:URIViewer;
   dash:editor dash:EnumSelectEditor .
 
-_:051042a758dc47cb9ffe9be7c87492b62 rdf:first eu:PUBLIC;
-  rdf:rest _:051042a758dc47cb9ffe9be7c87492b63 .
+_:48992dd8bf874e368a8b0f20a87c6a052 rdf:first eu:PUBLIC;
+  rdf:rest _:48992dd8bf874e368a8b0f20a87c6a053 .
 
-_:051042a758dc47cb9ffe9be7c87492b63 rdf:first eu:RESTRICTED;
-  rdf:rest _:051042a758dc47cb9ffe9be7c87492b64 .
+_:48992dd8bf874e368a8b0f20a87c6a053 rdf:first eu:RESTRICTED;
+  rdf:rest _:48992dd8bf874e368a8b0f20a87c6a054 .
 
-_:051042a758dc47cb9ffe9be7c87492b64 rdf:first eu:NON_PUBLIC;
+_:48992dd8bf874e368a8b0f20a87c6a054 rdf:first eu:NON_PUBLIC;
   rdf:rest rdf:nil .
 
-<http://data.health-ri.nl/core/p2/DataServiceShape#dcatap:applicableLegislation> sh:path
+<http://data.health-ri.nl/core/p2#DataServiceShape/dcatap:applicableLegislation> sh:path
     dcatap:applicableLegislation;
   sh:name "applicable legislation"@en;
   sh:description "The legislation that is applicable to this resource."@en;
@@ -84,14 +85,14 @@ _:051042a758dc47cb9ffe9be7c87492b64 rdf:first eu:NON_PUBLIC;
   dash:viewer dash:URIViewer;
   dash:editor dash:URIEditor .
 
-<http://data.health-ri.nl/core/p2/DataServiceShape#dct:conformsTo> sh:path dct:conformsTo;
+<http://data.health-ri.nl/core/p2#DataServiceShape/dct:conformsTo> sh:path dct:conformsTo;
   sh:name "application profile"@en;
   sh:description "An established standard to which the described resource conforms."@en;
   sh:nodeKind sh:IRI;
   dash:viewer dash:URIViewer;
   dash:editor dash:URIEditor .
 
-<http://data.health-ri.nl/core/p2/DataServiceShape#dcat:contactPoint> sh:path dcat:contactPoint;
+<http://data.health-ri.nl/core/p2#DataServiceShape/dcat:contactPoint> sh:path dcat:contactPoint;
   sh:name "contact point"@en;
   sh:description "Relevant contact information for the cataloged resource."@en;
   sh:minCount 1;
@@ -100,29 +101,30 @@ _:051042a758dc47cb9ffe9be7c87492b64 rdf:first eu:NON_PUBLIC;
   dash:viewer dash:DetailsViewer;
   dash:editor dash:BlankNodeEditor .
 
-<http://data.health-ri.nl/core/p2/DataServiceShape#dct:creator> sh:path dct:creator;
+<http://data.health-ri.nl/core/p2#DataServiceShape/dct:creator> sh:path dct:creator;
   sh:name "creator"@en;
   sh:description "An entity responsible for making the resource."@en;
   sh:node hri:AgentShape;
   dash:viewer dash:DetailsViewer;
   dash:editor dash:BlankNodeEditor .
 
-<http://data.health-ri.nl/core/p2/DataServiceShape#dct:rights> sh:path dct:rights;
+<http://data.health-ri.nl/core/p2#DataServiceShape/dct:rights> sh:path dct:rights;
   sh:name "rights"@en;
   sh:description "Information about rights held in and over the resource."@en;
   sh:nodeKind sh:IRI;
   dash:viewer dash:URIViewer;
   dash:editor dash:URIEditor .
 
-<http://data.health-ri.nl/core/p2/DataServiceShape#dct:description> sh:path dct:description;
+<http://data.health-ri.nl/core/p2#DataServiceShape/dct:description> sh:path dct:description;
   sh:name "description"@en;
   sh:description "An account of the resource."@en;
   sh:minCount 1;
   sh:nodeKind sh:Literal;
+  sh:uniqueLang true;
   dash:viewer dash:LiteralViewer;
-  dash:editor dash:TextFieldEditor .
+  dash:editor dash:TextAreaEditor .
 
-<http://data.health-ri.nl/core/p2/DataServiceShape#dcat:endpointDescription> sh:path
+<http://data.health-ri.nl/core/p2#DataServiceShape/dcat:endpointDescription> sh:path
     dcat:endpointDescription;
   sh:name "end point description"@en;
   sh:description "A description of the services available via the end-points, including their operations, parameters etc."@en;
@@ -132,7 +134,7 @@ _:051042a758dc47cb9ffe9be7c87492b64 rdf:first eu:NON_PUBLIC;
   dash:viewer dash:URIViewer;
   dash:editor dash:URIEditor .
 
-<http://data.health-ri.nl/core/p2/DataServiceShape#dcat:endPointURL> sh:path dcat:endPointURL;
+<http://data.health-ri.nl/core/p2#DataServiceShape/dcat:endPointURL> sh:path dcat:endPointURL;
   sh:name "end point URL"@en;
   sh:description "The root location or primary endpoint of the service (a Web-resolvable IRI)."@en;
   sh:minCount 1;
@@ -141,21 +143,21 @@ _:051042a758dc47cb9ffe9be7c87492b64 rdf:first eu:NON_PUBLIC;
   dash:viewer dash:URIViewer;
   dash:editor dash:URIEditor .
 
-<http://data.health-ri.nl/core/p2/DataServiceShape#dct:format> sh:path dct:format;
+<http://data.health-ri.nl/core/p2#DataServiceShape/dct:format> sh:path dct:format;
   sh:name "format"@en;
   sh:description "The file format, physical medium, or dimensions of the resource."@en;
   sh:nodeKind sh:IRI;
   dash:viewer dash:URIViewer;
   dash:editor dash:URIEditor .
 
-<http://data.health-ri.nl/core/p2/DataServiceShape#dcatap:hvdCategory> sh:path dcatap:hvdCategory;
+<http://data.health-ri.nl/core/p2#DataServiceShape/dcatap:hvdCategory> sh:path dcatap:hvdCategory;
   sh:name "HVD Category"@en;
   sh:description "A data category defined in the High Value Dataset Implementing Regulation."@en;
   sh:nodeKind sh:IRI;
   dash:viewer dash:URIViewer;
   dash:editor dash:URIEditor .
 
-<http://data.health-ri.nl/core/p2/DataServiceShape#dct:identifier> sh:path dct:identifier;
+<http://data.health-ri.nl/core/p2#DataServiceShape/dct:identifier> sh:path dct:identifier;
   sh:name "identifier"@en;
   sh:description "An unambiguous reference to the resource within a given context."@en;
   sh:minCount 1;
@@ -164,28 +166,28 @@ _:051042a758dc47cb9ffe9be7c87492b64 rdf:first eu:NON_PUBLIC;
   dash:viewer dash:LiteralViewer;
   dash:editor dash:TextFieldEditor .
 
-<http://data.health-ri.nl/core/p2/DataServiceShape#dcat:keyword> sh:path dcat:keyword;
+<http://data.health-ri.nl/core/p2#DataServiceShape/dcat:keyword> sh:path dcat:keyword;
   sh:name "keyword"@en;
   sh:description "A keyword or tag describing the resource."@en;
   sh:nodeKind sh:Literal;
   dash:viewer dash:LiteralViewer;
   dash:editor dash:TextFieldEditor .
 
-<http://data.health-ri.nl/core/p2/DataServiceShape#dcat:landingPage> sh:path dcat:landingPage;
+<http://data.health-ri.nl/core/p2#DataServiceShape/dcat:landingPage> sh:path dcat:landingPage;
   sh:name "landing Page"@en;
   sh:description "A Web page that can be navigated to in a Web browser to gain access to the catalog, a dataset, its distributions and/or additional information."@en;
   sh:nodeKind sh:IRI;
   dash:viewer dash:URIViewer;
   dash:editor dash:URIEditor .
 
-<http://data.health-ri.nl/core/p2/DataServiceShape#dct:language> sh:path dct:language;
+<http://data.health-ri.nl/core/p2#DataServiceShape/dct:language> sh:path dct:language;
   sh:name "language"@en;
   sh:description "A language of the resource."@en;
   sh:nodeKind sh:IRI;
   dash:viewer dash:URIViewer;
   dash:editor dash:URIEditor .
 
-<http://data.health-ri.nl/core/p2/DataServiceShape#dct:license> sh:path dct:license;
+<http://data.health-ri.nl/core/p2#DataServiceShape/dct:license> sh:path dct:license;
   sh:name "licence"@en;
   sh:description "A legal document giving official permission to do something with the resource."@en;
   sh:minCount 1;
@@ -194,24 +196,24 @@ _:051042a758dc47cb9ffe9be7c87492b64 rdf:first eu:NON_PUBLIC;
   dash:viewer dash:URIViewer;
   dash:editor dash:URIEditor .
 
-<http://data.health-ri.nl/core/p2/DataServiceShape#dct:modified> sh:path dct:modified;
+<http://data.health-ri.nl/core/p2#DataServiceShape/dct:modified> sh:path dct:modified;
   sh:name "modification date"@en;
   sh:description "Date on which the resource was changed."@en;
   sh:maxCount 1;
   sh:nodeKind sh:Literal;
   sh:datatype xsd:dateTime;
-  sh:pattern "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d{1,3})?(Z|[+-]\\d{2}:\\d{2})$";
+  sh:pattern "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$";
   dash:viewer dash:LiteralViewer;
   dash:editor dash:DateTimePickerEditor .
 
-<http://data.health-ri.nl/core/p2/DataServiceShape#adms:identifier> sh:path adms:identifier;
+<http://data.health-ri.nl/core/p2#DataServiceShape/adms:identifier> sh:path adms:identifier;
   sh:name "other identifier"@en;
   sh:description "Links a resource to an adms:Identifier class."@en;
   sh:node hri:IdentifierShape;
   dash:viewer dash:DetailsViewer;
   dash:editor dash:BlankNodeEditor .
 
-<http://data.health-ri.nl/core/p2/DataServiceShape#dct:publisher> sh:path dct:publisher;
+<http://data.health-ri.nl/core/p2#DataServiceShape/dct:publisher> sh:path dct:publisher;
   sh:name "publisher"@en;
   sh:description "An entity responsible for making the resource available."@en;
   sh:minCount 1;
@@ -220,14 +222,14 @@ _:051042a758dc47cb9ffe9be7c87492b64 rdf:first eu:NON_PUBLIC;
   dash:viewer dash:DetailsViewer;
   dash:editor dash:BlankNodeEditor .
 
-<http://data.health-ri.nl/core/p2/DataServiceShape#dcat:servesDataset> sh:path dcat:servesDataset;
+<http://data.health-ri.nl/core/p2#DataServiceShape/dcat:servesDataset> sh:path dcat:servesDataset;
   sh:name "serves dataset"@en;
   sh:description "A collection of data that this data service can distribute."@en;
   sh:nodeKind sh:IRI;
   dash:viewer dash:URIViewer;
   dash:editor dash:URIEditor .
 
-<http://data.health-ri.nl/core/p2/DataServiceShape#dcat:theme> sh:path dcat:theme;
+<http://data.health-ri.nl/core/p2#DataServiceShape/dcat:theme> sh:path dcat:theme;
   sh:name "theme"@en;
   sh:description "A main category of the resource. A resource can have multiple themes."@en;
   sh:minCount 1;
@@ -235,10 +237,11 @@ _:051042a758dc47cb9ffe9be7c87492b64 rdf:first eu:NON_PUBLIC;
   dash:viewer dash:URIViewer;
   dash:editor dash:URIEditor .
 
-<http://data.health-ri.nl/core/p2/DataServiceShape#dct:title> sh:path dct:title;
+<http://data.health-ri.nl/core/p2#DataServiceShape/dct:title> sh:path dct:title;
   sh:name "title"@en;
   sh:description "A name given to the resource."@en;
   sh:minCount 1;
   sh:nodeKind sh:Literal;
+  sh:uniqueLang true;
   dash:viewer dash:LiteralViewer;
   dash:editor dash:TextFieldEditor .

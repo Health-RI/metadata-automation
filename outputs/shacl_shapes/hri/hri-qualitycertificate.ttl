@@ -18,7 +18,7 @@
 @prefix euvoc: <http://publications.europa.eu/ontology/euvoc#> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
-@prefix hri: <http://data.health-ri.nl/core/p2/> .
+@prefix hri: <http://data.health-ri.nl/core/p2#> .
 @prefix linkml: <https://w3id.org/linkml/> .
 @prefix adms: <http://www.w3.org/ns/adms#> .
 @prefix dcatap: <http://data.europa.eu/r5r/> .
@@ -32,6 +32,7 @@
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix dash: <http://datashapes.org/dash#> .
 @prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix status: <http://publications.europa.eu/resource/authority/distribution-status/> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix skosxl: <http://www.w3.org/2008/05/skos-xl#> .
 
@@ -44,10 +45,10 @@ hri:aux-QualityCertificateShape a owl:Ontology;
 hri:QualityCertificateShape a sh:NodeShape;
   rdfs:label "QualityCertificate"@en;
   sh:targetClass dqv:QualityCertificate;
-  sh:property <http://data.health-ri.nl/core/p2/QualityCertificateShape#oa:hasTarget>,
-    <http://data.health-ri.nl/core/p2/QualityCertificateShape#oa:hasBody> .
+  sh:property <http://data.health-ri.nl/core/p2#QualityCertificateShape/oa:hasTarget>,
+    <http://data.health-ri.nl/core/p2#QualityCertificateShape/oa:hasBody> .
 
-<http://data.health-ri.nl/core/p2/QualityCertificateShape#oa:hasTarget> sh:path oa:hasTarget;
+<http://data.health-ri.nl/core/p2#QualityCertificateShape/oa:hasTarget> sh:path oa:hasTarget;
   sh:name "target"@en;
   sh:description "The relationship between an Annotation and its Target."@en;
   sh:maxCount 1;
@@ -55,7 +56,7 @@ hri:QualityCertificateShape a sh:NodeShape;
   dash:viewer dash:URIViewer;
   dash:editor dash:URIEditor .
 
-<http://data.health-ri.nl/core/p2/QualityCertificateShape#oa:hasBody> sh:path oa:hasBody;
+<http://data.health-ri.nl/core/p2#QualityCertificateShape/oa:hasBody> sh:path oa:hasBody;
   sh:name "body"@en;
   sh:description "The object of the relationship is a resource that is a body of the Annotation."@en;
   sh:maxCount 1;

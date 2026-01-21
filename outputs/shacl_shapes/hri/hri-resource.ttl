@@ -36,41 +36,12 @@
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix skosxl: <http://www.w3.org/2008/05/skos-xl#> .
 
-hri:aux-KindShape a owl:Ontology;
-  rdfs:label "Excel template for Kind class"@en;
-  rdfs:comment "Excel template for Kind class"@en;
-  dct:description "This is an excel template for Kind class in Health RI Core plateau 2."@en;
+hri:aux-ResourceShape a owl:Ontology;
+  rdfs:label "Excel template for Resource class"@en;
+  rdfs:comment "Excel template for Resource class"@en;
+  dct:description "This is an excel template for Resource class in Health RI Core plateau 2."@en;
   owl:versionInfo "0.1" .
 
-hri:KindShape a sh:NodeShape;
-  rdfs:label "Kind"@en;
-  sh:targetClass vcard:Kind;
-  sh:property <http://data.health-ri.nl/core/p2#KindShape/vcard:hasURL>, <http://data.health-ri.nl/core/p2#KindShape/vcard:hasEmail>,
-    <http://data.health-ri.nl/core/p2#KindShape/vcard:fn> .
-
-<http://data.health-ri.nl/core/p2#KindShape/vcard:hasURL> sh:path vcard:hasURL;
-  sh:name "contact page"@en;
-  sh:description "To specify a uniform resource locator associated with the object."@en;
-  sh:nodeKind sh:IRI;
-  dash:viewer dash:URIViewer;
-  dash:editor dash:URIEditor .
-
-<http://data.health-ri.nl/core/p2#KindShape/vcard:hasEmail> sh:path vcard:hasEmail;
-  sh:name "has email"@en;
-  sh:description "To specify the electronic mail address for communication with the object."@en;
-  sh:minCount 1;
-  sh:maxCount 1;
-  sh:nodeKind sh:IRI;
-  sh:pattern "^mailto:.+@.+\\..+$";
-  dash:viewer dash:URIViewer;
-  dash:editor dash:URIEditor .
-
-<http://data.health-ri.nl/core/p2#KindShape/vcard:fn> sh:path vcard:fn;
-  sh:name "formatted name"@en;
-  sh:description "The formatted text corresponding to the name of the object."@en;
-  sh:minCount 1;
-  sh:maxCount 1;
-  sh:nodeKind sh:Literal;
-  sh:datatype xsd:string;
-  dash:viewer dash:LiteralViewer;
-  dash:editor dash:TextAreaEditor .
+hri:ResourceShape a sh:NodeShape;
+  rdfs:label "Resource"@en;
+  sh:targetClass dcat:Resource .

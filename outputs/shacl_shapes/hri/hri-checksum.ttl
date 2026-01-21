@@ -18,7 +18,7 @@
 @prefix euvoc: <http://publications.europa.eu/ontology/euvoc#> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix foaf: <http://xmlns.com/foaf/0.1/> .
-@prefix hri: <http://data.health-ri.nl/core/p2/> .
+@prefix hri: <http://data.health-ri.nl/core/p2#> .
 @prefix linkml: <https://w3id.org/linkml/> .
 @prefix adms: <http://www.w3.org/ns/adms#> .
 @prefix dcatap: <http://data.europa.eu/r5r/> .
@@ -32,6 +32,7 @@
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix dash: <http://datashapes.org/dash#> .
 @prefix dc: <http://purl.org/dc/elements/1.1/> .
+@prefix status: <http://publications.europa.eu/resource/authority/distribution-status/> .
 @prefix skos: <http://www.w3.org/2004/02/skos/core#> .
 @prefix skosxl: <http://www.w3.org/2008/05/skos-xl#> .
 
@@ -44,9 +45,9 @@ hri:aux-ChecksumShape a owl:Ontology;
 hri:ChecksumShape a sh:NodeShape;
   rdfs:label "Checksum"@en;
   sh:targetClass spdx:Checksum;
-  sh:property <http://data.health-ri.nl/core/p2/ChecksumShape#spdx:algorithm>, <http://data.health-ri.nl/core/p2/ChecksumShape#spdx:checksumValue> .
+  sh:property <http://data.health-ri.nl/core/p2#ChecksumShape/spdx:algorithm>, <http://data.health-ri.nl/core/p2#ChecksumShape/spdx:checksumValue> .
 
-<http://data.health-ri.nl/core/p2/ChecksumShape#spdx:algorithm> sh:path spdx:algorithm;
+<http://data.health-ri.nl/core/p2#ChecksumShape/spdx:algorithm> sh:path spdx:algorithm;
   sh:name "algorithm"@en;
   sh:description "Identifies the algorithm used to produce the subject Checksum."@en;
   sh:minCount 1;
@@ -55,12 +56,11 @@ hri:ChecksumShape a sh:NodeShape;
   dash:viewer dash:URIViewer;
   dash:editor dash:URIEditor .
 
-<http://data.health-ri.nl/core/p2/ChecksumShape#spdx:checksumValue> sh:path spdx:checksumValue;
+<http://data.health-ri.nl/core/p2#ChecksumShape/spdx:checksumValue> sh:path spdx:checksumValue;
   sh:name "checksum value"@en;
   sh:description "The checksumValue property provides a lower case hexidecimal encoded digest value produced using a specific algorithm."@en;
   sh:minCount 1;
   sh:maxCount 1;
   sh:nodeKind sh:Literal;
-  sh:datatype xsd:hexBinary;
   dash:viewer dash:LiteralViewer;
   dash:editor dash:TextAreaEditor .

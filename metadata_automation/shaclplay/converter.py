@@ -391,7 +391,7 @@ class SHACLPlayConverter:
         # Columns 18: sh:languageIn (leave empty)
 
         # Columns 19: sh:uniqueLang
-        new_row[19] = property_row.get("sh:uniqueLang", False)
+        new_row[19] = property_row.get("sh:uniqueLang", np.nan)
 
         # Column 20: sh:defaultValue
         default_value = property_row.get("Default value", "")
