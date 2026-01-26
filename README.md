@@ -1,149 +1,241 @@
-# LinkML to Metadata Pipeline
+# Generate metadata artifacts from a single source of truth
 
-This repository contains a pipeline for generating SHACLs, UMLs and Sempyro Pydantic classes from LinkML schema definitions, specifically designed for DCAT and related semantic web vocabularies.
+This repository contains a pipeline for generating metadata-related artifacts, such as SHACLs and [SeMPyRO](github.com/Health-RI/SeMPyRO) Pydantic classes.
 
 ## Repository Structure
 
 ```
 .
-├── metadata_automation/            # Code for this repository
-│   ├── sempyro/templates/          # Custom Jinja templates for Pydantic generation
-│   │   └── ...
-│   └── ...
-├── linkml-definitions/             # LinkML YAML schema definitions, organized by namespace
-│   ├── dcat/
-│   │   ├── dcat_resource.yaml
-│   │   └── dcat_dataset.yaml
-│   └── ...
-├── inputs/                         # Additional inputs besides the LinkML definitions
-├── outputs/
-│   ├── sempyro_classes/            # Generated Python files with Sempyro Pydantic classes
-│   │   ├── dcat/
-│   │   │   ├── dcat_resource.py
-│   │   │   └── dcat_dataset.py
-│   │   └── ...
-│   ├── shacl_shapes/               # Generated Turtle files with SHACL shapes
-│   └── ...
-├── gen_sempyro.py                 # Generator script with custom import definitions
+├── metadata_automation/            # Code for this repository; a folder per artifact type.
+├── inputs/                         # Additional inputs 
+├── outputs/                        # Resulting artifacts; a folder per artifact type.
 └── README.md
+```
+
+## Installation
+
+### Option 1: Using UV (Recommended)
+
+UV is a fast, modern Python package manager. Install the CLI globally in an isolated environment:
+
+```bash
+# Install uv (if not installed already)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install metadata-automation CLI
+cd /path/to/metadata-automation
+uv tool install . # add --editable argument if editable mode is wanted
+```
+
+After installation, the CLI is available globally:
+
+```bash
+metadata-automation --help
+```
+
+### Option 2: Using pip with Virtual Environment
+
+Use Python's built-in virtual environment with pip:
+
+```bash
+# Create a virtual environment
+cd /path/to/metadata-automation
+python3 -m venv .venv
+
+# Activate the virtual environment
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+# Install the package
+pip install -e .
+```
+
+After installation, the CLI is available in the activated virtual environment:
+```bash
+source .venv/bin/activate
+metadata-automation --help
 ```
 
 ## Usage
 
-### Generating LinkML
-```bash
-python 0_gen_linkml.py
-```
-The output directory is currently hardcoded to './temp-linkml'.
-
-### Generating SHACL shapes
-```bash
-gen-shacl --include-annotations ./linkml-definitions/dcat/dcat_dataset.yaml > ./outputs/shacl_shapes/dcat_dataset.ttl
-```
-If the key and/or value in a class or property/slot under 'annotations' contains ':' , it will be parsed as an URI.
-
-The SHACLs are currently generated with all properties 'inline', which matches HealthDCAT-AP. The previous
-Health-RI v2 SHACLs had the properties separately.
-
-### Generating UML diagrams
-```bash
-gen-plantuml ./linkml-definitions/dcat/dcat_dataset.yaml --classes DCATDataset --classes DCATResource --directory ./tmp --classes FOAFAgent --classes DCATVCard
-```
-
-### Generating Sempyro Classes
-
-Run the generation script to convert LinkML definitions to Sempyro Pydantic classes:
+View all available commands:
 
 ```bash
-python gen_sempyro.py
+metadata-automation --help
 ```
 
-This will:
-1. Read LinkML YAML files from `./linkml-definitions/`
-2. Adds a link to `../rdf_model` where necessary. The RDFModel class is only relevant for Sempyro, not for the SHACLs or UML.
-3. Adds validation logic from `./inputs/sempyro/validation_logic.yaml` to the relevant classes.
-4. Apply custom Jinja templates from `./templates/sempyro/`
-5. Generate Python classes in `./sempyro_classes/`
+The core source of information is the input Excel file. An example for the Health-RI v2 metadata model is given in `./inputs`.
+This is based on **v2.0.2** of the Health-RI metadata model.
+This is a duplicate of the Excel file from the [Health-RI metadata Github repository](https://github.com/Health-RI/health-ri-metadata/blob/v2.0.0/Documents/Metadata_CoreGenericHealth_v2.xlsx) 
+with additional columns.
+Other inputs can also be required per command. See the sections below for more information on that.
 
-### Custom Templates
+In the Excel file there are three types of sheets:
+- prefixes: Links prefixes with namespaces
+- classes: Links the sheets of the separate classes to class-level metadata
+  - `sheet_name`: Name of the sheet corresponding to the class.
+  - `description`: Description of the class.
+- sheet per class, e.g., 'Dataset', 'Agent' etc.: Contains properties of the classes.
+  - `Property label`: Name of the property.
+  - `Definition`: Definition of the property.
+  - `Property URI`: URI of the property, e.g., `dct:title`.
+  - `Usage note`: Description of how to interpret the property.
+  - `Range`: Data type of the property
+  - `Cardinality`: Cardinality of the property, e.g., `1..n`.
 
-The Pydantic generation uses adapted Jinja templates located in `./templates/sempyro/`. These templates are necessary to:
-- Handle Sempyro-specific class generation
+### `shaclplay`: Generating SHACLPlay Excel files
+
+```bash
+metadata-automation shaclplay -i ./inputs/source_excel.xlsx -o ./outputs/shaclplay/default
+```
+
+#### Command Options
+
+- `-i, --input-excel`: Path to source metadata Excel file (required)
+- `-t, --template-path`: Path to SHACLPlay template Excel file (default: `./inputs/shacls/shaclplay-template.xlsx`)
+- `-o, --output-path`: Output directory for SHACLPlay Excel files (default: `./outputs/shaclplay/default`)
+
+#### Description
+
+This script converts the Health-RI metadata Excel file directly to SHACLPlay-compatible Excel format without going through LinkML. The generated files can be imported into [SHACLPlay](https://shacl-play.sparna.fr/) for visual SHACL shape editing and validation.
+
+The conversion process:
+- Reads prefixes from the 'prefixes' sheet and converts them to SHACLPlay format
+- Reads class configuration from the 'classes' sheet in the input Excel
+- For each class, converts properties to SHACLPlay PropertyShapes format
+- Handles cardinality parsing (e.g., "0..n" → minCount=0, maxCount=unbounded)
+- Converts SHACL ranges to appropriate sh:nodeKind or sh:datatype
+- Infers sh:node references for complex object types
+- Maps controlled vocabulary URLs to sh:in value lists (where configured)
+- Generates properly formatted 3-sheet Excel files (prefixes, NodeShapes, PropertyShapes)
+
+#### Inputs
+**Source Excel file**:\
+In the Excel file, besides the general columns, information is needed in the following columns:
+- `classes` sheet: 
+  - `ontology_name`: Name of the class with the corresponding namespace, formatted `{namespace}:{class_name}`, e.g., `hri:Dataset`.
+  - `target_ontology_name`: Name of the target class of this model, formatted `{namespace}:{class_name}`, e.g., `dcat:Dataset`.
+- Sheet per class:
+  - `Controlled vocabulary (if applicable)`: Terms in this column can be mapped to vocabularies using the system described in 'Controlled Vocabulary Mappings' below.
+  - `Range`: If the range is another class, not `rdfs:Literal` or an `xsd` datatype, but an IRI should be supplied instead of the complete contents of that class, provide `(IRI)` at the end of the range, e.g., `dpv:LegalBasis (IRI)`.
+  - `sh:node`: If the range is another class that should be integrated, e.g., when using `hri:Agent` for `dct:creator`, use this column to provide the node shape. In this case `hri:AgentShape`.
+  - `dash.viewer` and `dash.editor`: Entries for `dash:viewer` and `dash:editor` for UI customization in SHACLPlay.
+  - `Pattern`: Regular expressions pattern that the property value should adhere to.
+  - `Default value`: Default value for the property.
+
+To allow for a drop-in replacement of the current Health-RI SHACLs, properties for hri:Dataset are based on the 'Property label',
+for all other classes they are based on 'Property URI'.
+
+**Controlled Vocabulary Mappings:**\
+The converter includes a mapping system for controlled vocabularies in `metadata_automation/shaclplay/vocab_mappings.py`. Currently mapped:
+- `access-right` → `( eu:PUBLIC eu:RESTRICTED eu:NON_PUBLIC )`
+
+Additional vocabulary mappings can be added by extending the `VOCAB_MAPPINGS` dictionary.
+
+**Template:**\
+For the generation of SHACLPlay Excel files, an empty template file is needed. In this repository there is one in 
+`./inputs/shacls/shaclplay-template.xlsx`.
+
+#### Outputs
+
+SHACLPlay Excel files are generated in the specified output directory.
+
+### `shacl_from_shaclplay`: Converting SHACLPlay Excel to SHACL Turtle files
+
+```bash
+metadata-automation shacl_from_shaclplay -i ./outputs/shaclplay/default -o ./outputs/shacl_shapes
+```
+
+#### Command Options
+
+- `-i, --input-path`: Path to directory containing SHACLPlay Excel files (required)
+- `-o, --output-path`: Output directory for SHACL Turtle files (default: `./outputs/shacl_shapes`)
+- `-n, --namespace`: Namespace prefix for output files (optional, auto-detected from Excel if not provided)
+
+#### Description
+
+This command converts the SHACLPlay Excel files to SHACL Turtle format using the xls2rdf tool. 
+It converts each to Turtle format using `xls2rdf-app-3.2.1-onejar.jar`, (https://github.com/sparna-git/xls2rdf) provided in `./inputs/shacls/`.
+
+**Requirements:**
+- Java must be installed and available in your PATH
+
+#### Inputs
+
+**SHACLPlay Excel files:**\
+The command processes all SHACLPlay Excel files from the input directory. These files are typically generated by the `shaclplay` command.
+
+**Namespace parameter:**\
+The namespace is used to determine the output file naming and can be:
+- **Auto-detected** from the Excel file's NodeShapes sheet (if not provided with `-n`)
+- **Explicitly specified** with the `-n, --namespace` option to override auto-detection
+- Used to construct output file paths: `{output-path}/{namespace}/{namespace}-{classname}.ttl`
+
+#### Outputs
+
+The resulting SHACLs are written to `{output-path}/{namespace}/{namespace}-{classname}.ttl`.
+
+### `sempyro`: Generating SeMPyRo Classes
+
+```bash
+metadata-automation sempyro -i ./inputs/source_excel.xlsx -n hri
+```
+
+#### Command Options
+
+- `-i, --input-excel`: Path to source metadata Excel file (required)
+- `-n, --namespace`: Namespace prefix (optional)
+  - If not provided, automatically detected from the Excel file's `ontology_name` column in the `classes` sheet
+  - Used to organize output classes: `{namespace}-{ClassName}`, e.g., `hri-Dataset`
+  - Used for LinkML schema and SeMPyRO class organization
+
+#### Description
+
+This command converts the initial Excel file to LinkML YAML files, and subsequently to SeMPyRO Pydantic classes.
+
+The Pydantic generation uses adapted Jinja templates located in `./metadata_automation/sempyro/templates/`. These templates are necessary to:
+- Handle SeMPyRO-specific class generation
 - Customize output formatting
 
-## Known Issues & Limitations 
+#### Inputs
 
-### Sempyro: Enum Generation Problems
-- **Issue**: LinkML's Pydantic generator doesn't handle the `meaning` property correctly for enums
-- **Workaround**: We misuse the `description` property to generate proper enum values
-- **Example**: 
-  ```yaml
-  Status:
-    permissible_values:
-      Completed:
-        meaning: ADMSStatus.Completed
-        description: ADMSStatus.Completed  # Used for actual enum value
-  ```
+**Source Excel file:**\
+In the Excel file, besides the general columns, information is needed in the following columns:
+- `classes` sheet:
+    - `ontology_name`: Name of the class with the corresponding namespace, formatted `{namespace}:{class_name}`, e.g., `hri:Dataset`.
+    - `inherits_from`: Class from which this class inherits from. 
+    - `annotations_ontology`: URL of the ontology.
+    - `annotations_IRI`: IRI to the class. This can be a URL or link to a Python variable. 
+    - `target_ontology_name`: This value will be split on the `:` sign; the first part, the namespace part, will be used for the `$prefix` variable in the SeMPyRO class, and in all caps for the `$namespace` variable.
+    - `Sempyro_add_rdf_model`: If this model does not inherit from another class, it should inherit the `RDFModel` class. In that case, mark this row as `TRUE`.
+- Sheet per class:
+    - `Sempyro range`: Comma separated list of the types in the range of this property. 
 
-## Future Work 
-- LinkML generation: Find a way to keep the single source of truth as clean as possible.
-- LinkML generation: Integrate DCAT-AP and HealthDCAT-AP, either through defining it in the Single source of truth, or directly in LinkML.
-- Sempyro generation: Per slot, swap 'range' with 'annotations/sempyro_range' so the right types are defined in the Sempyro classes.
-- SHACL & Sempyro: Fix enums so they are compatible with the SHACLs and Sempyro
-- Sempyro: Agree on a workflow to update Sempyro based on the Single source of truth.
-- UML generation: Implement UML generation
-- Generate CKAN properties (https://github.com/ckan/ckanext-dcat/tree/master/ckanext/dcat)
-- Generate Discovery service mappings (https://github.com/GenomicDataInfrastructure/gdi-userportal-dataset-discovery-service) 
-  - https://github.com/GenomicDataInfrastructure/gdi-userportal-dataset-discovery-service/pull/212 
-- Generate HTML tables for Bikeshed
+Any namespace objects and Enums are not created in this automation pipeline. If you want to use them, they should 
+be defined separately and imported using the imports, explained below.
 
-### Priority Items
+**SeMPyRO types:**\
+All types in the `Sempyro range` column should be known in the list in `./inputs/sempyro/sempyro_types.yaml`. 
 
-1. **Single Source of Truth Integration**
-   - Investigate generating LinkML YAMLs from our canonical data models
-   - Establish automated pipeline from source models to LinkML definitions
+**Validation logic:**\
+If any validators should be included in the resulting SeMPyRO Pydantic classes, add them in `./inputs/sempyro/validation_logic.yaml`.
+These code snippets will be linked to the corresponding classes on the class name used in the final Pydantic class. 
+This name is constructed by taking the `ontology_name`, e.g., 'dcat:Dataset' following the `{namespace}:{class_name}` format, 
+and creating the Pydantic class name by making the `namespace` all caps and concatenating it with the `class_name`, i.e.,
+`{namespace.upper()}{class_name}`, resulting in `DCATDataset`.
 
-2. **SHACL Validation**
-   - Verify that SHACLs generated from these LinkML schemas match our requirements
-   - Test round-trip compatibility: LinkML → SHACL → validation
+**Imports:**\
+The generated SeMPyRO Pydantic classes are in the form of Python code, for which imports should be defined. 
+This can be done in `./inputs/sempyro/imports.yaml`. The imports are automatically linked to classes based on the naming convention `{namespace}-{ClassName}`, e.g., `hri-Dataset`.
 
-### Bonus Objectives
+#### Outputs
 
-3. **HealthDCAT-AP Integration**
-   - Convert existing HealthDCAT-AP SHACL constraints to LinkML format
-   - Generate Sempyro classes directly from HealthDCAT-AP specifications
+Python files are generated in `./outputs/sempyro_classes/{namespace}/` and automatically formatted with ruff.
+LinkML schemas are generated in `./outputs/linkml/{namespace}/`.
 
-## Development Notes
+## Future work
 
-### Custom Import Configuration
+### SeMPyro inheritance
+The generated SeMPyRO classes currently present all properties that are defined in the Excel file, 
+without dealing with inheritance from superclasses. The properties of the newly generated classes should be removed 
+if they already exist in a superclass, given that they have identical names and behaviour.
 
-The `gen_sempyro.py` script defines custom imports to ensure generated classes have the correct Sempyro dependencies:
-
-```python
-imports_dcat_resource = (
-    Imports() +
-    Import(module="sempyro", objects=[ObjectImport(name="LiteralField"), ObjectImport(name="RDFModel")]) +
-    Import(module="sempyro.foaf", objects=[ObjectImport(name="Agent")]) +
-    # ... more imports
-)
-```
-
-### Template Customization
-
-Templates in `./templates/sempyro/` override default LinkML behavior to:
-- Use Sempyro base classes instead of standard Pydantic
-- Include RDF-specific annotations
-- Handle semantic web type mappings
-
-## Contributing
-
-When adding new LinkML definitions:
-
-1. Place YAML files in appropriate namespace folders under `./linkml-definitions/`
-2. Update `gen_sempyro.py` with any new import requirements
-3. Test generation and verify output in `./sempyro_classes/`
-4. Document any new issues or workarounds in this README
-
-### Wishlist
-- Generate CKAN fields (https://github.com/ckan/ckanext-dcat/tree/master/ckanext/dcat) from the LinkML definitions
-- Generate OpenAPI/Discovery service specification from the LinkML definitions

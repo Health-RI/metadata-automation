@@ -1,0 +1,303 @@
+id: http://data.health-ri.nl/core/p2/DataService
+title: hri-DataService
+description: hri-DataService
+prefixes:
+  linkml: https://w3id.org/linkml/
+  dcat: https://www.w3.org/ns/dcat#
+  dct: http://purl.org/dc/terms/
+  xsd: http://www.w3.org/2001/XMLSchema#
+  adms: http://www.w3.org/ns/adms#
+  adms_status: http://purl.org/adms/status/
+  odrl2: http://www.w3.org/ns/odrl/2/
+  prov: http://www.w3.org/ns/prov#
+  dcatv3: https://www.w3.org/ns/dcat/3#
+  vcard: http://www.w3.org/2006/vcard/ns#
+  foaf: http://xmlns.com/foaf/0.1/
+  dash: http://datashapes.org/dash#
+  spdx: http://spdx.org/rdf/terms#
+  owl: http://www.w3.org/2002/07/owl#
+  disco: http://rdf-vocabulary.ddialliance.org/discovery#
+  skosthes: http://purl.org/iso25964/skos-thes#
+  skos: http://www.w3.org/2004/02/skos/core#
+  rdfs: http://www.w3.org/2000/01/rdf-schema#
+  qb: http://purl.org/linked-data/cube#
+  healthdcatap: http://healthdataportal.eu/ns/health#
+  doap: http://usefulinc.com/ns/doap#
+  sh: http://www.w3.org/ns/shacl#
+  euvoc: http://publications.europa.eu/ontology/euvoc#
+  hri: http://data.health-ri.nl/core/p2/
+  dcatap: http://data.europa.eu/r5r/
+  org: http://www.w3.org/ns/org#
+  skosxl: http://www.w3.org/2008/05/skos-xl#
+  rdf: http://www.w3.org/1999/02/22-rdf-syntax-ns#
+  dc: http://purl.org/dc/elements/1.1/
+  dqv: http://www.w3.org/ns/dqv#
+  dpv: https://w3id.org/dpv#
+  dqv-pd: https://w3id.org/dpv/dpv-pd#
+  eu: http://publications.europa.eu/resource/authority/access-right/
+  oa: http://www.w3.org/ns/oa#
+imports:
+- linkml:types
+- ../sempyro_types
+classes:
+  HRIDataservice:
+    class_uri: hri:DataService
+    annotations:
+      ontology: https://www.w3.org/TR/vocab-dcat-3/
+      IRI: '"DCAT.DataService"'
+      namespace: HRI
+      prefix: hri
+    slots:
+    - access_rights
+    - applicable_legislation
+    - application_profile
+    - contact_point
+    - creator
+    - rights
+    - description
+    - end_point_description
+    - end_point_URL
+    - format
+    - HVD_Category
+    - identifier
+    - keyword
+    - landing_Page
+    - language
+    - licence
+    - modification_date
+    - other_identifier
+    - publisher
+    - serves_dataset
+    - theme
+    - title
+    is_a: DCATDataservice
+  DCATDataservice:
+    class_uri: dcat:DataService
+slots:
+  access_rights:
+    description: Information about who access the resource or an indication of its
+      security status.
+    slot_uri: dct:accessRights
+    annotations:
+      rdf_term: DCTERMS.accessRights
+      rdf_type: uri
+    required: true
+    multivalued: false
+    range: AccessRights
+  applicable_legislation:
+    description: The legislation that is applicable to this resource.
+    slot_uri: dcatap:applicableLegislation
+    annotations:
+      rdf_term: DCATAPv3.applicableLegislation
+      rdf_type: uri
+    required: false
+    multivalued: true
+    range: AnyHttpUrl
+  application_profile:
+    description: An established standard to which the described resource conforms.
+    slot_uri: dct:conformsTo
+    annotations:
+      rdf_term: DCTERMS.conformsTo
+      rdf_type: uri
+    required: false
+    multivalued: true
+    range: AnyHttpUrl
+  contact_point:
+    description: Relevant contact information for the cataloged resource.
+    slot_uri: dcat:contactPoint
+    annotations:
+      rdf_term: DCAT.contactPoint
+      rdf_type: uri
+    required: true
+    multivalued: false
+    any_of:
+    - range: AnyHttpUrl
+    - range: HRIVCard
+  creator:
+    description: An entity responsible for making the resource.
+    slot_uri: dct:creator
+    annotations:
+      rdf_term: DCTERMS.creator
+      rdf_type: uri
+    required: false
+    multivalued: true
+    any_of:
+    - range: AnyHttpUrl
+    - range: HRIAgent
+  rights:
+    description: Information about rights held in and over the resource.
+    slot_uri: dct:rights
+    annotations:
+      rdf_term: DCTERMS.rights
+      rdf_type: uri
+    required: false
+    multivalued: true
+    range: AnyHttpUrl
+  description:
+    description: An account of the resource.
+    slot_uri: dct:description
+    annotations:
+      rdf_term: DCTERMS.description
+      rdf_type: rdfs_literal
+    required: true
+    multivalued: true
+    any_of:
+    - range: LiteralField
+    - range: str
+  end_point_description:
+    description: A description of the services available via the end-points, including
+      their operations, parameters etc.
+    slot_uri: dcat:endpointDescription
+    annotations:
+      rdf_term: DCAT.endpointDescription
+      rdf_type: uri
+    required: true
+    multivalued: false
+    range: AnyHttpUrl
+  end_point_URL:
+    description: The root location or primary endpoint of the service (a Web-resolvable
+      IRI).
+    slot_uri: dcat:endPointURL
+    annotations:
+      rdf_term: DCAT.endpointURL
+      rdf_type: uri
+    required: true
+    multivalued: false
+    any_of:
+    - range: AnyHttpUrl
+    - range: DCATResource
+  format:
+    description: The file format, physical medium, or dimensions of the resource.
+    slot_uri: dct:format
+    annotations:
+      rdf_term: DCTERMS.format
+      rdf_type: uri
+    required: false
+    multivalued: true
+    range: AnyHttpUrl
+  HVD_Category:
+    description: A data category defined in the High Value Dataset Implementing Regulation.
+    slot_uri: dcatap:hvdCategory
+    annotations:
+      rdf_term: DCATAPv3.hvdCategory
+      rdf_type: uri
+    required: false
+    multivalued: true
+    range: AnyHttpUrl
+  identifier:
+    description: An unambiguous reference to the resource within a given context.
+    slot_uri: dct:identifier
+    annotations:
+      rdf_term: DCTERMS.identifier
+      rdf_type: rdfs_literal
+    required: true
+    multivalued: false
+    any_of:
+    - range: str
+    - range: LiteralField
+  keyword:
+    description: A keyword or tag describing the resource.
+    slot_uri: dcat:keyword
+    annotations:
+      rdf_term: DCAT.keyword
+      rdf_type: rdfs_literal
+    required: false
+    multivalued: true
+    range: LiteralField
+  landing_Page:
+    description: A Web page that can be navigated to in a Web browser to gain access
+      to the catalog, a dataset, its distributions and/or additional information.
+    slot_uri: dcat:landingPage
+    annotations:
+      rdf_term: DCAT.landingPage
+      rdf_type: uri
+    required: false
+    multivalued: true
+    range: AnyHttpUrl
+  language:
+    description: A language of the resource.
+    slot_uri: dct:language
+    annotations:
+      rdf_term: DCTERMS.language
+      rdf_type: uri
+    required: false
+    multivalued: true
+    range: AnyHttpUrl
+  licence:
+    description: A legal document giving official permission to do something with
+      the resource.
+    slot_uri: dct:license
+    annotations:
+      rdf_term: DCTERMS.license
+      rdf_type: uri
+    required: true
+    multivalued: false
+    any_of:
+    - range: AnyHttpUrl
+    - range: GeonovumLicenses
+  modification_date:
+    description: Date on which the resource was changed.
+    slot_uri: dct:modified
+    annotations:
+      rdf_term: DCTERMS.modified
+      rdf_type: datetime_literal
+    required: false
+    multivalued: false
+    any_of:
+    - range: str
+    - range: date
+    - range: AwareDatetime
+    - range: NaiveDatetime
+  other_identifier:
+    description: Links a resource to an adms:Identifier class.
+    slot_uri: adms:identifier
+    annotations:
+      rdf_term: ADMS.identifier
+      rdf_type: uri
+    required: false
+    multivalued: true
+    any_of:
+    - range: AnyHttpUrl
+    - range: Identifier
+  publisher:
+    description: An entity responsible for making the resource available.
+    slot_uri: dct:publisher
+    annotations:
+      rdf_term: DCTERMS.publisher
+      rdf_type: uri
+    required: true
+    multivalued: false
+    any_of:
+    - range: AnyHttpUrl
+    - range: HRIAgent
+  serves_dataset:
+    description: A collection of data that this data service can distribute.
+    slot_uri: dcat:servesDataset
+    annotations:
+      rdf_term: DCAT.servesDataset
+      rdf_type: uri
+    required: false
+    multivalued: true
+    any_of:
+    - range: AnyHttpUrl
+    - range: DCATDataset
+  theme:
+    description: A main category of the resource. A resource can have multiple themes.
+    slot_uri: dcat:theme
+    annotations:
+      rdf_term: DCAT.theme
+      rdf_type: uri
+    required: true
+    multivalued: true
+    range: DatasetTheme
+  title:
+    description: A name given to the resource.
+    slot_uri: dct:title
+    annotations:
+      rdf_term: DCTERMS.title
+      rdf_type: rdfs_literal
+    required: true
+    multivalued: true
+    any_of:
+    - range: LiteralField
+    - range: str

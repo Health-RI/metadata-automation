@@ -1,0 +1,596 @@
+id: http://data.health-ri.nl/core/p2/Dataset
+title: hri-Dataset
+description: hri-Dataset
+prefixes:
+  linkml: https://w3id.org/linkml/
+  dcat: https://www.w3.org/ns/dcat#
+  dct: http://purl.org/dc/terms/
+  xsd: http://www.w3.org/2001/XMLSchema#
+  adms: http://www.w3.org/ns/adms#
+  adms_status: http://purl.org/adms/status/
+  odrl2: http://www.w3.org/ns/odrl/2/
+  prov: http://www.w3.org/ns/prov#
+  dcatv3: https://www.w3.org/ns/dcat/3#
+  vcard: http://www.w3.org/2006/vcard/ns#
+  foaf: http://xmlns.com/foaf/0.1/
+  dash: http://datashapes.org/dash#
+  spdx: http://spdx.org/rdf/terms#
+  owl: http://www.w3.org/2002/07/owl#
+  disco: http://rdf-vocabulary.ddialliance.org/discovery#
+  skosthes: http://purl.org/iso25964/skos-thes#
+  skos: http://www.w3.org/2004/02/skos/core#
+  rdfs: http://www.w3.org/2000/01/rdf-schema#
+  qb: http://purl.org/linked-data/cube#
+  healthdcatap: http://healthdataportal.eu/ns/health#
+  doap: http://usefulinc.com/ns/doap#
+  sh: http://www.w3.org/ns/shacl#
+  euvoc: http://publications.europa.eu/ontology/euvoc#
+  hri: http://data.health-ri.nl/core/p2/
+  dcatap: http://data.europa.eu/r5r/
+  org: http://www.w3.org/ns/org#
+  skosxl: http://www.w3.org/2008/05/skos-xl#
+  rdf: http://www.w3.org/1999/02/22-rdf-syntax-ns#
+  dc: http://purl.org/dc/elements/1.1/
+  dqv: http://www.w3.org/ns/dqv#
+  dpv: https://w3id.org/dpv#
+  dqv-pd: https://w3id.org/dpv/dpv-pd#
+  eu: http://publications.europa.eu/resource/authority/access-right/
+  oa: http://www.w3.org/ns/oa#
+imports:
+- linkml:types
+- ../sempyro_types
+classes:
+  HRIDataset:
+    class_uri: hri:Dataset
+    annotations:
+      ontology: https://www.w3.org/TR/vocab-dcat-3/
+      IRI: '"DCAT.Dataset"'
+      namespace: HRI
+      prefix: hri
+      validator_logic: "_validate_literal_fields: ClassVar[Set[str]] = {\"title\"\
+        , \"description\", \"keyword\", \"version\", \"version_notes\", \"population_coverage\"\
+        }\n\n    @field_validator(\"temporal_resolution\", mode=\"after\")\n    @classmethod\n\
+        \    def validate_xsd_duration(cls, value: Union[str, LiteralField]) -> LiteralField:\n\
+        \        if isinstance(value, str):\n            return LiteralField(value=value,\
+        \ datatype=\"xsd:duration\")\n        if isinstance(value, LiteralField) and\
+        \ value.datatype != \"xsd:duration\":\n            return LiteralField(value=value.value,\
+        \ datatype=\"xsd:duration\")\n        return value\n    \n    @field_validator(*_validate_literal_fields,\
+        \ mode=\"before\")\n    @classmethod\n    def validate_literal(cls, value:\
+        \ List[Union[str, LiteralField]]) -> List[LiteralField]:\n        return convert_to_literal(value)\n"
+    slots:
+    - access_rights
+    - analytics
+    - applicable_legislation
+    - code_values
+    - coding_system
+    - conforms_to
+    - contact_point
+    - creator
+    - description
+    - distribution
+    - documentation
+    - frequency
+    - geographical_coverage
+    - has_version
+    - health_theme
+    - identifier
+    - in_series
+    - is_referenced_by
+    - keyword
+    - language
+    - legal_basis
+    - maximum_typical_age
+    - minimum_typical_age
+    - modification_date
+    - number_of_records
+    - number_of_unique_infividuals
+    - other_identifier
+    - personal_data
+    - population_coverage
+    - publisher
+    - purpose
+    - qualified_attribution
+    - qualified_relation
+    - quality_annotation
+    - release_date
+    - retention_period
+    - sample
+    - source
+    - status
+    - temporal_coverage
+    - temporal_resolution
+    - theme
+    - title
+    - type
+    - version
+    - version_notes
+    - was_generated_by
+    is_a: DCATDataset
+  DCATDataset:
+    class_uri: dcat:Dataset
+slots:
+  access_rights:
+    description: Information about who access the resource or an indication of its
+      security status.
+    slot_uri: dct:accessRights
+    annotations:
+      rdf_term: DCTERMS.accessRights
+      rdf_type: uri
+    required: true
+    multivalued: false
+    range: AccessRights
+  analytics:
+    description: An analytics distribution of the dataset.
+    slot_uri: healthdcatap:analytics
+    annotations:
+      rdf_term: HEALTHDCATAP.analytics
+      rdf_type: uri
+    required: false
+    multivalued: true
+    any_of:
+    - range: AnyHttpUrl
+    - range: DCATDistribution
+  applicable_legislation:
+    description: The legislation that is applicable to this resource.
+    slot_uri: dcatap:applicableLegislation
+    annotations:
+      rdf_term: DCATAPv3.applicableLegislation
+      rdf_type: uri
+    required: true
+    multivalued: true
+    range: AnyHttpUrl
+  code_values:
+    description: Health classifications and their codes associated with the dataset
+    slot_uri: healthdcatap:hasCodeValues
+    annotations:
+      rdf_term: HEALTHDCATAP.hasCodeValues
+      rdf_type: uri
+    required: false
+    multivalued: true
+    range: AnyHttpUrl
+  coding_system:
+    description: 'Coding systems in use (ex: ICD-10-CM, DGRs, SNOMED=CT, ...)'
+    slot_uri: healthdcatap:hasCodingSystem
+    annotations:
+      rdf_term: HEALTHDCATAP.hasCodingSystem
+      rdf_type: uri
+    required: false
+    multivalued: true
+    range: AnyHttpUrl
+  conforms_to:
+    description: An established standard to which the described resource conforms.
+    slot_uri: dct:conformsTo
+    annotations:
+      rdf_term: DCTERMS.conformsTo
+      rdf_type: uri
+    required: false
+    multivalued: true
+    range: AnyHttpUrl
+  contact_point:
+    description: Relevant contact information for the cataloged resource.
+    slot_uri: dcat:contactPoint
+    annotations:
+      rdf_term: DCAT.contactPoint
+      rdf_type: uri
+    required: true
+    multivalued: false
+    any_of:
+    - range: AnyHttpUrl
+    - range: HRIVCard
+  creator:
+    description: An entity responsible for making the resource.
+    slot_uri: dct:creator
+    annotations:
+      rdf_term: DCTERMS.creator
+      rdf_type: uri
+    required: true
+    multivalued: true
+    any_of:
+    - range: AnyHttpUrl
+    - range: HRIAgent
+  description:
+    description: An account of the resource.
+    slot_uri: dct:description
+    annotations:
+      rdf_term: DCTERMS.description
+      rdf_type: rdfs_literal
+    required: true
+    multivalued: true
+    any_of:
+    - range: LiteralField
+    - range: str
+  distribution:
+    description: An available Distribution for the Dataset.
+    slot_uri: dcat:distribution
+    annotations:
+      rdf_term: DCAT.distribution
+      rdf_type: uri
+    required: false
+    multivalued: true
+    any_of:
+    - range: AnyHttpUrl
+    - range: DCATDistribution
+  documentation:
+    description: A page or document about this thing.
+    slot_uri: foaf:page
+    annotations:
+      rdf_term: FOAF.page
+      rdf_type: uri
+    required: false
+    multivalued: true
+    range: AnyHttpUrl
+  frequency:
+    description: The frequency with which items are added to a collection.
+    slot_uri: dct:accrualPeriodicity
+    annotations:
+      rdf_term: DCTERMS.accrualPeriodicity
+      rdf_type: uri
+    required: false
+    multivalued: false
+    range: AnyHttpUrl
+  geographical_coverage:
+    description: Spatial characteristics of the resource.
+    slot_uri: dct:spatial
+    annotations:
+      rdf_term: DCTERMS.spatial
+      rdf_type: uri
+    required: false
+    multivalued: true
+    any_of:
+    - range: AnyHttpUrl
+    - range: Location
+  has_version:
+    description: This resource has a more specific, versioned resource.
+    slot_uri: dcat:hasVersion
+    annotations:
+      rdf_term: DCTERMS.hasVersion
+      rdf_type: uri
+    required: false
+    multivalued: true
+    range: AnyHttpUrl
+  health_theme:
+    description: A category of the Dataset or tag describing the Dataset.
+    slot_uri: healthdcatap:healthTheme
+    annotations:
+      rdf_term: HEALTHDCATAP.healthTheme
+      rdf_type: uri
+    required: false
+    multivalued: true
+    range: AnyHttpUrl
+  identifier:
+    description: An unambiguous reference to the resource within a given context.
+    slot_uri: dct:identifier
+    annotations:
+      rdf_term: DCTERMS.identifier
+      rdf_type: rdfs_literal
+    required: true
+    multivalued: false
+    any_of:
+    - range: str
+    - range: LiteralField
+  in_series:
+    description: A dataset series of which the dataset is part.
+    slot_uri: dcat:inSeries
+    annotations:
+      rdf_term: DCATv3.inSeries
+      rdf_type: uri
+    required: false
+    multivalued: true
+    any_of:
+    - range: DCATDatasetSeries
+    - range: AnyHttpUrl
+  is_referenced_by:
+    description: A related resource that references, cites, or otherwise points to
+      the described resource.
+    slot_uri: dct:isReferencedBy
+    annotations:
+      rdf_term: DCTERMS.isReferencedBy
+      rdf_type: uri
+    required: false
+    multivalued: true
+    range: AnyHttpUrl
+  keyword:
+    description: A keyword or tag describing the resource.
+    slot_uri: dcat:keyword
+    annotations:
+      rdf_term: DCAT.keyword
+      rdf_type: rdfs_literal
+    required: true
+    multivalued: true
+    range: LiteralField
+  language:
+    description: A language of the resource.
+    slot_uri: dct:language
+    annotations:
+      rdf_term: DCTERMS.language
+      rdf_type: uri
+    required: false
+    multivalued: true
+    range: AnyHttpUrl
+  legal_basis:
+    description: Indicates use or applicability of a Legal Basis.
+    slot_uri: dpv:hasLegalBasis
+    annotations:
+      rdf_term: DPV.hasLegalBasis
+      rdf_type: uri
+    required: false
+    multivalued: true
+    range: AnyHttpUrl
+  maximum_typical_age:
+    description: Maximum typical age of the population within the dataset
+    slot_uri: healthdcatap:maxTypicalAge
+    annotations:
+      rdf_term: HEALTHDCATAP.maxTypicalAge
+      rdf_type: xsd:nonNegativeInteger
+    required: false
+    multivalued: false
+    any_of:
+    - range: int
+    - range: LiteralField
+  minimum_typical_age:
+    description: Minimum typical age of the population within the dataset
+    slot_uri: healthdcatap:minTypicalAge
+    annotations:
+      rdf_term: HEALTHDCATAP.minTypicalAge
+      rdf_type: xsd:nonNegativeInteger
+    required: false
+    multivalued: false
+    any_of:
+    - range: int
+    - range: LiteralField
+  modification_date:
+    description: Date on which the resource was changed.
+    slot_uri: dct:modified
+    annotations:
+      rdf_term: DCTERMS.modified
+      rdf_type: datetime_literal
+    required: false
+    multivalued: false
+    any_of:
+    - range: str
+    - range: date
+    - range: AwareDatetime
+    - range: NaiveDatetime
+  number_of_records:
+    description: Size of the dataset in terms of the number of records
+    slot_uri: healthdcatap:numberOfRecords
+    annotations:
+      rdf_term: HEALTHDCATAP.numberOfRecords
+      rdf_type: xsd:nonNegativeInteger
+    required: false
+    multivalued: false
+    any_of:
+    - range: int
+    - range: LiteralField
+  number_of_unique_infividuals:
+    description: Number of records for unique individuals.
+    slot_uri: healthdcatap:numberOfUniqueIndividuals
+    annotations:
+      rdf_term: HEALTHDCATAP.numberOfUniqueIndividuals
+      rdf_type: xsd:nonNegativeInteger
+    required: false
+    multivalued: false
+    any_of:
+    - range: int
+    - range: LiteralField
+  other_identifier:
+    description: Links a resource to an adms:Identifier class.
+    slot_uri: adms:identifier
+    annotations:
+      rdf_term: ADMS.identifier
+      rdf_type: uri
+    required: false
+    multivalued: true
+    range: Identifier
+  personal_data:
+    description: Indicates association with Personal Data.
+    slot_uri: dpv:hasPersonalData
+    annotations:
+      rdf_term: DPV.hasPersonalData
+      rdf_type: uri
+    required: false
+    multivalued: true
+    range: AnyHttpUrl
+  population_coverage:
+    description: A definition of the population within the dataset
+    slot_uri: healthdcatap:populationCoverage
+    annotations:
+      rdf_term: HEALTHDCATAP.populationCoverage
+      rdf_type: rdfs_literal
+    required: false
+    multivalued: true
+    any_of:
+    - range: str
+    - range: LiteralField
+  publisher:
+    description: An entity responsible for making the resource available.
+    slot_uri: dct:publisher
+    annotations:
+      rdf_term: DCTERMS.publisher
+      rdf_type: uri
+    required: true
+    multivalued: false
+    any_of:
+    - range: AnyHttpUrl
+    - range: HRIAgent
+  purpose:
+    description: Indicates association with Purpose.
+    slot_uri: dpv:hasPurpose
+    annotations:
+      rdf_term: DPV.hasPurpose
+      rdf_type: uri
+    required: false
+    multivalued: true
+    range: AnyHttpUrl
+  qualified_attribution:
+    description: Attribution is the ascribing of an entity to an agent.
+    slot_uri: prov:qualifiedAttribution
+    annotations:
+      rdf_term: PROV.qualifiedAttribution
+      rdf_type: uri
+    required: false
+    multivalued: true
+    any_of:
+    - range: AnyHttpUrl
+    - range: Attribution
+  qualified_relation:
+    description: Link to a description of a relationship with another resource.
+    slot_uri: dcat:qualifiedRelation
+    annotations:
+      rdf_term: DCAT.qualifiedRelation
+      rdf_type: uri
+    required: false
+    multivalued: true
+    any_of:
+    - range: AnyHttpUrl
+    - range: Relationship
+  quality_annotation:
+    description: Refers to a quality annotation.
+    slot_uri: dqv:hasQualityAnnotation
+    annotations:
+      rdf_term: DQV.hasQualityAnnotation
+      rdf_type: uri
+    required: false
+    multivalued: true
+    any_of:
+    - range: AnyHttpUrl
+    - range: QualityCertificate
+  release_date:
+    description: Date of formal issuance of the resource.
+    slot_uri: dct:issued
+    annotations:
+      rdf_term: DCTERMS.issued
+      rdf_type: datetime_literal
+    required: false
+    multivalued: false
+    any_of:
+    - range: str
+    - range: datetime
+    - range: date
+    - range: AwareDatetime
+    - range: NaiveDatetime
+  retention_period:
+    description: A temporal period which the dataset is available for secondary use.
+    slot_uri: healthdcatap:retentionPeriod
+    annotations:
+      rdf_term: HEALTHDCATAP.retentionPeriod
+      rdf_type: DCTERMS.PeriodOfTime
+    required: false
+    multivalued: false
+    range: PeriodOfTime
+  sample:
+    description: Links to a sample of an Asset (which is itself an Asset).
+    slot_uri: adms:sample
+    annotations:
+      rdf_term: ADMS.sample
+      rdf_type: uri
+    required: false
+    multivalued: true
+    any_of:
+    - range: AnyHttpUrl
+    - range: DCATDistribution
+  source:
+    description: A related resource from which the described resource is derived.
+    slot_uri: dct:source
+    annotations:
+      rdf_term: DCTERMS.source
+      rdf_type: uri
+    required: false
+    multivalued: true
+    any_of:
+    - range: AnyHttpUrl
+    - range: DCATDataset
+  status:
+    description: The status of the Asset in the context of a particular workflow process.
+    slot_uri: adms:status
+    annotations:
+      rdf_term: ADMS.status
+      rdf_type: uri
+    required: false
+    multivalued: false
+    range: DatasetStatus
+  temporal_coverage:
+    description: Temporal characteristics of the resource.
+    slot_uri: dct:temporal
+    annotations:
+      rdf_term: DCTERMS.temporal
+      rdf_type: DCTERMS.PeriodOfTime
+    required: false
+    multivalued: true
+    range: PeriodOfTime
+  temporal_resolution:
+    description: Minimum time period resolvable in the dataset.
+    slot_uri: dcat:temporalResolution
+    annotations:
+      rdf_term: DCAT.temporalResolution
+      rdf_type: xsd:duration
+    required: false
+    multivalued: false
+    any_of:
+    - range: str
+    - range: LiteralField
+  theme:
+    description: A main category of the resource. A resource can have multiple themes.
+    slot_uri: dcat:theme
+    annotations:
+      rdf_term: DCAT.theme
+      rdf_type: uri
+    required: true
+    multivalued: true
+    range: DatasetTheme
+  title:
+    description: A name given to the resource.
+    slot_uri: dct:title
+    annotations:
+      rdf_term: DCTERMS.title
+      rdf_type: rdfs_literal
+    required: true
+    multivalued: true
+    any_of:
+    - range: LiteralField
+    - range: str
+  type:
+    description: The nature or genre of the resource.
+    slot_uri: dct:type
+    annotations:
+      rdf_term: DCTERMS.type
+      rdf_type: uri
+    required: false
+    multivalued: true
+    range: AnyHttpUrl
+  version:
+    description: The version indicator (name or identifier) of a resource.
+    slot_uri: dcat:version
+    annotations:
+      rdf_term: DCATv3.version
+      rdf_type: rdfs_literal
+    required: false
+    multivalued: false
+    any_of:
+    - range: str
+    - range: LiteralField
+  version_notes:
+    description: A description of changes between this version and the previous version
+      of the Asset.
+    slot_uri: adms:versionNotes
+    annotations:
+      rdf_term: ADMS.versionNotes
+      rdf_type: rdfs_literal
+    required: false
+    multivalued: true
+    any_of:
+    - range: str
+    - range: LiteralField
+  was_generated_by:
+    description: Generation is the completion of production of a new entity by an
+      activity. This entity did not exist before generation and becomes available
+      for usage after this generation.
+    slot_uri: prov:wasGeneratedBy
+    annotations:
+      rdf_term: PROV.wasGeneratedBy
+      rdf_type: uri
+    required: false
+    multivalued: true
+    any_of:
+    - range: AnyHttpUrl
+    - range: Activity

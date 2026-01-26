@@ -1,17 +1,35 @@
 classes:
-  DCATDataset:
+  HRIDataset:
     annotations:
       validator_logic: |
-        @field_validator("temporal_resolution", mode="after")
+         _validate_literal_fields: ClassVar[Set[str]] = {"title", "description", "keyword", "version", "version_notes", "population_coverage"}
+      
+             @field_validator("temporal_resolution", mode="after")
+             @classmethod
+             def validate_xsd_duration(cls, value: Union[str, LiteralField]) -> LiteralField:
+                 if isinstance(value, str):
+                     return LiteralField(value=value, datatype="xsd:duration")
+                 if isinstance(value, LiteralField) and value.datatype != "xsd:duration":
+                     return LiteralField(value=value.value, datatype="xsd:duration")
+                 return value
+             
+             @field_validator(*_validate_literal_fields, mode="before")
+             @classmethod
+             def validate_literal(cls, value: List[Union[str, LiteralField]]) -> List[LiteralField]:
+                 return convert_to_literal(value)
+
+  HRIAgent:
+    annotations:
+      validator_logic: |
+        @field_validator("mbox", mode="before")
             @classmethod
-            def validate_xsd_duration(cls, value: Union[str, LiteralField]) -> LiteralField:
-                if isinstance(value, str):
-                    return LiteralField(value=value, datatype="xsd:duration")
-                if isinstance(value, LiteralField) and value.datatype != "xsd:duration":
-                    return LiteralField(value=value.value, datatype="xsd:duration")
-                return value
-        
-  DCATResource:
+            def _validate_email(cls, value: Union[str, AnyUrl, List[Union[str, AnyUrl]]]) -> List[AnyUrl]:
+                """
+                Checks if provided value is a valid email or mailto URI, fulfills an email to mailto URI
+                """
+                return validate_convert_email(value)
+
+  HRICatalog:
     annotations:
       validator_logic: |
         _validate_literal_fields: ClassVar[Set[str]] = {"title", "description", "keyword", "version", "version_notes"}
@@ -20,8 +38,90 @@ classes:
             @classmethod
             def validate_literal(cls, value: List[Union[str, LiteralField]]) -> List[LiteralField]:
                 return convert_to_literal(value)
-      
+        
             @field_validator("release_date", "modification_date", mode="before")
             @classmethod
             def date_validator(cls, value):
                 return date_handler(value)
+        
+            @field_validator("temporal_resolution", mode="after")
+            @classmethod
+            def validate_xsd_duration(cls, value: Union[str, LiteralField]) -> LiteralField:
+                if isinstance(value, str):
+                    return LiteralField(value=value, datatype="xsd:duration")
+                if isinstance(value, LiteralField) and value.datatype != "xsd:duration":
+                    return LiteralField(value=value.value, datatype="xsd:duration")
+                return value
+
+  HRIDataService:
+    annotations:
+      validator_logic: |
+         _validate_literal_fields: ClassVar[Set[str]] = {"title", "description", "keyword", "version", "version_notes"}
+
+             @field_validator(*_validate_literal_fields, mode="before")
+             @classmethod
+             def validate_literal(cls, value: List[Union[str, LiteralField]]) -> List[LiteralField]:
+                 return convert_to_literal(value)
+
+             @field_validator("release_date", "modification_date", mode="before")
+             @classmethod
+             def date_validator(cls, value):
+                 return date_handler(value)
+
+  HRIDatasetSeries:
+    annotations:
+      validator_logic: |
+        _validate_literal_fields: ClassVar[Set[str]] = {"title", "description", "keyword", "version", "version_notes"}
+
+            @field_validator(*_validate_literal_fields, mode="before")
+            @classmethod
+            def validate_literal(cls, value: List[Union[str, LiteralField]]) -> List[LiteralField]:
+                return convert_to_literal(value)
+
+            @field_validator("release_date", "modification_date", mode="before")
+            @classmethod
+            def date_validator(cls, value):
+                return date_handler(value)
+
+  HRIDistribution:
+    annotations:
+      validator_logic: |
+        @field_validator("title", "description", mode="before")
+            @classmethod
+            def validate_literal(cls, value: List[Union[str, LiteralField]]) -> List[LiteralField]:
+                return convert_to_literal(value)
+
+            @field_validator("temporal_resolution", mode="after")
+            @classmethod
+            def validate_xsd_duration(cls, value: Union[str, LiteralField]) -> LiteralField:
+                if isinstance(value, str):
+                    return LiteralField(value=value, datatype="xsd:duration")
+                if isinstance(value, LiteralField) and value.datatype != "xsd:duration":
+                    return LiteralField(value=value.value, datatype="xsd:duration")
+                return value
+
+            @field_validator("release_date", "modification_date", mode="before")
+            @classmethod
+            def date_validator(cls, value):
+                return date_handler(value)
+
+  HRIKind:
+    annotations:
+      validator_logic: |
+        @field_validator("hasEmail", mode="before")
+            @classmethod
+            def _validate_email(cls, value: Union[str, AnyUrl, List[Union[str, AnyUrl]]]) -> List[AnyUrl]:
+                """
+                Checks if provided value is a valid email or mailto URI, fulfills an email to mailto URI
+                """
+                return validate_convert_email(value)
+
+  HRIPeriodOfTime:
+  # DCTERMSPeriodOfTime:
+    annotations:
+      validator_logic: |
+        @field_validator("start_date", "end_date", mode="before")
+            @classmethod
+            def convert_to_literal(cls, value: Union[str, LiteralField]) -> LiteralField:
+               return force_literal_field(value)
+        
