@@ -220,20 +220,20 @@ hri:DistributionShape a sh:NodeShape;
   sh:description "The status of the Asset in the context of a particular workflow process."@en;
   sh:maxCount 1;
   sh:nodeKind sh:IRI;
-  sh:in _:f6bd5f682e6948eaab3479774d8c27ce2;
+  sh:in _:764371a19775447e9043af982838b4442;
   dash:viewer dash:URIViewer;
   dash:editor dash:EnumSelectEditor .
 
-_:f6bd5f682e6948eaab3479774d8c27ce2 rdf:first status:COMPLETED;
-  rdf:rest _:f6bd5f682e6948eaab3479774d8c27ce3 .
+_:764371a19775447e9043af982838b4442 rdf:first status:COMPLETED;
+  rdf:rest _:764371a19775447e9043af982838b4443 .
 
-_:f6bd5f682e6948eaab3479774d8c27ce3 rdf:first status:DEVELOP;
-  rdf:rest _:f6bd5f682e6948eaab3479774d8c27ce4 .
+_:764371a19775447e9043af982838b4443 rdf:first status:DEVELOP;
+  rdf:rest _:764371a19775447e9043af982838b4444 .
 
-_:f6bd5f682e6948eaab3479774d8c27ce4 rdf:first status:WITHDRAWN;
-  rdf:rest _:f6bd5f682e6948eaab3479774d8c27ce5 .
+_:764371a19775447e9043af982838b4444 rdf:first status:WITHDRAWN;
+  rdf:rest _:764371a19775447e9043af982838b4445 .
 
-_:f6bd5f682e6948eaab3479774d8c27ce5 rdf:first status:DEPRECATED;
+_:764371a19775447e9043af982838b4445 rdf:first status:DEPRECATED;
   rdf:rest rdf:nil .
 
 <http://data.health-ri.nl/core/p2#DistributionShape/dcat:temporalResolution> sh:path

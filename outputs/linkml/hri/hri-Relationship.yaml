@@ -1,4 +1,4 @@
-id: http://data.health-ri.nl/core/p2/Relationship
+id: http://data.health-ri.nl/core/p2#Relationship
 title: hri-Relationship
 description: hri-Relationship
 prefixes:
@@ -25,7 +25,7 @@ prefixes:
   doap: http://usefulinc.com/ns/doap#
   sh: http://www.w3.org/ns/shacl#
   euvoc: http://publications.europa.eu/ontology/euvoc#
-  hri: http://data.health-ri.nl/core/p2/
+  hri: http://data.health-ri.nl/core/p2#
   dcatap: http://data.europa.eu/r5r/
   org: http://www.w3.org/ns/org#
   skosxl: http://www.w3.org/2008/05/skos-xl#
@@ -36,6 +36,7 @@ prefixes:
   dqv-pd: https://w3id.org/dpv/dpv-pd#
   eu: http://publications.europa.eu/resource/authority/access-right/
   oa: http://www.w3.org/ns/oa#
+  status: http://publications.europa.eu/resource/authority/distribution-status/
 imports:
 - linkml:types
 - ../sempyro_types

@@ -10,7 +10,6 @@ from pathlib import Path
 from typing import Optional
 
 from .utils import (
-    slugify_property_label,
     parse_cardinality,
     get_current_datetime_iso,
 )
@@ -62,7 +61,9 @@ class SHACLPlayConverter:
         # Create a prefix lookup dictionary for easy access
         self.prefix_lookup = {}
         for idx, row in source_prefixes.iterrows():
-            self.prefix_lookup[str(row["prefix"]).strip()] = str(row["namespace"]).strip()
+            self.prefix_lookup[str(row["prefix"]).strip()] = str(
+                row["namespace"]
+            ).strip()
 
         # Convert to SHACLPlay format:
         # - Row 0: empty row (all NaN)
@@ -107,7 +108,7 @@ class SHACLPlayConverter:
         self,
         class_sheet_df: pd.DataFrame,
         class_name: str,
-        ontology_name: str,
+        class_uri: str,
         target_class: str,
         description: str = None,
         namespace_override: str = None,
@@ -118,7 +119,7 @@ class SHACLPlayConverter:
         Args:
             class_sheet_df: DataFrame of the class sheet (e.g., 'Dataset')
             class_name: Name of the class (e.g., 'Dataset')
-            ontology_name: Ontology name with prefix (e.g., 'hri:Dataset')
+            class_uri: Ontology name with prefix (e.g., 'hri:Dataset')
             target_class: Target class URI (e.g., 'dcat:Dataset')
             description: Optional description of the class
             namespace_override: Optional namespace to override all class and property namespaces
@@ -128,12 +129,16 @@ class SHACLPlayConverter:
         """
         # Build NodeShapes sheet
         nodeshapes_df = self._build_nodeshapes(
-            class_name, ontology_name, target_class, description, namespace_override
+            class_name,
+            class_uri,
+            target_class,
+            description,
+            namespace_override,
         )
 
         # Build PropertyShapes sheet
         propertyshapes_df = self._build_propertyshapes(
-            class_sheet_df, class_name, ontology_name, namespace_override
+            class_sheet_df, class_name, class_uri, namespace_override
         )
 
         return nodeshapes_df, propertyshapes_df
@@ -141,7 +146,7 @@ class SHACLPlayConverter:
     def _build_nodeshapes(
         self,
         class_name: str,
-        ontology_name: str,
+        class_uri: str,
         target_class: str,
         description: Optional[str],
         namespace_override: str = None,
@@ -151,7 +156,7 @@ class SHACLPlayConverter:
 
         Args:
             class_name: Name of the class (e.g., 'Dataset')
-            ontology_name: Ontology name (e.g., 'hri:Dataset')
+            class_uri: Ontology name (e.g., 'hri:Dataset')
             target_class: Target class (e.g., 'dcat:Dataset')
             description: Optional description
             namespace_override: Optional namespace to override the extracted namespace
@@ -159,9 +164,13 @@ class SHACLPlayConverter:
         Returns:
             DataFrame for NodeShapes sheet
         """
-        # Extract namespace prefix from ontology_name (e.g., 'hri:Dataset' -> 'hri')
+        # Extract namespace prefix from class_uri (e.g., 'hri:Dataset' -> 'hri')
         # Use override if provided
-        namespace_prefix = namespace_override if namespace_override else ontology_name.split(":")[0]
+        namespace_prefix = (
+            namespace_override
+            if namespace_override
+            else class_uri.split(":")[0]
+        )
 
         # Create a deep copy of the template structure
         df = self.template_nodeshapes.copy(deep=True)
@@ -204,7 +213,11 @@ class SHACLPlayConverter:
         return df
 
     def _build_propertyshapes(
-        self, class_sheet_df: pd.DataFrame, class_name: str, ontology_name: str, namespace_override: str = None
+        self,
+        class_sheet_df: pd.DataFrame,
+        class_name: str,
+        class_uri: str,
+        namespace_override: str = None,
     ) -> pd.DataFrame:
         """
         Build the PropertyShapes sheet.
@@ -212,15 +225,19 @@ class SHACLPlayConverter:
         Args:
             class_sheet_df: DataFrame of the class properties
             class_name: Name of the class
-            ontology_name: Ontology name with prefix
+            class_uri: Ontology name with prefix
             namespace_override: Optional namespace to override the extracted namespace
 
         Returns:
             DataFrame for PropertyShapes sheet
         """
-        # Extract namespace prefix from ontology_name (e.g., 'hri:Dataset' -> 'hri')
+        # Extract namespace prefix from class_uri (e.g., 'hri:Dataset' -> 'hri')
         # Use override if provided
-        namespace_prefix = namespace_override if namespace_override else ontology_name.split(":")[0]
+        namespace_prefix = (
+            namespace_override
+            if namespace_override
+            else class_uri.split(":")[0]
+        )
 
         # Start with template structure (rows 0-6 contain headers and metadata)
         df = self.template_propertyshapes.copy(deep=True)
@@ -246,7 +263,7 @@ class SHACLPlayConverter:
                 continue
 
             property_row = self._convert_property_to_shaclplay(
-                row, class_name, ontology_name, namespace_prefix
+                row, class_name, class_uri, namespace_prefix
             )
             property_rows.append(property_row)
 
@@ -261,7 +278,11 @@ class SHACLPlayConverter:
         return result_df
 
     def _convert_property_to_shaclplay(
-        self, property_row: pd.Series, class_name: str, ontology_name: str, namespace_prefix: str
+        self,
+        property_row: pd.Series,
+        class_name: str,
+        class_uri: str,
+        namespace_prefix: str,
     ) -> pd.Series:
         """
         Convert a single property row to SHACLPlay format.
@@ -269,7 +290,7 @@ class SHACLPlayConverter:
         Args:
             property_row: Row from class sheet
             class_name: Name of the class
-            ontology_name: Ontology name with prefix (e.g., 'hri:Dataset')
+            class_uri: Ontology name with prefix (e.g., 'hri:Dataset')
             namespace_prefix: Namespace prefix to use (may be overridden)
 
         Returns:
@@ -285,11 +306,10 @@ class SHACLPlayConverter:
 
         # Separate the class/shape name from the property name using a '#'.
         # If a namespace URL ends in '#', use a '/'.
-        if self._get_namespace_url(namespace_prefix).endswith('#'):
+        if self._get_namespace_url(namespace_prefix).endswith("#"):
             new_row[0] = f"{namespace_prefix}:{class_name}Shape/{prop_uri}"
         else:
             new_row[0] = f"{namespace_prefix}:{class_name}Shape#{prop_uri}"
-
 
         # Column 1: ^sh:property (parent NodeShape)
         new_row[1] = f"{namespace_prefix}:{class_name}Shape"
@@ -323,7 +343,7 @@ class SHACLPlayConverter:
         # Decision logic based on Range column (Option 3)
         range_value = str(property_row.get("Range", ""))
         sh_node_col = str(
-            property_row.get("sh:node", "")
+            property_row.get("SHACL_sh:node", "")
         )  # Renamed from 'SHACL range'
 
         # Pattern 1: Range contains "(IRI)" suffix → sh:nodeKind = sh:IRI only
@@ -337,14 +357,14 @@ class SHACLPlayConverter:
             new_row[8] = "sh:Literal"  # sh:nodeKind
             # No sh:datatype, no sh:node
 
-        # Pattern 3: Range contains ":" but no "(IRI)" suffix → use sh:node from 'sh:node' column
+        # Pattern 3: Range contains ":" but no "(IRI)" suffix → use sh:node from 'SHACL_sh:node' column
         elif (
             ":" in range_value
             and not range_value.strip().endswith("(IRI)")
             and sh_node_col
             and sh_node_col != "nan"
         ):
-            # Convert sh:node column value to full URI if needed
+            # Convert SHACL_sh:node column value to full URI if needed
             if ":" in sh_node_col:
                 # Prefixed format (e.g., "hri:KindShape", "eucaim:RelationshipShape")
                 sh_node_prefix = sh_node_col.split(":")[0]
@@ -361,7 +381,7 @@ class SHACLPlayConverter:
             else:
                 # Already a full URI
                 new_row[10] = sh_node_col
-            # No sh:nodeKind, no sh:datatype when using sh:node
+            # No sh:nodeKind, no sh:datatype when using SHACL_sh:node
 
         # Pattern 4: Range starts with "xsd:" → use as sh:datatype
         elif range_value.startswith("xsd:"):
@@ -373,11 +393,11 @@ class SHACLPlayConverter:
         # (Leave empty for now - not commonly used)
 
         # Column 15: sh:pattern
-        pattern = property_row.get("Pattern", "")
+        pattern = property_row.get("SHACL_pattern", "")
         if pd.notna(pattern) and pattern != "nan":
             new_row[15] = pattern
 
-        # Column 16: sh:uniqueLang (leave empty for now)
+        # Column 16: SHACL_sh:uniqueLang (leave empty for now)
 
         # Column 17: sh:in (controlled vocabulary)
         vocab_url = property_row.get(
@@ -390,23 +410,23 @@ class SHACLPlayConverter:
 
         # Columns 18: sh:languageIn (leave empty)
 
-        # Columns 19: sh:uniqueLang
-        new_row[19] = property_row.get("sh:uniqueLang", np.nan)
+        # Columns 19: SHACL_sh:uniqueLang
+        new_row[19] = property_row.get("SHACL_sh:uniqueLang", np.nan)
 
         # Column 20: sh:defaultValue
-        default_value = property_row.get("Default value", "")
+        default_value = property_row.get("SHACL_default_value", "")
         if pd.notna(default_value) and default_value != "nan":
             new_row[20] = default_value
 
         # Column 21: sh:pattern (duplicate, leave empty)
 
         # Column 22: dash:viewer
-        viewer = property_row.get("dash.viewer", "")
+        viewer = property_row.get("SHACL_dash:viewer", "")
         if pd.notna(viewer) and viewer != "nan":
             new_row[22] = viewer
 
         # Column 23: dash:editor
-        editor = property_row.get("dash.editor", "")
+        editor = property_row.get("SHACL_dash:editor", "")
         if pd.notna(editor) and editor != "nan":
             # Check if we need to override to EnumSelectEditor for controlled vocabs
             if pd.notna(vocab_url) and vocab_url != "nan":

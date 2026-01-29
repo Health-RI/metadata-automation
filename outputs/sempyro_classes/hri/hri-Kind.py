@@ -14,7 +14,7 @@ version = "None"
 logger = logging.getLogger(__name__)
 
 
-class HRIKind(Kind):
+class HRIKind(VCARDKind):
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
         use_enum_values=True,

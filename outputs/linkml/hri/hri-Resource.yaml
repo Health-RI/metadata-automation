@@ -1,6 +1,6 @@
-id: http://data.health-ri.nl/core/p2#QualityCertificate
-title: hri-QualityCertificate
-description: hri-QualityCertificate
+id: http://data.health-ri.nl/core/p2#Resource
+title: hri-Resource
+description: hri-Resource
 prefixes:
   linkml: https://w3id.org/linkml/
   dcat: https://www.w3.org/ns/dcat#
@@ -40,36 +40,16 @@ prefixes:
 imports:
 - linkml:types
 - ../sempyro_types
-- ../rdf_model
 classes:
-  HRIQualitycertificate:
-    class_uri: hri:QualityCertificate
+  HRIResource:
+    class_uri: hri:Resource
     annotations:
-      ontology: https://www.w3.org/TR/vocab-dqv/
-      IRI: '"DQV.QualityCertificate"'
+      ontology: https://www.w3.org/TR/vocab-dcat-3/
+      IRI: '"DCAT.Resource"'
       namespace: HRI
       prefix: hri
-    slots:
-    - target
-    - body
-    is_a: RDFModel
-slots:
-  target:
-    description: The relationship between an Annotation and its Target.
-    slot_uri: oa:hasTarget
-    annotations:
-      rdf_term: OA.hasTarget
-      rdf_type: uri
-    required: false
-    multivalued: false
-    range: AnyHttpUrl
-  body:
-    description: The object of the relationship is a resource that is a body of the
-      Annotation.
-    slot_uri: oa:hasBody
-    annotations:
-      rdf_term: OA.hasBody
-      rdf_type: uri
-    required: false
-    multivalued: false
-    range: AnyHttpUrl
+    slots: []
+    is_a: DCATResource
+  DCATResource:
+    class_uri: dcat:Resource
+slots: {}

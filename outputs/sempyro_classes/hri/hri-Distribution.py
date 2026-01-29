@@ -181,8 +181,7 @@ class HRIDistribution(DCATDistribution):
         },
     )
 
-    title: Optional[list[LiteralField]] = Field(
-        default=None,
+    title: list[LiteralField] = Field(
         description="""A name given to the resource.""",
         json_schema_extra={
             "rdf_term": DCTERMS.title,

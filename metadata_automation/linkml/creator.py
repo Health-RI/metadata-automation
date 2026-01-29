@@ -3,7 +3,7 @@ import shutil
 
 import pandas as pd
 import yaml
-from typing import List, Optional, Union
+from typing import List, Optional
 
 
 class LinkMLCreator:
@@ -67,7 +67,7 @@ class LinkMLCreator:
             zip(table_prefixes["prefix"], table_prefixes["namespace"])
         )
         # Sheet with a table 'classes'
-        # sheet_name, ontology_name, inherits_from
+        # sheet_name, class_uri, SeMPyRO_inherits_from
         # Dataset, dcat:Dataset, dcat:Resource
         # Ontology names should also reflect application profiles. E.g., Health-RI Dataset should be hri:Dataset
         self.table_classes = self.filtered_sheets["classes"]
@@ -87,9 +87,9 @@ class LinkMLCreator:
     def _create_rel_path(ontology: str, ontology_class: str) -> Path:
         return Path(f"./{ontology}/{ontology}-{ontology_class}.yaml")
 
-    def _ontology_name_to_class_name(self, ontology_name: str) -> str:
-        ontology = ontology_name.strip().split(":")[0]
-        ontology_class = ontology_name.strip().split(":")[1]
+    def _ontology_name_to_class_name(self, class_uri: str) -> str:
+        ontology = class_uri.strip().split(":")[0]
+        ontology_class = class_uri.strip().split(":")[1]
         return f"{ontology.upper()}{ontology_class.capitalize()}"
 
     def build_base(self):
@@ -102,11 +102,11 @@ class LinkMLCreator:
             self.build_sempyro_class(row)
 
     def build_base_class(self, row):
-        ontology_name = row["ontology_name"]
+        class_uri = row["class_URI"]
         class_description = row.get("description")
 
-        ontology = ontology_name.split(":")[0]
-        ontology_class = ontology_name.split(":")[1]
+        ontology = class_uri.split(":")[0]
+        ontology_class = class_uri.split(":")[1]
 
         linkml_id = self._create_id(ontology, ontology_class)
         self.linkml_data[linkml_id] = {}
@@ -118,34 +118,34 @@ class LinkMLCreator:
         )
         self.linkml_data[linkml_id]["data"] = {}
         self.linkml_data[linkml_id]["data"]["id"] = linkml_id
-        self.linkml_data[linkml_id]["data"]["title"] = ontology_name.replace(
+        self.linkml_data[linkml_id]["data"]["title"] = class_uri.replace(
             ":", "-"
         )
         self.linkml_data[linkml_id]["data"]["description"] = (
             class_description
             if class_description != "nan"
-            else ontology_name.replace(":", "-")
+            else class_uri.replace(":", "-")
         )
         self.linkml_data[linkml_id]["data"]["prefixes"] = self.prefixes
         self.linkml_data[linkml_id]["data"]["imports"] = ["linkml:types"]
 
     def build_sempyro_class(self, row):
         sheet_name = row["sheet_name"]
-        ontology_name = row["ontology_name"]
-        inherits_from = row.get("inherits_from")
+        class_uri = row["class_URI"]
+        inherits_from = row.get("SeMPyRO_inherits_from")
         class_description = str(row.get("description"))
         import_classes = (
-            row.get("import_classes").split(",")
+            row.get("SeMPyRO_import_classes").split(",")
             if (
-                row.get("import_classes")
-                and row.get("import_classes") != "nan"
+                row.get("SeMPyRO_import_classes")
+                and row.get("SeMPyRO_import_classes") != "nan"
             )
             else []
         )
-        add_rdf_model = row.get("Sempyro_add_rdf_model")
+        add_rdf_model = row.get("SeMPyRO_add_rdf_model")
 
-        ontology = ontology_name.split(":")[0]
-        ontology_class = ontology_name.split(":")[1]
+        ontology = class_uri.split(":")[0]
+        ontology_class = class_uri.split(":")[1]
 
         linkml_id = self._create_id(ontology, ontology_class)
 
@@ -165,8 +165,8 @@ class LinkMLCreator:
             )
 
         annotations = {
-            "ontology": row["annotations_ontology"],
-            "IRI": f'"{row["annotations_IRI"]}"',
+            "ontology": row["SeMPyRO_annotations_ontology"],
+            "IRI": f'"{row["SeMPyRO_annotations_IRI"]}"',
             "namespace": ontology.upper(),
             "prefix": ontology,
         }
@@ -190,13 +190,13 @@ class LinkMLCreator:
             class_slots.append(slot_name)
 
             # Handle comma-separated range values
-            sempyro_range = slot_row["Sempyro range"]
+            range = slot_row["SeMPyRO_range"]
             slot_def = {
                 "description": slot_row["Definition"],
                 "slot_uri": slot_row["Property URI"],
                 "annotations": {
-                    "rdf_term": slot_row["rdf_term"],
-                    "rdf_type": slot_row["rdf_type"],
+                    "rdf_term": slot_row["SeMPyRO_rdf_term"],
+                    "rdf_type": slot_row["SeMPyRO_rdf_type"],
                 },
                 "required": (
                     str(slot_row["Cardinality"]) == "1"
@@ -209,18 +209,18 @@ class LinkMLCreator:
             }
 
             # Check if range contains comma-separated values
-            if "," in str(sempyro_range):
+            if "," in str(range):
                 # Split and strip whitespace from each range value
-                range_values = [r.strip() for r in sempyro_range.split(",")]
+                range_values = [r.strip() for r in range.split(",")]
                 # Use any_of to create Union type in LinkML
                 slot_def["any_of"] = [{"range": r} for r in range_values]
             else:
-                slot_def["range"] = sempyro_range.strip()
+                slot_def["range"] = range.strip()
 
             slots[slot_name] = slot_def
 
         class_dict = {
-            "class_uri": ontology_name,
+            "class_uri": class_uri,
             "annotations": annotations,
             "slots": class_slots,
         }
@@ -239,7 +239,7 @@ class LinkMLCreator:
             class_stubs[self._ontology_name_to_class_name(inherits_from)] = {
                 "class_uri": inherits_from
             }
-        # Add RDFModel inheritance if Sempyro_add_rdf_model is true
+        # Add RDFModel inheritance if SeMPyRO_add_rdf_model is true
         elif add_rdf_model and str(add_rdf_model).lower() in [
             "true",
             "1",

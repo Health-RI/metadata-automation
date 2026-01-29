@@ -42,7 +42,7 @@ def main() -> None:
     "-o",
     "--output-path",
     type=click.Path(),
-    default="./outputs/shaclplay/default",
+    default="./outputs/shaclplay/",
     help="Output directory for SHACLPlay Excel files.",
 )
 @click.option(
@@ -71,7 +71,10 @@ def shaclplay(
     """
     try:
         excel_path = Path(input_excel)
-        template_p = Path(__file__).parent.parent.resolve() / "inputs/shacls/shaclplay-template.xlsx"
+        template_p = (
+            Path(__file__).parent.parent.resolve()
+            / "inputs/shacls/shaclplay-template.xlsx"
+        )
         output_dir = Path(output_path)
 
         click.echo("=" * 80)
@@ -88,7 +91,7 @@ def shaclplay(
         converter = SHACLPlayConverter(template_p, excel_path)
 
         # Read the classes sheet to get configuration for each class
-        click.echo(f"Reading classes configuration...")
+        click.echo("Reading classes configuration...")
         classes_df = pd.read_excel(excel_path, sheet_name="classes")
         click.echo(f"Found {len(classes_df)} classes to process")
         click.echo()
@@ -96,23 +99,23 @@ def shaclplay(
         # Process each class
         for idx, class_row in classes_df.iterrows():
             sheet_name = class_row["sheet_name"]
-            ontology_name = class_row["ontology_name"]
-            target_class = class_row["target_ontology_name"]
+            class_uri = class_row["class_URI"]
+            target_class = class_row["SHACL_target_ontology_name"]
             description = class_row.get("description", None)
 
             # Convert NaN to None for description
             if pd.isna(description):
                 description = None
 
-            # Override namespace if provided (only for ontology_name)
+            # Override namespace if provided (only for class_uri)
             if namespace:
-                # Extract the class name from the original ontology_name
-                class_name_only = ontology_name.split(":")[-1]
-                # Override ontology_name with the new namespace
-                ontology_name = f"{namespace}:{class_name_only}"
+                # Extract the class name from the original class_uri
+                class_name_only = class_uri.split(":")[-1]
+                # Override class_uri with the new namespace
+                class_uri = f"{namespace}:{class_name_only}"
 
             click.echo(f"Processing {sheet_name} class...")
-            click.echo(f"  Ontology: {ontology_name}")
+            click.echo(f"  Ontology: {class_uri}")
             click.echo(f"  Target: {target_class}")
 
             try:
@@ -120,9 +123,9 @@ def shaclplay(
                 class_df = pd.read_excel(excel_path, sheet_name=sheet_name)
                 click.echo(f"  Loaded {len(class_df)} properties")
 
-                # Extract class name from ontology_name
+                # Extract class name from class_uri
                 # (e.g., "hri:Dataset" -> "Dataset")
-                class_name = ontology_name.split(":")[-1]
+                class_name = class_uri.split(":")[-1]
 
                 # Convert to SHACLPlay format
                 (
@@ -131,7 +134,7 @@ def shaclplay(
                 ) = converter.convert_class_sheet(
                     class_sheet_df=class_df,
                     class_name=class_name,
-                    ontology_name=ontology_name,
+                    class_uri=class_uri,
                     target_class=target_class,
                     description=description,
                     namespace_override=namespace,
@@ -197,8 +200,10 @@ def shacl_from_shaclplay(
     try:
         shaclplay_dir = Path(input_path)
         output_dir = Path(output_path)
-        jar_path = Path(__file__).parent.parent.resolve() / "inputs/shacls/xls2rdf-app-3.2.1-onejar.jar"
-
+        jar_path = (
+            Path(__file__).parent.parent.resolve()
+            / "inputs/shacls/xls2rdf-app-3.2.1-onejar.jar"
+        )
 
         click.echo("=" * 80)
         click.echo("SHACL Turtle Generator from SHACLPlay Excel")
@@ -340,7 +345,7 @@ def sempyro(
 
     \b
     The Excel file must contain:
-    - A 'classes' sheet with class configuration including ontology_name
+    - A 'classes' sheet with class configuration including class_uri
     - One sheet per class with property definitions
     """
     try:
@@ -360,17 +365,14 @@ def sempyro(
             click.echo("Auto-detecting namespace from Excel file...")
             try:
                 classes_df = pd.read_excel(excel_path, sheet_name="classes")
-                if (
-                    "ontology_name" in classes_df.columns
-                    and len(classes_df) > 0
-                ):
-                    first_ontology = classes_df["ontology_name"].iloc[0]
+                if "class_URI" in classes_df.columns and len(classes_df) > 0:
+                    first_ontology = classes_df["class_URI"].iloc[0]
                     if ":" in str(first_ontology):
                         namespace = first_ontology.split(":")[0]
                         click.echo(f"  Detected namespace: {namespace}")
                     else:
                         click.echo(
-                            "  Warning: Could not parse namespace from ontology_name",
+                            "  Warning: Could not parse namespace from class_URI",
                             err=True,
                         )
                         click.echo(
@@ -379,7 +381,7 @@ def sempyro(
                         exit(1)
                 else:
                     click.echo(
-                        "  Error: 'ontology_name' column not found in classes sheet",
+                        "  Error: 'class_URI' column not found in classes sheet",
                         err=True,
                     )
                     exit(1)
@@ -413,16 +415,16 @@ def sempyro(
         # Extract class names from the Excel file
         try:
             classes_df = pd.read_excel(excel_path, sheet_name="classes")
-            if "ontology_name" not in classes_df.columns:
+            if "class_URI" not in classes_df.columns:
                 click.echo(
-                    "  Error: 'ontology_name' column not found in classes sheet",
+                    "  Error: 'class_URI' column not found in classes sheet",
                     err=True,
                 )
                 exit(1)
 
             class_names = [
                 ont_name.split(":")[-1]
-                for ont_name in classes_df["ontology_name"]
+                for ont_name in classes_df["class_URI"]
                 if pd.notna(ont_name)
             ]
             click.echo(f"  ✓ Found {len(class_names)} classes in Excel file")
@@ -487,11 +489,11 @@ def sempyro(
                 # Find ruff in the same environment as this Python interpreter
                 python_bin_dir = Path(sys.executable).parent
                 ruff_path = python_bin_dir / "ruff"
-                
+
                 # Fall back to system ruff if not found in environment
                 if not ruff_path.exists():
                     ruff_path = "ruff"
-                
+
                 format_cmd = [
                     str(ruff_path),
                     "format",
@@ -510,12 +512,12 @@ def sempyro(
                     click.echo(f"  {result.stdout.strip()}")
 
             except subprocess.CalledProcessError as e:
-                click.echo(f"  ⚠ Warning: ruff format failed")
+                click.echo("  ⚠ Warning: ruff format failed")
                 if e.stderr:
                     click.echo(f"  {e.stderr.strip()}")
             except FileNotFoundError:
                 click.echo(
-                    f"  ⚠ Warning: ruff not found. Install with: pip install ruff"
+                    "  ⚠ Warning: ruff not found. Install with: pip install ruff"
                 )
             click.echo()
 
