@@ -43,9 +43,7 @@ class HRIKind(VCARDKind):
 
     @field_validator("hasEmail", mode="before")
     @classmethod
-    def _validate_email(
-        cls, value: Union[str, AnyUrl, List[Union[str, AnyUrl]]]
-    ) -> List[AnyUrl]:
+    def _validate_email(cls, value: Union[str, AnyUrl, List[Union[str, AnyUrl]]]) -> List[AnyUrl]:
         """
         Checks if provided value is a valid email or mailto URI, fulfills an email to mailto URI
         """

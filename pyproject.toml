@@ -26,7 +26,16 @@ build-backend = "setuptools.build_meta"
 packages = ["metadata_automation"]
 
 [tool.ruff]
-line-length = 79
+line-length = 120
+lint.select = [
+    "E",  # pycodestyle
+    "W",  # pycodestyle
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C90",  # mccabe cyclomatic complexity
+    "G",  # flake8-logging-format
+]
 
 [project.scripts]
 metadata-automation = "metadata_automation.cli:main"
