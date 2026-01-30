@@ -112,15 +112,15 @@ The conversion process:
 **Source Excel file**:\
 In the Excel file, besides the general columns, information is needed in the following columns:
 - `classes` sheet: 
-  - `ontology_name`: Name of the class with the corresponding namespace, formatted `{namespace}:{class_name}`, e.g., `hri:Dataset`.
-  - `target_ontology_name`: Name of the target class of this model, formatted `{namespace}:{class_name}`, e.g., `dcat:Dataset`.
+  - `class_uri`: Name of the class with the corresponding namespace, formatted `{namespace}:{class_name}`, e.g., `hri:Dataset`.
+  - `SHACL_target_ontology_name`: Name of the target class of this model, formatted `{namespace}:{class_name}`, e.g., `dcat:Dataset`.
 - Sheet per class:
   - `Controlled vocabulary (if applicable)`: Terms in this column can be mapped to vocabularies using the system described in 'Controlled Vocabulary Mappings' below.
   - `Range`: If the range is another class, not `rdfs:Literal` or an `xsd` datatype, but an IRI should be supplied instead of the complete contents of that class, provide `(IRI)` at the end of the range, e.g., `dpv:LegalBasis (IRI)`.
-  - `sh:node`: If the range is another class that should be integrated, e.g., when using `hri:Agent` for `dct:creator`, use this column to provide the node shape. In this case `hri:AgentShape`.
-  - `dash.viewer` and `dash.editor`: Entries for `dash:viewer` and `dash:editor` for UI customization in SHACLPlay.
-  - `Pattern`: Regular expressions pattern that the property value should adhere to.
-  - `Default value`: Default value for the property.
+  - `SHACL_sh:node`: If the range is another class that should be integrated, e.g., when using `hri:Agent` for `dct:creator`, use this column to provide the node shape. In this case `hri:AgentShape`.
+  - `SHACL_dash:viewer` and `SHACL_dash:editor`: Entries for `dash:viewer` and `dash:editor` for UI customization in SHACLPlay.
+  - `SHACL_pattern`: Regular expressions pattern that the property value should adhere to.
+  - `SHACL_default_value`: Default value for the property.
 
 To allow for a drop-in replacement of the current Health-RI SHACLs, properties for hri:Dataset are based on the 'Property label',
 for all other classes they are based on 'Property URI'.
@@ -184,7 +184,7 @@ metadata-automation sempyro -i ./inputs/source_excel.xlsx -n hri
 
 - `-i, --input-excel`: Path to source metadata Excel file (required)
 - `-n, --namespace`: Namespace prefix (optional)
-  - If not provided, automatically detected from the Excel file's `ontology_name` column in the `classes` sheet
+  - If not provided, automatically detected from the Excel file's `class_uri` column in the `classes` sheet
   - Used to organize output classes: `{namespace}-{ClassName}`, e.g., `hri-Dataset`
   - Used for LinkML schema and SeMPyRO class organization
 
@@ -201,25 +201,24 @@ The Pydantic generation uses adapted Jinja templates located in `./metadata_auto
 **Source Excel file:**\
 In the Excel file, besides the general columns, information is needed in the following columns:
 - `classes` sheet:
-    - `ontology_name`: Name of the class with the corresponding namespace, formatted `{namespace}:{class_name}`, e.g., `hri:Dataset`.
-    - `inherits_from`: Class from which this class inherits from. 
-    - `annotations_ontology`: URL of the ontology.
-    - `annotations_IRI`: IRI to the class. This can be a URL or link to a Python variable. 
-    - `target_ontology_name`: This value will be split on the `:` sign; the first part, the namespace part, will be used for the `$prefix` variable in the SeMPyRO class, and in all caps for the `$namespace` variable.
-    - `Sempyro_add_rdf_model`: If this model does not inherit from another class, it should inherit the `RDFModel` class. In that case, mark this row as `TRUE`.
+    - `class_uri`: Name of the class with the corresponding namespace, formatted `{namespace}:{class_name}`, e.g., `hri:Dataset`.
+    - `SeMPyRO_inherits_from`: Class from which this class inherits from. 
+    - `SeMPyRO_annotations_ontology`: URL of the ontology.
+    - `SeMPyRO_annotations_IRI`: IRI to the class. This can be a URL or link to a Python variable. 
+    - `SeMPyRO_add_rdf_model`: If this model does not inherit from another class, it should inherit the `RDFModel` class. In that case, mark this row as `TRUE`.
 - Sheet per class:
-    - `Sempyro range`: Comma separated list of the types in the range of this property. 
+    - `SeMPyRO_range`: Comma separated list of the types in the range of this property. 
 
 Any namespace objects and Enums are not created in this automation pipeline. If you want to use them, they should 
 be defined separately and imported using the imports, explained below.
 
 **SeMPyRO types:**\
-All types in the `Sempyro range` column should be known in the list in `./inputs/sempyro/sempyro_types.yaml`. 
+All types in the `SeMPyRO_range` column should be known in the list in `./inputs/sempyro/sempyro_types.yaml`. 
 
 **Validation logic:**\
 If any validators should be included in the resulting SeMPyRO Pydantic classes, add them in `./inputs/sempyro/validation_logic.yaml`.
 These code snippets will be linked to the corresponding classes on the class name used in the final Pydantic class. 
-This name is constructed by taking the `ontology_name`, e.g., 'dcat:Dataset' following the `{namespace}:{class_name}` format, 
+This name is constructed by taking the `class_uri`, e.g., 'dcat:Dataset' following the `{namespace}:{class_name}` format, 
 and creating the Pydantic class name by making the `namespace` all caps and concatenating it with the `class_name`, i.e.,
 `{namespace.upper()}{class_name}`, resulting in `DCATDataset`.
 

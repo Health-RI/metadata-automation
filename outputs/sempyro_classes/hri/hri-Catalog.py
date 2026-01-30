@@ -66,7 +66,8 @@ class HRICatalog(DCATCatalog):
         json_schema_extra={"rdf_term": DCTERMS.creator, "rdf_type": "uri"},
     )
 
-    dataset: list[Union[AnyHttpUrl, DCATDataset]] = Field(
+    dataset: Optional[list[Union[AnyHttpUrl, DCATDataset]]] = Field(
+        default=None,
         description="""A dataset that is listed in the catalog.""",
         json_schema_extra={"rdf_term": DCAT.dataset, "rdf_type": "uri"},
     )
