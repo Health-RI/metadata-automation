@@ -1,0 +1,48 @@
+id: http://data.health-ri.nl/core/p2#TestClass
+title: hri-TestClass
+description: A test class
+prefixes:
+  hri: http://data.health-ri.nl/core/p2#
+  dct: http://purl.org/dc/terms/
+  dcat: https://www.w3.org/ns/dcat#
+  custom: http://example.com/custom#
+imports:
+- linkml:types
+- ../sempyro_types
+- ../rdf_model
+classes:
+  HRITestclass:
+    class_uri: hri:TestClass
+    annotations:
+      ontology: http://example.com/ontology
+      IRI: '"http://example.com/TestClass"'
+      namespace: HRI
+      prefix: hri
+    slots:
+    - title
+    - description
+    description: A test class
+    is_a: RDFModel
+slots:
+  title:
+    description: The title
+    slot_uri: dct:title
+    annotations:
+      rdf_term: DCTERMS.title
+      rdf_type: rdfs_literal
+    required: true
+    multivalued: true
+    any_of:
+    - range: LiteralField
+    - range: str
+  description:
+    description: The description
+    slot_uri: dct:description
+    annotations:
+      rdf_term: DCTERMS.description
+      rdf_type: rdfs_literal
+    required: true
+    multivalued: true
+    any_of:
+    - range: LiteralField
+    - range: str

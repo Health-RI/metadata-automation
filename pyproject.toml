@@ -13,9 +13,10 @@ dependencies = [
     "ruff>=0.14.11",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
-    "pytest==9.0.2",
+    "pytest>=9.0.2",
+    "pytest-cov>=7.0.0",
 ]
 
 [build-system]
@@ -39,3 +40,6 @@ lint.select = [
 
 [project.scripts]
 metadata-automation = "metadata_automation.cli:main"
+
+[tool.pytest.ini_options]
+addopts = "--cov=metadata_automation"
