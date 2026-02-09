@@ -108,8 +108,8 @@ class TestSemPyRoCLI:
             ]
             + cli_args_with_temp_paths,
         )
-
-        assert "Error: 'SeMPyRO_annotations_ontology' column not found in classes sheet" in result.output
+        assert result.exit_code == 0
+        assert "Generation complete!" in result.output
 
     def test_sempyro_generates_expected_files(
         self,
