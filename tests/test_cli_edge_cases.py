@@ -1,23 +1,16 @@
-"""Additional tests to improve CLI coverage for edge cases."""
+"""Tests for CLI edge cases and exceptional scenarios."""
 
 import subprocess
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
 import pytest
-from click.testing import CliRunner
 
 from metadata_automation.cli import main
 
 
-@pytest.fixture
-def runner():
-    """Create a Click CLI runner."""
-    return CliRunner()
-
-
-class TestSHACLPlayAdditionalCoverage:
-    """Additional tests for shaclplay command edge cases."""
+class TestSHACLPlayEdgeCases:
+    """Tests for shaclplay command edge cases."""
 
     def test_generic_exception_reading_prefixes(self, runner, tmp_path):
         """Test generic exception when reading prefixes sheet."""
@@ -84,21 +77,27 @@ class TestSHACLPlayAdditionalCoverage:
         assert result.exit_code == 1
         assert "Error: Failed to read classes sheet" in result.output
 
-    def test_missing_sheet_name_in_row(self, runner, tmp_path):
-        """Test error when sheet_name is NaN in a row."""
+    @pytest.mark.parametrize(
+        "missing_column,expected_error",
+        [
+            ("sheet_name", "Error: Row 0 missing 'sheet_name' column"),
+            ("class_URI", "Error: Row 0 missing 'class_URI' column"),
+        ],
+    )
+    def test_missing_column_in_row(self, runner, tmp_path, missing_column, expected_error):
+        """Test error when required column is NaN in a row."""
         test_file = tmp_path / "test.xlsx"
         with pd.ExcelWriter(test_file) as writer:
             pd.DataFrame({"prefix": ["ex"], "namespace": ["http://example.org/"]}).to_excel(
                 writer, sheet_name="prefixes", index=False
             )
-            # Create classes with NaN sheet_name
-            pd.DataFrame(
-                {
-                    "sheet_name": [None],  # This will be NaN
-                    "class_URI": ["ex:TestClass"],
-                    "SHACL_target_ontology_name": ["ex:TestClass"],
-                }
-            ).to_excel(writer, sheet_name="classes", index=False)
+            # Create classes with NaN in the specified column
+            class_data = {
+                "sheet_name": ["TestClass"] if missing_column != "sheet_name" else [None],
+                "class_URI": ["ex:TestClass"] if missing_column != "class_URI" else [None],
+                "SHACL_target_ontology_name": ["ex:TestClass"],
+            }
+            pd.DataFrame(class_data).to_excel(writer, sheet_name="classes", index=False)
 
         result = runner.invoke(
             main,
@@ -112,37 +111,7 @@ class TestSHACLPlayAdditionalCoverage:
         )
 
         assert result.exit_code == 1
-        assert "Error: Row 0 missing 'sheet_name' column" in result.output
-
-    def test_missing_class_uri_in_row(self, runner, tmp_path):
-        """Test error when class_URI is NaN in a row."""
-        test_file = tmp_path / "test.xlsx"
-        with pd.ExcelWriter(test_file) as writer:
-            pd.DataFrame({"prefix": ["ex"], "namespace": ["http://example.org/"]}).to_excel(
-                writer, sheet_name="prefixes", index=False
-            )
-            # Create classes with NaN class_URI
-            pd.DataFrame(
-                {
-                    "sheet_name": ["TestClass"],
-                    "class_URI": [None],  # This will be NaN
-                    "SHACL_target_ontology_name": ["ex:TestClass"],
-                }
-            ).to_excel(writer, sheet_name="classes", index=False)
-
-        result = runner.invoke(
-            main,
-            [
-                "shaclplay",
-                "-i",
-                str(test_file),
-                "-o",
-                str(tmp_path / "output"),
-            ],
-        )
-
-        assert result.exit_code == 1
-        assert "Error: Row 0 missing 'class_URI' column" in result.output
+        assert expected_error in result.output
 
     def test_generic_exception_reading_class_sheet(self, runner, tmp_path):
         """Test generic exception when reading a specific class sheet."""
@@ -184,8 +153,8 @@ class TestSHACLPlayAdditionalCoverage:
         assert "Error: Failed to read sheet 'TestClass'" in result.output
 
 
-class TestSHACLFromSHACLPlayAdditionalCoverage:
-    """Additional tests for shacl_from_shaclplay command edge cases."""
+class TestSHACLFromSHACLPlayEdgeCases:
+    """Tests for shacl_from_shaclplay command edge cases."""
 
     def test_generic_exception_reading_excel(self, runner, tmp_path):
         """Test generic exception when reading Excel file."""
@@ -238,8 +207,17 @@ class TestSHACLFromSHACLPlayAdditionalCoverage:
         assert result.exit_code == 1
         assert "Error: Could not extract namespace from SHACL-test.xlsx" in result.output
 
-    def test_subprocess_with_stdout_output(self, runner, tmp_path):
-        """Test subprocess success with stdout output."""
+    @pytest.mark.parametrize(
+        "stdout_content,stderr_content,expected_in_output",
+        [
+            ("Some output from xls2rdf", "", "Output: Some output from xls2rdf"),
+            ("", "Warning: some warning", "Warnings: Warning: some warning"),
+        ],
+    )
+    def test_subprocess_success_output_handling(
+        self, runner, tmp_path, stdout_content, stderr_content, expected_in_output
+    ):
+        """Test subprocess success with different output scenarios."""
         test_file = tmp_path / "SHACL-test.xlsx"
         df = pd.DataFrame([[None] * 20 for _ in range(20)])
         df.iloc[13, 0] = "ex:TestClass"
@@ -247,8 +225,8 @@ class TestSHACLFromSHACLPlayAdditionalCoverage:
 
         with patch("metadata_automation.cli.subprocess.run") as mock_run:
             mock_result = MagicMock()
-            mock_result.stdout = "Some output from xls2rdf"
-            mock_result.stderr = ""
+            mock_result.stdout = stdout_content
+            mock_result.stderr = stderr_content
             mock_run.return_value = mock_result
 
             result = runner.invoke(
@@ -262,33 +240,7 @@ class TestSHACLFromSHACLPlayAdditionalCoverage:
                 ],
             )
 
-            assert "Output: Some output from xls2rdf" in result.output
-
-    def test_subprocess_with_stderr_output(self, runner, tmp_path):
-        """Test subprocess success with stderr output (warnings)."""
-        test_file = tmp_path / "SHACL-test.xlsx"
-        df = pd.DataFrame([[None] * 20 for _ in range(20)])
-        df.iloc[13, 0] = "ex:TestClass"
-        df.to_excel(test_file, sheet_name="NodeShapes (classes)", index=False, header=False)
-
-        with patch("metadata_automation.cli.subprocess.run") as mock_run:
-            mock_result = MagicMock()
-            mock_result.stdout = ""
-            mock_result.stderr = "Warning: some warning"
-            mock_run.return_value = mock_result
-
-            result = runner.invoke(
-                main,
-                [
-                    "shacl-from-shaclplay",
-                    "-i",
-                    str(tmp_path),
-                    "-o",
-                    str(tmp_path / "output"),
-                ],
-            )
-
-            assert "Warnings: Warning: some warning" in result.output
+            assert expected_in_output in result.output
 
     def test_subprocess_error_with_stdout(self, runner, tmp_path):
         """Test subprocess error with stdout."""
@@ -322,8 +274,8 @@ class TestSHACLFromSHACLPlayAdditionalCoverage:
             assert "stderr: stderr content" in result.output
 
 
-class TestSeMPyROAdditionalCoverage:
-    """Additional tests for sempyro command edge cases."""
+class TestSeMPyROEdgeCases:
+    """Tests for sempyro command edge cases."""
 
     def test_generic_exception_auto_detecting_namespace(self, runner, tmp_path):
         """Test generic exception during namespace auto-detection."""

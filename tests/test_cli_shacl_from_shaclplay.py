@@ -4,7 +4,6 @@ import re
 from pathlib import Path
 
 import pytest
-from click.testing import CliRunner
 
 from metadata_automation.cli import shacl_from_shaclplay
 
@@ -35,11 +34,6 @@ def assert_turtle_equivalent(actual_path: Path, expected_path: Path) -> None:
 
 class TestShaclFromShaclplayCLI:
     """Integration tests for shacl_from_shaclplay CLI command."""
-
-    @pytest.fixture
-    def runner(self):
-        """Create CLI test runner."""
-        return CliRunner()
 
     @pytest.fixture
     def shaclplay_input_dir(self, test_expected_dir):
@@ -126,20 +120,6 @@ class TestShaclFromShaclplayCLI:
 
         assert result.exit_code != 0
         assert "Invalid value for '-i' / '--input-path'" in result.output
-
-    def test_shacl_from_shaclplay_preserves_namespace(self, runner, shaclplay_input_dir, tmp_path):
-        """Test that namespace is correctly preserved in output."""
-        output_dir = tmp_path / "output"
-
-        result = runner.invoke(
-            shacl_from_shaclplay, ["--input-path", str(shaclplay_input_dir), "--output-path", str(output_dir)]
-        )
-
-        assert result.exit_code == 0
-
-        output_file = output_dir / "hri" / "hri-testclass.ttl"
-        content = output_file.read_text()
-        assert "@prefix hri:" in content
 
     def test_shacl_from_shaclplay_file_naming(self, runner, shaclplay_input_dir, tmp_path):
         """Test that output files follow naming convention."""

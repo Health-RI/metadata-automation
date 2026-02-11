@@ -1,10 +1,11 @@
-"""Unit tests to improve coverage for utility modules."""
+"""Unit tests to test utility modules."""
 
 from pathlib import Path
 
 import pandas as pd
 import pytest
 import yaml
+from freezegun import freeze_time
 from linkml.generators.pydanticgen.pydanticgen import SplitMode
 
 from metadata_automation.linkml.creator import LinkMLCreator
@@ -29,7 +30,7 @@ from metadata_automation.shaclplay.vocab_mappings import (
 )
 
 
-def test_load_yaml_errors(tmp_path: Path) -> None:
+def test_load_yaml_errors(tmp_path: Path):
     missing_path = tmp_path / "missing.yaml"
     with pytest.raises(FileNotFoundError):
         load_yaml(missing_path)
@@ -40,7 +41,7 @@ def test_load_yaml_errors(tmp_path: Path) -> None:
         load_yaml(invalid_yaml)
 
 
-def test_parse_import_statements() -> None:
+def test_parse_import_statements():
     imports = parse_import_statements(
         "import os\nimport numpy as np\nfrom typing import List as L, Optional\n# comment"
     )
@@ -54,7 +55,7 @@ def test_parse_import_statements() -> None:
     assert imports.imports[2].objects[0].alias == "L"
 
 
-def test_add_validation_logic_to_schema(tmp_path: Path) -> None:
+def test_add_validation_logic_to_schema(tmp_path: Path):
     schema_path = tmp_path / "schema.yaml"
     schema_data = {"classes": {"HRIDataset": {"annotations": {"existing": "value"}}}}
     schema_path.write_text(yaml.safe_dump(schema_data), encoding="utf-8")
@@ -66,7 +67,7 @@ def test_add_validation_logic_to_schema(tmp_path: Path) -> None:
     assert "validator_logic" in annotations
 
 
-def test_add_rdf_model_to_yaml(tmp_path: Path) -> None:
+def test_add_rdf_model_to_yaml(tmp_path: Path):
     schema_path = tmp_path / "schema.yaml"
     schema_data = {
         "imports": ["linkml:types"],
@@ -86,7 +87,7 @@ def test_add_rdf_model_to_yaml(tmp_path: Path) -> None:
     assert updated["classes"]["HRITest"]["is_a"] == "RDFModel"
 
 
-def test_remove_unwanted_classes(tmp_path: Path) -> None:
+def test_remove_unwanted_classes(tmp_path: Path):
     yaml_path = tmp_path / "schema.yaml"
     yaml_path.write_text(yaml.safe_dump({"classes": {"KeepMe": {}}}), encoding="utf-8")
 
@@ -102,7 +103,7 @@ def test_remove_unwanted_classes(tmp_path: Path) -> None:
     assert "class RemoveMe" not in contents
 
 
-def test_linkml_creator_build_and_write(tmp_path: Path) -> None:
+def test_linkml_creator_build_and_write(tmp_path: Path):
     creator = LinkMLCreator(tmp_path)
     creator.prefixes = {"hri": "http://example.com/"}
 
@@ -151,19 +152,26 @@ def test_linkml_creator_build_and_write(tmp_path: Path) -> None:
     assert (tmp_path / "sempyro_types.yaml").exists()
 
 
-def test_shaclplay_utils() -> None:
+def test_slugify_property_label():
     assert slugify_property_label("Access Rights!") == "access-rights"
+    assert slugify_property_label("Title") == "title"
+
+
+def test_parse_cardinality():
     assert parse_cardinality("1") == (1, 1)
     assert parse_cardinality("0..n") == (None, None)
     assert parse_cardinality("1..n") == (1, None)
     assert parse_cardinality("0..1") == (None, 1)
     assert parse_cardinality("") == (None, None)
 
-    now_iso = get_current_datetime_iso()
-    assert len(now_iso) >= 19
+
+@freeze_time("2026-02-11 12:34:56")
+def test_get_current_datetime_iso():
+    result = get_current_datetime_iso()
+    assert result == "2026-02-11 12:34:56"
 
 
-def test_write_shaclplay_excel(tmp_path: Path) -> None:
+def test_write_shaclplay_excel(tmp_path: Path):
     prefixes_df = pd.DataFrame([[None, None, None], ["PREFIX", "hri", "http://example.com/"]])
     nodeshapes_df = pd.DataFrame([[None, None], ["hri:TestShape", "Test"]])
     propertyshapes_df = pd.DataFrame([[None, None], ["hri:TestShape#title", "title"]])
@@ -178,7 +186,7 @@ def test_write_shaclplay_excel(tmp_path: Path) -> None:
     assert "PropertyShapes (properties)" in sheets
 
 
-def test_vocab_mappings() -> None:
+def test_vocab_mappings():
     url = "http://publications.europa.eu/resource/authority/access-right"
     mapping = get_vocab_mapping(url)
     assert mapping["editor"] == "dash:EnumSelectEditor"
@@ -186,7 +194,7 @@ def test_vocab_mappings() -> None:
     assert has_vocab_mapping("https://example.com/unknown") is False
 
 
-def test_shaclplay_converter_branches(template_file: Path, test_input_dir: Path) -> None:
+def test_shaclplay_converter_branches(template_file: Path, test_input_dir: Path):
     converter = SHACLPlayConverter(template_file, test_input_dir / "test_metadata.xlsx")
 
     with pytest.raises(KeyError):
@@ -243,7 +251,7 @@ def test_shaclplay_converter_branches(template_file: Path, test_input_dir: Path)
     assert xsd_out[23] == "dash:EnumSelectEditor"
 
 
-def test_custom_pydantic_generator_branches(tmp_path: Path) -> None:
+def test_custom_pydantic_generator_branches(tmp_path: Path):
     schema_path = tmp_path / "schema.yaml"
     schema_path.write_text(
         """

@@ -2,7 +2,6 @@ from pathlib import Path
 
 import pandas as pd
 import pytest
-from click.testing import CliRunner
 from pandas.testing import assert_frame_equal
 
 from metadata_automation.cli import shaclplay
@@ -10,11 +9,6 @@ from metadata_automation.cli import shaclplay
 
 class TestShaclplayCLI:
     """Integration tests for shaclplay CLI command."""
-
-    @pytest.fixture
-    def runner(self):
-        """Create CLI test runner."""
-        return CliRunner()
 
     @pytest.fixture
     def test_excel(self, test_input_dir):

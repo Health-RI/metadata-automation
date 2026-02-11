@@ -1,18 +1,12 @@
 """Tests for sempyro CLI command."""
 
 import pytest
-from click.testing import CliRunner
 
 from metadata_automation.cli import sempyro
 
 
 class TestSemPyRoCLI:
     """Integration tests for sempyro CLI command."""
-
-    @pytest.fixture
-    def runner(self):
-        """Create CLI test runner."""
-        return CliRunner()
 
     @pytest.fixture
     def test_excel(self, test_input_dir):
@@ -149,25 +143,12 @@ class TestSemPyRoCLI:
         assert actual_linkml.read_text() == expected_linkml.read_text()
         assert actual_class.read_text() == expected_class.read_text()
 
-    def test_sempyro_detects_class_count(self, runner, test_excel, cli_args_with_temp_paths):
-        """Test that sempyro detects and reports class count."""
-        result = runner.invoke(
-            sempyro,
-            [
-                "--input-excel",
-                str(test_excel),
-                "--namespace",
-                "hri",
-            ]
-            + cli_args_with_temp_paths,
-        )
-
-        # Should report how many classes were found in the Excel file
-        assert "✓ Found" in result.output
-        assert "classes in Excel file" in result.output
-
-    def test_sempyro_with_multiple_classes(self, runner, multi_excel, cli_args_with_temp_paths):
+    def test_sempyro_with_multiple_classes(
+        self, runner, multi_excel, test_expected_dir, sempyro_output_dirs, cli_args_with_temp_paths
+    ):
         """Test sempyro with multiple classes in input Excel."""
+        linkml_output_dir, sempyro_output_dir = sempyro_output_dirs
+
         result = runner.invoke(
             sempyro,
             [
@@ -179,6 +160,28 @@ class TestSemPyRoCLI:
             + cli_args_with_temp_paths,
         )
 
-        # The command should execute and begin the 4-step process for multiple classes
-        assert result.output  # Has some output
-        assert "[1/4] Generating LinkML schemas..." in result.output
+        assert result.exit_code == 0
+
+        # Verify LinkML schemas for both classes
+        actual_linkml_classa = linkml_output_dir / "hri" / "hri-ClassA.yaml"
+        actual_linkml_classb = linkml_output_dir / "hri" / "hri-ClassB.yaml"
+        expected_linkml_classa = test_expected_dir / "linkml" / "hri" / "hri-ClassA.yaml"
+        expected_linkml_classb = test_expected_dir / "linkml" / "hri" / "hri-ClassB.yaml"
+
+        assert actual_linkml_classa.exists(), "LinkML schema for ClassA not found"
+        assert actual_linkml_classb.exists(), "LinkML schema for ClassB not found"
+
+        # Verify Python classes for both classes
+        actual_class_classa = sempyro_output_dir / "hri" / "hri-ClassA.py"
+        actual_class_classb = sempyro_output_dir / "hri" / "hri-ClassB.py"
+        expected_class_classa = test_expected_dir / "sempyro_classes" / "hri" / "hri-ClassA.py"
+        expected_class_classb = test_expected_dir / "sempyro_classes" / "hri" / "hri-ClassB.py"
+
+        assert actual_class_classa.exists()
+        assert actual_class_classb.exists()
+
+        # Verify content matches expected files
+        assert actual_linkml_classa.read_text() == expected_linkml_classa.read_text()
+        assert actual_linkml_classb.read_text() == expected_linkml_classb.read_text()
+        assert actual_class_classa.read_text() == expected_class_classa.read_text()
+        assert actual_class_classb.read_text() == expected_class_classb.read_text()

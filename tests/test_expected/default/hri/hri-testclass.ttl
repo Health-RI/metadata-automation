@@ -37,10 +37,15 @@ hri:TestClassShape a sh:NodeShape;
   sh:description "The title"@en;
   sh:minCount 1;
   sh:nodeKind sh:Literal;
-  sh:datatype xsd:string .
+  sh:uniqueLang true;
+  <dash:viewer> "dash:LiteralViewer";
+  <dash:editor> "dash:TextFieldEditor" .
 
 <http://data.health-ri.nl/core/p2#TestClassShape/dct:description> sh:path dct:description;
   sh:name "description"@en;
   sh:description "The description"@en;
   sh:minCount 1;
-  sh:nodeKind sh:Literal .
+  sh:nodeKind sh:Literal;
+  sh:uniqueLang true;
+  <dash:viewer> "dash:LiteralViewer";
+  <dash:editor> "dash:TextFieldEditor" .

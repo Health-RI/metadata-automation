@@ -5,17 +5,9 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
-import pytest
-from click.testing import CliRunner
 
 import metadata_automation.cli as cli_module
 from metadata_automation.cli import main
-
-
-@pytest.fixture
-def runner():
-    """Create a Click CLI runner."""
-    return CliRunner()
 
 
 class TestSHACLPlayErrors:
@@ -38,15 +30,7 @@ class TestSHACLPlayErrors:
             mock_parent2.resolve.return_value = mock_resolved
             mock_resolved.__truediv__ = lambda self, other: mock_template
 
-            real_path = Path
-
-            def path_side_effect(arg):
-                if arg == cli_module.__file__:
-                    return mock_file_path
-                else:
-                    return real_path(arg)
-
-            mock_path_class.side_effect = path_side_effect
+            mock_path_class.side_effect = lambda arg: (mock_file_path if arg == cli_module.__file__ else Path(arg))
 
             result = runner.invoke(
                 main,
@@ -98,13 +82,7 @@ class TestSHACLPlayErrors:
             mock_parent2.resolve.return_value = mock_resolved
             mock_resolved.__truediv__ = lambda self, other: mock_template
 
-            def path_side_effect(arg):
-                if arg == "__file__":
-                    return mock_file_path
-                else:
-                    return Path(arg)
-
-            mock_path_class.side_effect = path_side_effect
+            mock_path_class.side_effect = lambda arg: (mock_file_path if arg == "__file__" else Path(arg))
 
             result = runner.invoke(
                 main,
@@ -143,13 +121,7 @@ class TestSHACLPlayErrors:
             mock_parent2.resolve.return_value = mock_resolved
             mock_resolved.__truediv__ = lambda self, other: mock_template
 
-            def path_side_effect(arg):
-                if arg == "__file__":
-                    return mock_file_path
-                else:
-                    return Path(arg)
-
-            mock_path_class.side_effect = path_side_effect
+            mock_path_class.side_effect = lambda arg: (mock_file_path if arg == "__file__" else Path(arg))
 
             result = runner.invoke(
                 main,
@@ -189,13 +161,7 @@ class TestSHACLPlayErrors:
             mock_parent2.resolve.return_value = mock_resolved
             mock_resolved.__truediv__ = lambda self, other: mock_template
 
-            def path_side_effect(arg):
-                if arg == "__file__":
-                    return mock_file_path
-                else:
-                    return Path(arg)
-
-            mock_path_class.side_effect = path_side_effect
+            mock_path_class.side_effect = lambda arg: (mock_file_path if arg == "__file__" else Path(arg))
 
             result = runner.invoke(
                 main,
@@ -269,13 +235,7 @@ class TestSHACLPlayErrors:
             mock_parent2.resolve.return_value = mock_resolved
             mock_resolved.__truediv__ = lambda self, other: mock_template
 
-            def path_side_effect(arg):
-                if arg == "__file__":
-                    return mock_file_path
-                else:
-                    return Path(arg)
-
-            mock_path_class.side_effect = path_side_effect
+            mock_path_class.side_effect = lambda arg: (mock_file_path if arg == "__file__" else Path(arg))
 
             with patch("metadata_automation.cli.SHACLPlayConverter"):
                 result = runner.invoke(
@@ -313,15 +273,7 @@ class TestSHACLFromSHACLPlayErrors:
             mock_parent2.resolve.return_value = mock_resolved
             mock_resolved.__truediv__ = lambda self, other: mock_jar
 
-            real_path = Path
-
-            def path_side_effect(arg):
-                if arg == cli_module.__file__:
-                    return mock_file_path
-                else:
-                    return real_path(arg)
-
-            mock_path_class.side_effect = path_side_effect
+            mock_path_class.side_effect = lambda arg: (mock_file_path if arg == cli_module.__file__ else Path(arg))
 
             result = runner.invoke(
                 main,

@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import pytest
+from click.testing import CliRunner
 
 
 @pytest.fixture(scope="session")
@@ -48,3 +49,9 @@ def xls2rdf_jar():
     if not jar_path.exists():
         pytest.skip("xls2rdf JAR not found")
     return jar_path
+
+
+@pytest.fixture
+def runner():
+    """Create a Click CLI runner."""
+    return CliRunner()

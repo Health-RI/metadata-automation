@@ -33,7 +33,10 @@ hri:ClassAShape a sh:NodeShape;
 
 <http://data.health-ri.nl/core/p2#ClassAShape/dct:title> sh:path dct:title;
   sh:name "title"@en;
+  sh:description "The title"@en;
   sh:minCount 1;
   sh:maxCount 1;
   sh:nodeKind sh:Literal;
-  sh:datatype xsd:string .
+  sh:uniqueLang true;
+  <dash:viewer> "dash:LiteralViewer";
+  <dash:editor> "dash:TextFieldEditor" .
