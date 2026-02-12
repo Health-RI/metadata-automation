@@ -9,10 +9,11 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix qb: <http://purl.org/linked-data/cube#> .
 @prefix dct: <http://purl.org/dc/terms/> .
-@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix doap: <http://usefulinc.com/ns/doap#> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix doap: <http://usefulinc.com/ns/doap#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix dcat: <https://www.w3.org/ns/dcat#> .
+@prefix dash: <http://datashapes.org/dash#> .
 @prefix euvoc: <http://publications.europa.eu/ontology/euvoc#> .
 @prefix prov: <http://www.w3.org/ns/prov#> .
 @prefix hri: <http://data.health-ri.nl/core/p2#> .
@@ -38,8 +39,8 @@ hri:TestClassShape a sh:NodeShape;
   sh:minCount 1;
   sh:nodeKind sh:Literal;
   sh:uniqueLang true;
-  <dash:viewer> "dash:LiteralViewer";
-  <dash:editor> "dash:TextFieldEditor" .
+  dash:viewer dash:LiteralViewer;
+  dash:editor dash:TextFieldEditor .
 
 <http://data.health-ri.nl/core/p2#TestClassShape/dct:description> sh:path dct:description;
   sh:name "description"@en;
@@ -47,5 +48,5 @@ hri:TestClassShape a sh:NodeShape;
   sh:minCount 1;
   sh:nodeKind sh:Literal;
   sh:uniqueLang true;
-  <dash:viewer> "dash:LiteralViewer";
-  <dash:editor> "dash:TextFieldEditor" .
+  dash:viewer dash:LiteralViewer;
+  dash:editor dash:TextFieldEditor .

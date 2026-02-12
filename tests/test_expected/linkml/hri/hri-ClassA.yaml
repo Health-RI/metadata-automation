@@ -5,6 +5,9 @@ prefixes:
   hri: http://data.health-ri.nl/core/p2#
   dct: http://purl.org/dc/terms/
   dcat: https://www.w3.org/ns/dcat#
+  custom: http://example.com/custom#
+  dash: http://datashapes.org/dash#
+  sh: http://www.w3.org/ns/shacl#
 imports:
 - linkml:types
 - ../sempyro_types

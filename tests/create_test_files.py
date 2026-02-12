@@ -12,12 +12,14 @@ test_input_dir.mkdir(exist_ok=True)
 excel_path = test_input_dir / "test_metadata.xlsx"
 prefixes_df = pd.DataFrame(
     {
-        "prefix": ["hri", "dct", "dcat", "custom"],
+        "prefix": ["hri", "dct", "dcat", "custom", "dash", "sh"],
         "namespace": [
             "http://data.health-ri.nl/core/p2#",
             "http://purl.org/dc/terms/",
             "https://www.w3.org/ns/dcat#",
             "http://example.com/custom#",
+            "http://datashapes.org/dash#",
+            "http://www.w3.org/ns/shacl#",
         ],
     }
 )
@@ -75,12 +77,7 @@ print(f"✓ Created {bad_excel_path}")
 
 # 3. Create multi_metadata.xlsx - Excel with multiple classes
 multi_excel_path = test_input_dir / "multi_metadata.xlsx"
-multi_prefixes_df = pd.DataFrame(
-    {
-        "prefix": ["hri", "dct", "dcat"],
-        "namespace": ["http://data.health-ri.nl/core/p2#", "http://purl.org/dc/terms/", "https://www.w3.org/ns/dcat#"],
-    }
-)
+multi_prefixes_df = prefixes_df
 
 multi_classes_df = pd.DataFrame(
     {
