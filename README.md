@@ -187,6 +187,9 @@ metadata-automation sempyro -i ./inputs/source_excel.xlsx -n hri
   - If not provided, automatically detected from the Excel file's `class_uri` column in the `classes` sheet
   - Used to organize output classes: `{namespace}-{ClassName}`, e.g., `hri-Dataset`
   - Used for LinkML schema and SeMPyRO class organization
+- `--linkml-output-path`: Output directory for LinkML schemas (default: `./outputs/linkml`)
+- `--sempyro-output-path`: Output directory for SeMPyRO Pydantic classes (default: `./outputs/sempyro_classes`)
+- `--imports-path`: Path to imports configuration YAML file (default: `./inputs/sempyro/imports.yaml`)
 
 #### Description
 
@@ -230,6 +233,43 @@ This can be done in `./inputs/sempyro/imports.yaml`. The imports are automatical
 
 Python files are generated in `./outputs/sempyro_classes/{namespace}/` and automatically formatted with ruff.
 LinkML schemas are generated in `./outputs/linkml/{namespace}/`.
+
+## Testing
+
+The repository includes comprehensive integration and unit tests for all CLI commands and utility modules. Tests use pre-generated input files in `tests/test_input/` and compare outputs against expected results in `tests/test_expected/` to ensure regression testing.
+
+Run all tests:
+```bash
+uv run pytest tests/
+```
+
+Run specific test files:
+```bash
+uv run pytest tests/test_cli_shaclplay.py -v
+uv run pytest tests/test_cli_sempyro.py -v
+```
+
+**Note:** SHACL Turtle generation tests require Java to be installed.
+
+**Regenerating test files:**
+- Test inputs: `uv run python tests/create_test_files.py`
+- Expected outputs: 
+  First run the code below and after check if the files in the `tests/test_expected` directory are correct
+  ```bash
+  metadata-automation shaclplay -i tests/test_input/test_metadata.xlsx -o tests/test_expected/default/
+  
+  metadata-automation shaclplay -i tests/test_input/test_metadata.xlsx -o tests/test_expected/namespace_override/ --namespace custom
+  
+  metadata-automation shaclplay -i tests/test_input/multi_metadata.xlsx -o tests/test_expected/multi/
+  
+  metadata-automation shacl-from-shaclplay -i tests/test_expected/default/ -o tests/test_expected/default/
+  
+  metadata-automation shacl-from-shaclplay -i tests/test_expected/multi/ -o tests/test_expected/multi/
+  
+  metadata-automation sempyro -i tests/test_input/test_metadata.xlsx --namespace hri --linkml-output-path tests/test_expected/linkml/ --sempyro-output-path tests/test_expected/sempyro_classes/ --imports-path tests/test_input/imports.yaml
+  
+  metadata-automation sempyro -i tests/test_input/multi_metadata.xlsx --namespace hri --linkml-output-path tests/test_expected/linkml/ --sempyro-output-path tests/test_expected/sempyro_classes/ --imports-path tests/test_input/imports.yaml
+  ```
 
 ## Future work
 

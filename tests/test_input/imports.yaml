@@ -1,0 +1,23 @@
+hri-TestClass: |
+    import logging
+    from typing import Union
+
+    from pydantic import ConfigDict, Field
+    from rdflib.namespace import DCTERMS
+    from sempyro import LiteralField, RDFModel
+
+hri-ClassA: |
+    import logging
+    from typing import Union
+
+    from pydantic import ConfigDict, Field
+    from rdflib.namespace import DCTERMS
+    from sempyro import LiteralField, RDFModel
+
+hri-ClassB: |
+    import logging
+    from typing import Union
+
+    from pydantic import ConfigDict, Field
+    from rdflib.namespace import DCTERMS
+    from sempyro import LiteralField, RDFModel

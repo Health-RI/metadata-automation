@@ -416,9 +416,30 @@ def shacl_from_shaclplay(
     default=None,
     help="Namespace prefix (auto-detected from Excel if not provided).",
 )
+@click.option(
+    "--linkml-output-path",
+    type=click.Path(),
+    default="./outputs/linkml",
+    help="Output directory for LinkML schemas.",
+)
+@click.option(
+    "--sempyro-output-path",
+    type=click.Path(),
+    default="./outputs/sempyro_classes",
+    help="Output directory for SeMPyRO Pydantic classes.",
+)
+@click.option(
+    "--imports-path",
+    type=click.Path(exists=True),
+    default="./inputs/sempyro/imports.yaml",
+    help="Path to imports configuration YAML file.",
+)
 def sempyro(
     input_excel: str,
     namespace: str,
+    linkml_output_path: str,
+    sempyro_output_path: str,
+    imports_path: str,
 ) -> None:
     """Generate SeMPyRO Pydantic classes from metadata.
 
@@ -432,9 +453,9 @@ def sempyro(
     """
     try:
         excel_path = Path(input_excel)
-        linkml_output_path = Path("./outputs/linkml")
-        sempyro_output_path = Path("./outputs/sempyro_classes")
-        imports_p = Path("./inputs/sempyro/imports.yaml")
+        linkml_output_path = Path(linkml_output_path)
+        sempyro_output_path = Path(sempyro_output_path)
+        imports_p = Path(imports_path)
         exclude_list = ["Info", "User Guide"]
 
         click.echo("=" * 80)
