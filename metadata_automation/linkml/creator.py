@@ -58,7 +58,7 @@ class LinkMLCreator:
         # Sheet with prefixes: 'prefixes'
         table_prefixes = self.filtered_sheets["prefixes"]
         table_prefixes = table_prefixes.map(lambda x: x.strip())
-        self.prefixes = dict(zip(table_prefixes["prefix"], table_prefixes["namespace"]))
+        self.prefixes = dict(zip(table_prefixes["prefix"], table_prefixes["namespace"], strict=False))
         # Sheet with a table 'classes'
         # sheet_name, class_uri, SeMPyRO_inherits_from
         # Dataset, dcat:Dataset, dcat:Resource
@@ -105,11 +105,11 @@ class LinkMLCreator:
         return normalized_label
 
     def build_base(self):
-        for index, row in self.table_classes.iterrows():
+        for _index, row in self.table_classes.iterrows():
             self.build_base_class(row)
 
     def build_sempyro(self):
-        for index, row in self.table_classes.iterrows():
+        for _index, row in self.table_classes.iterrows():
             self.build_base_class(row)
             self.build_sempyro_class(row)
 
@@ -178,7 +178,7 @@ class LinkMLCreator:
         class_slots = []
 
         slots = {}
-        for index, slot_row in class_sheet.iterrows():
+        for _index, slot_row in class_sheet.iterrows():
             if slot_row["Property label"] == "nan":
                 continue
             slot_name = self._create_slot_name(slot_row["Property label"], slot_row["Property URI"])

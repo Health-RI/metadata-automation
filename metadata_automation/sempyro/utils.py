@@ -37,7 +37,7 @@ def load_yaml(yaml_path: str | Path) -> Dict[str, Any]:
         with open(path, "r", encoding="utf-8") as file:
             return yaml.safe_load(file)
     except yaml.YAMLError as e:
-        raise yaml.YAMLError(f"Error parsing YAML file: {e}")
+        raise yaml.YAMLError(f"Error parsing YAML file: {e}") from e
 
 
 def add_validation_logic_to_schema(link_dict: Dict[str, Any]) -> None:
@@ -120,7 +120,7 @@ def add_rdf_model_to_yaml(link_dict: Dict[str, Any]) -> None:
         with open(yaml_path, "r", encoding="utf-8") as file:
             yaml_data = yaml.safe_load(file)
     except yaml.YAMLError as e:
-        raise yaml.YAMLError(f"Error parsing YAML file: {e}")
+        raise yaml.YAMLError(f"Error parsing YAML file: {e}") from e
 
     # Add '../rdf_model' to imports if not already present
     rdf_import = "../rdf_model"
@@ -158,7 +158,7 @@ def add_rdf_model_to_yaml(link_dict: Dict[str, Any]) -> None:
                 indent=2,
             )
     except Exception as e:
-        raise IOError(f"Error writing YAML file to temporary directory: {e}")
+        raise IOError(f"Error writing YAML file to temporary directory: {e}") from e
 
     print(f"Added RDFModel inheritance to {len(class_names) - len(missing_classes)} classes")
     print(f"Updated config_dict['schema_path'] to: {link_dict['schema_path']}")

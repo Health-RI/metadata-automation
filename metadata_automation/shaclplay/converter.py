@@ -59,7 +59,7 @@ class SHACLPlayConverter:
 
         # Create a prefix lookup dictionary for easy access
         self.prefix_lookup = {}
-        for idx, row in source_prefixes.iterrows():
+        for _idx, row in source_prefixes.iterrows():
             self.prefix_lookup[str(row["prefix"]).strip()] = str(row["namespace"]).strip()
 
         # Convert to SHACLPlay format:
@@ -71,7 +71,7 @@ class SHACLPlayConverter:
 
         # Create prefix rows
         prefix_rows = []
-        for idx, row in source_prefixes.iterrows():
+        for _idx, row in source_prefixes.iterrows():
             prefix_row = pd.Series(["PREFIX", row["prefix"], row["namespace"]])
             prefix_rows.append(prefix_row)
 
@@ -236,7 +236,7 @@ class SHACLPlayConverter:
         property_rows.append(section_header)
 
         # Process each property from the class sheet
-        for idx, row in class_sheet_df.iterrows():
+        for _idx, row in class_sheet_df.iterrows():
             if pd.isna(row["Property label"]) or row["Property label"] == "nan":
                 continue
 
