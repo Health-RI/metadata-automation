@@ -27,6 +27,6 @@ class HRIClassb(RDFModel):
             "$prefix": "hri",
         },
     )
-    title: Union[LiteralField, str] = Field(
+    dct_title: Union[LiteralField, str] = Field(
         description="""The title""", json_schema_extra={"rdf_term": DCTERMS.title, "rdf_type": "rdfs_literal"}
     )

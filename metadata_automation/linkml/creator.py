@@ -1,5 +1,6 @@
 from pathlib import Path
 import shutil
+import re
 
 import pandas as pd
 import yaml
@@ -91,6 +92,27 @@ class LinkMLCreator:
         ontology = class_uri.strip().split(":")[0]
         ontology_class = class_uri.strip().split(":")[1]
         return f"{ontology.upper()}{ontology_class.capitalize()}"
+
+    @staticmethod
+    def _normalize_property_label(property_label: str) -> str:
+        normalized = re.sub(r"\s+", "_", property_label.strip().lower())
+        normalized = re.sub(r"[^a-z0-9_]", "_", normalized)
+        normalized = re.sub(r"_+", "_", normalized)
+        return normalized.strip("_")
+
+    @staticmethod
+    def _extract_property_prefix(property_uri: str) -> str:
+        compact_uri = property_uri.strip()
+        if ":" not in compact_uri or "://" in compact_uri:
+            return ""
+        return compact_uri.split(":", 1)[0].lower().strip()
+
+    def _create_slot_name(self, property_label: str, property_uri: str) -> str:
+        normalized_label = self._normalize_property_label(property_label)
+        prefix = self._extract_property_prefix(property_uri)
+        if prefix:
+            return f"{prefix}_{normalized_label}"
+        return normalized_label
 
     def build_base(self):
         for index, row in self.table_classes.iterrows():
@@ -186,7 +208,9 @@ class LinkMLCreator:
         for index, slot_row in class_sheet.iterrows():
             if slot_row["Property label"] == "nan":
                 continue
-            slot_name = slot_row["Property label"].replace(" ", "_")
+            slot_name = self._create_slot_name(
+                slot_row["Property label"], slot_row["Property URI"]
+            )
             class_slots.append(slot_name)
 
             # Handle comma-separated range values

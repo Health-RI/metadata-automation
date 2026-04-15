@@ -21,12 +21,12 @@ classes:
       namespace: HRI
       prefix: hri
     slots:
-    - title
-    - description
+    - dct_title
+    - dct_description
     description: A test class
     is_a: RDFModel
 slots:
-  title:
+  dct_title:
     description: The title
     slot_uri: dct:title
     annotations:
@@ -37,7 +37,7 @@ slots:
     any_of:
     - range: LiteralField
     - range: str
-  description:
+  dct_description:
     description: The description
     slot_uri: dct:description
     annotations:

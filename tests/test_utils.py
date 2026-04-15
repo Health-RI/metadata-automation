@@ -141,7 +141,7 @@ def test_linkml_creator_build_and_write(tmp_path: Path):
 
     linkml_id = "http://example.com/TestClass"
     class_data = creator.linkml_data[linkml_id]["data"]["classes"]["HRITestclass"]
-    slot_data = creator.linkml_data[linkml_id]["data"]["slots"]["title"]
+    slot_data = creator.linkml_data[linkml_id]["data"]["slots"]["dct_title"]
 
     assert "../rdf_model" in creator.linkml_data[linkml_id]["data"]["imports"]
     assert class_data["is_a"] == "RDFModel"
@@ -150,6 +150,13 @@ def test_linkml_creator_build_and_write(tmp_path: Path):
     creator.write_to_file()
     assert (tmp_path / "rdf_model.yaml").exists()
     assert (tmp_path / "sempyro_types.yaml").exists()
+
+
+def test_linkml_creator_slot_name_fallback_without_prefixed_uri(tmp_path: Path):
+    creator = LinkMLCreator(tmp_path)
+
+    assert creator._create_slot_name("Access Rights", "dct:accessRights") == "dct_access_rights"
+    assert creator._create_slot_name("Access Rights", "https://example.com/accessRights") == "access_rights"
 
 
 def test_slugify_property_label():

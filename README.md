@@ -142,7 +142,7 @@ SHACLPlay Excel files are generated in the specified output directory.
 ### `shacl_from_shaclplay`: Converting SHACLPlay Excel to SHACL Turtle files
 
 ```bash
-metadata-automation shacl_from_shaclplay -i ./outputs/shaclplay/default -o ./outputs/shacl_shapes
+metadata-automation shacl-from-shaclplay -i ./outputs/shaclplay/default -o ./outputs/shacl_shapes
 ```
 
 #### Command Options
