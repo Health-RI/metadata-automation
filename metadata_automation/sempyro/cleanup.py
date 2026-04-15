@@ -1,6 +1,6 @@
 import ast
-from typing import Set, List, Tuple
 from pathlib import Path
+from typing import List, Set, Tuple
 
 import yaml
 

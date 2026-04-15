@@ -1,10 +1,10 @@
-from pathlib import Path
-import shutil
 import re
+import shutil
+from pathlib import Path
+from typing import List, Optional
 
 import pandas as pd
 import yaml
-from typing import List, Optional
 
 
 class LinkMLCreator:

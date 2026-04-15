@@ -4,14 +4,15 @@ SHACLPlay Excel converter for Health-RI metadata.
 Converts Health-RI Excel metadata files to SHACLPlay-compatible Excel format.
 """
 
-import pandas as pd
-import numpy as np
 from pathlib import Path
 from typing import Optional
 
+import numpy as np
+import pandas as pd
+
 from .utils import (
-    parse_cardinality,
     get_current_datetime_iso,
+    parse_cardinality,
 )
 from .vocab_mappings import get_vocab_mapping
 

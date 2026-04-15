@@ -1,8 +1,8 @@
 from linkml.generators import PydanticGenerator
 from linkml.generators.pydanticgen import (
-    PydanticModule,
     Imports,
     PydanticBaseModel,
+    PydanticModule,
 )
 from linkml.generators.pydanticgen.pydanticgen import SplitMode
 from linkml_runtime import SchemaView

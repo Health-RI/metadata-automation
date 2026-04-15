@@ -98,7 +98,7 @@ def shaclplay(
         try:
             prefixes_df = pd.read_excel(excel_path, sheet_name="prefixes")
             click.echo(f"  ✓ Prefixes sheet found with {len(prefixes_df)} entries")
-        except ValueError as e:
+        except ValueError:
             click.echo(f"Error: 'prefixes' sheet not found in {excel_path}", err=True)
             exit(1)
         except Exception as e:
@@ -108,7 +108,7 @@ def shaclplay(
         try:
             classes_df = pd.read_excel(excel_path, sheet_name="classes")
             click.echo(f"  ✓ Classes sheet found with {len(classes_df)} entries")
-        except ValueError as e:
+        except ValueError:
             click.echo(f"Error: 'classes' sheet not found in {excel_path}", err=True)
             exit(1)
         except Exception as e:
@@ -116,7 +116,7 @@ def shaclplay(
             exit(1)
 
         if len(classes_df) == 0:
-            click.echo(f"Error: 'classes' sheet is empty", err=True)
+            click.echo("Error: 'classes' sheet is empty", err=True)
             exit(1)
 
         click.echo()
@@ -306,7 +306,7 @@ def shacl_from_shaclplay(
                         sheet_name="NodeShapes (classes)",
                         header=None,
                     )
-                except ValueError as e:
+                except ValueError:
                     click.echo(
                         f"Error: 'NodeShapes (classes)' sheet not found in {excel_file.name}",
                         err=True,

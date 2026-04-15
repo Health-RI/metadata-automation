@@ -1,12 +1,12 @@
 import re
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 
 import yaml
 from linkml.generators.pydanticgen.template import (
     Import,
-    ObjectImport,
     Imports,
+    ObjectImport,
 )
 
 from metadata_automation.sempyro.sempyro_generator import (

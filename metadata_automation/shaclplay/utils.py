@@ -5,7 +5,8 @@ Utility functions for SHACLPlay Excel generation.
 import re
 from datetime import datetime
 from pathlib import Path
-from typing import Tuple, Optional
+from typing import Optional, Tuple
+
 import pandas as pd
 
 
