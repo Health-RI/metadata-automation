@@ -67,9 +67,7 @@ def find_class_ranges(python_file: Path) -> List[Tuple[str, int, int]]:
     return class_ranges
 
 
-def remove_unwanted_classes(
-    python_file: Path, yaml_file: Path, output_file: Path = None
-) -> None:
+def remove_unwanted_classes(python_file: Path, yaml_file: Path, output_file: Path = None) -> None:
     """
     Remove classes that are not locally defined in the YAML file.
 
@@ -133,6 +131,4 @@ def remove_unwanted_classes(
         f.writelines(cleaned_lines)
 
     print(f"Filtered Pydantic classes written to: {output_file}")
-    print(
-        f"Kept {len(local_definitions)} local definitions, removed {len(removed_classes)} imported classes"
-    )
+    print(f"Kept {len(local_definitions)} local definitions, removed {len(removed_classes)} imported classes")

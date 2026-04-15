@@ -63,21 +63,14 @@ def add_validation_logic_to_schema(link_dict: Dict[str, Any]) -> None:
 
         for class_name, class_config in validation_logic["classes"].items():
             # Only modify if class already exists in schema_data
-            if (
-                class_name in schema_data["classes"]
-                and "annotations" in class_config
-            ):
+            if class_name in schema_data["classes"] and "annotations" in class_config:
                 # Initialize class as dict if needed
                 if "annotations" not in schema_data["classes"][class_name]:
                     schema_data["classes"][class_name]["annotations"] = {}
 
                 # Apply validation logic annotations
-                for annotation_key, annotation_value in class_config[
-                    "annotations"
-                ].items():
-                    schema_data["classes"][class_name]["annotations"][
-                        annotation_key
-                    ] = annotation_value
+                for annotation_key, annotation_value in class_config["annotations"].items():
+                    schema_data["classes"][class_name]["annotations"][annotation_key] = annotation_value
 
         with open(schema_path, "w", encoding="utf-8") as file:
             yaml.dump(
@@ -152,9 +145,7 @@ def add_rdf_model_to_yaml(link_dict: Dict[str, Any]) -> None:
 
     # Log warning for missing classes (optional)
     if missing_classes:
-        print(
-            f"Warning: The following classes were not found in the YAML file: {missing_classes}"
-        )
+        print(f"Warning: The following classes were not found in the YAML file: {missing_classes}")
 
     try:
         # Write the modified YAML to the temporary location
@@ -169,9 +160,7 @@ def add_rdf_model_to_yaml(link_dict: Dict[str, Any]) -> None:
     except Exception as e:
         raise IOError(f"Error writing YAML file to temporary directory: {e}")
 
-    print(
-        f"Added RDFModel inheritance to {len(class_names) - len(missing_classes)} classes"
-    )
+    print(f"Added RDFModel inheritance to {len(class_names) - len(missing_classes)} classes")
     print(f"Updated config_dict['schema_path'] to: {link_dict['schema_path']}")
 
     return None
@@ -200,11 +189,7 @@ def parse_import_statements(import_text: str) -> "Imports":
             match = re.match(r"import\s+([\w.]+)(?:\s+as\s+(\w+))?", line)
             if match:
                 module, alias = match.groups()
-                imports += (
-                    Import(module=module, alias=alias)
-                    if alias
-                    else Import(module=module)
-                )
+                imports += Import(module=module, alias=alias) if alias else Import(module=module)
 
         # Handle "from module import ..."
         elif line.startswith("from "):
@@ -220,11 +205,7 @@ def parse_import_statements(import_text: str) -> "Imports":
                     # Handle "name as alias"
                     if " as " in item:
                         name, alias = item.split(" as ")
-                        objects.append(
-                            ObjectImport(
-                                name=name.strip(), alias=alias.strip()
-                            )
-                        )
+                        objects.append(ObjectImport(name=name.strip(), alias=alias.strip()))
                     else:
                         objects.append(ObjectImport(name=item.strip()))
 

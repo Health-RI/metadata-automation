@@ -26,18 +26,12 @@ class LinkMLCreator:
         try:
             with open(validation_logic_path, "r", encoding="utf-8") as file:
                 validation_data = yaml.safe_load(file)
-                return (
-                    validation_data.get("classes", {})
-                    if validation_data
-                    else {}
-                )
+                return validation_data.get("classes", {}) if validation_data else {}
         except Exception as e:
             print(f"Warning: Could not load validation logic: {e}")
             return {}
 
-    def load_excel(
-        self, file_path: str, exclude_sheets: Optional[List[str]] = None
-    ) -> None:
+    def load_excel(self, file_path: str, exclude_sheets: Optional[List[str]] = None) -> None:
         """
         Load an Excel file and return a dictionary of sheet data.
 
@@ -64,9 +58,7 @@ class LinkMLCreator:
         # Sheet with prefixes: 'prefixes'
         table_prefixes = self.filtered_sheets["prefixes"]
         table_prefixes = table_prefixes.map(lambda x: x.strip())
-        self.prefixes = dict(
-            zip(table_prefixes["prefix"], table_prefixes["namespace"])
-        )
+        self.prefixes = dict(zip(table_prefixes["prefix"], table_prefixes["namespace"]))
         # Sheet with a table 'classes'
         # sheet_name, class_uri, SeMPyRO_inherits_from
         # Dataset, dcat:Dataset, dcat:Resource
@@ -80,9 +72,7 @@ class LinkMLCreator:
         return f"{ontology.upper()}{ontology_class.capitalize()}"
 
     def _create_path(self, ontology: str, ontology_class: str) -> Path:
-        return self.output_path / self._create_rel_path(
-            ontology, ontology_class
-        )
+        return self.output_path / self._create_rel_path(ontology, ontology_class)
 
     @staticmethod
     def _create_rel_path(ontology: str, ontology_class: str) -> Path:
@@ -132,21 +122,13 @@ class LinkMLCreator:
 
         linkml_id = self._create_id(ontology, ontology_class)
         self.linkml_data[linkml_id] = {}
-        self.linkml_data[linkml_id]["path"] = self._create_path(
-            ontology, ontology_class
-        )
-        self.linkml_data[linkml_id]["rel_path"] = self._create_rel_path(
-            ontology, ontology_class
-        )
+        self.linkml_data[linkml_id]["path"] = self._create_path(ontology, ontology_class)
+        self.linkml_data[linkml_id]["rel_path"] = self._create_rel_path(ontology, ontology_class)
         self.linkml_data[linkml_id]["data"] = {}
         self.linkml_data[linkml_id]["data"]["id"] = linkml_id
-        self.linkml_data[linkml_id]["data"]["title"] = class_uri.replace(
-            ":", "-"
-        )
+        self.linkml_data[linkml_id]["data"]["title"] = class_uri.replace(":", "-")
         self.linkml_data[linkml_id]["data"]["description"] = (
-            class_description
-            if class_description != "nan"
-            else class_uri.replace(":", "-")
+            class_description if class_description != "nan" else class_uri.replace(":", "-")
         )
         self.linkml_data[linkml_id]["data"]["prefixes"] = self.prefixes
         self.linkml_data[linkml_id]["data"]["imports"] = ["linkml:types"]
@@ -158,10 +140,7 @@ class LinkMLCreator:
         class_description = str(row.get("description"))
         import_classes = (
             row.get("SeMPyRO_import_classes").split(",")
-            if (
-                row.get("SeMPyRO_import_classes")
-                and row.get("SeMPyRO_import_classes") != "nan"
-            )
+            if (row.get("SeMPyRO_import_classes") and row.get("SeMPyRO_import_classes") != "nan")
             else []
         )
         add_rdf_model = row.get("SeMPyRO_add_rdf_model")
@@ -172,9 +151,7 @@ class LinkMLCreator:
         linkml_id = self._create_id(ontology, ontology_class)
 
         # Add Sempyro types
-        self.linkml_data[linkml_id]["data"]["imports"].append(
-            "../sempyro_types"
-        )
+        self.linkml_data[linkml_id]["data"]["imports"].append("../sempyro_types")
 
         # Add RDF model import if needed
         if add_rdf_model and str(add_rdf_model).lower() in [
@@ -182,9 +159,7 @@ class LinkMLCreator:
             "1",
             "yes",
         ]:
-            self.linkml_data[linkml_id]["data"]["imports"].append(
-                "../rdf_model"
-            )
+            self.linkml_data[linkml_id]["data"]["imports"].append("../rdf_model")
 
         annotations = {
             "ontology": row["SeMPyRO_annotations_ontology"],
@@ -196,9 +171,7 @@ class LinkMLCreator:
         # Apply validation logic if available
         class_id = self._create_class_id(ontology, ontology_class)
         if class_id in self.validation_logic:
-            validation_annotations = self.validation_logic[class_id].get(
-                "annotations", {}
-            )
+            validation_annotations = self.validation_logic[class_id].get("annotations", {})
             annotations.update(validation_annotations)
 
         class_sheet = self.filtered_sheets[sheet_name]
@@ -208,9 +181,7 @@ class LinkMLCreator:
         for index, slot_row in class_sheet.iterrows():
             if slot_row["Property label"] == "nan":
                 continue
-            slot_name = self._create_slot_name(
-                slot_row["Property label"], slot_row["Property URI"]
-            )
+            slot_name = self._create_slot_name(slot_row["Property label"], slot_row["Property URI"])
             class_slots.append(slot_name)
 
             # Handle comma-separated range values
@@ -222,14 +193,8 @@ class LinkMLCreator:
                     "rdf_term": slot_row["SeMPyRO_rdf_term"],
                     "rdf_type": slot_row["SeMPyRO_rdf_type"],
                 },
-                "required": (
-                    str(slot_row["Cardinality"]) == "1"
-                    or str(slot_row["Cardinality"]) == "1..n"
-                ),
-                "multivalued": (
-                    str(slot_row["Cardinality"]) == "0..n"
-                    or str(slot_row["Cardinality"]) == "1..n"
-                ),
+                "required": (str(slot_row["Cardinality"]) == "1" or str(slot_row["Cardinality"]) == "1..n"),
+                "multivalued": (str(slot_row["Cardinality"]) == "0..n" or str(slot_row["Cardinality"]) == "1..n"),
             }
 
             # Check if range contains comma-separated values
@@ -257,12 +222,8 @@ class LinkMLCreator:
             stub_class_name = self._ontology_name_to_class_name(item)
             class_stubs[stub_class_name] = {"class_uri": item}
         if inherits_from and str(inherits_from) != "nan":
-            class_dict["is_a"] = self._ontology_name_to_class_name(
-                inherits_from
-            )
-            class_stubs[self._ontology_name_to_class_name(inherits_from)] = {
-                "class_uri": inherits_from
-            }
+            class_dict["is_a"] = self._ontology_name_to_class_name(inherits_from)
+            class_stubs[self._ontology_name_to_class_name(inherits_from)] = {"class_uri": inherits_from}
         # Add RDFModel inheritance if SeMPyRO_add_rdf_model is true
         elif add_rdf_model and str(add_rdf_model).lower() in [
             "true",
@@ -272,9 +233,7 @@ class LinkMLCreator:
             class_dict["is_a"] = "RDFModel"
 
         # Combine main class with stubs
-        all_classes = {
-            self._create_class_id(ontology, ontology_class): class_dict
-        }
+        all_classes = {self._create_class_id(ontology, ontology_class): class_dict}
         all_classes.update(class_stubs)
 
         self.linkml_data[linkml_id]["data"]["classes"] = all_classes
@@ -283,14 +242,12 @@ class LinkMLCreator:
     def write_to_file(self):
         # Check if any schema uses RDFModel import
         needs_rdf_model = any(
-            "../rdf_model" in linkml_dict["data"].get("imports", [])
-            for linkml_dict in self.linkml_data.values()
+            "../rdf_model" in linkml_dict["data"].get("imports", []) for linkml_dict in self.linkml_data.values()
         )
 
         # Check if any schema uses sempyro_types import
         needs_sempyro_types = any(
-            "../sempyro_types" in linkml_dict["data"].get("imports", [])
-            for linkml_dict in self.linkml_data.values()
+            "../sempyro_types" in linkml_dict["data"].get("imports", []) for linkml_dict in self.linkml_data.values()
         )
 
         for linkml_dict in self.linkml_data.values():
@@ -302,9 +259,7 @@ class LinkMLCreator:
 
             # Write linkml_data as YAML to linkml_path
             with open(linkml_path, "w") as f:
-                yaml.dump(
-                    linkml_data, f, default_flow_style=False, sort_keys=False
-                )
+                yaml.dump(linkml_data, f, default_flow_style=False, sort_keys=False)
 
             print(f"Written {linkml_path}")
 
@@ -317,9 +272,7 @@ class LinkMLCreator:
                 shutil.copy2(rdf_model_source, rdf_model_dest)
                 print(f"Copied {rdf_model_source} to {rdf_model_dest}")
             else:
-                print(
-                    f"Warning: RDF model source file not found at {rdf_model_source}"
-                )
+                print(f"Warning: RDF model source file not found at {rdf_model_source}")
 
         # Copy sempyro_types.yaml if needed
         if needs_sempyro_types:
@@ -330,6 +283,4 @@ class LinkMLCreator:
                 shutil.copy2(sempyro_types_source, sempyro_types_dest)
                 print(f"Copied {sempyro_types_source} to {sempyro_types_dest}")
             else:
-                print(
-                    f"Warning: Sempyro types source file not found at {sempyro_types_source}"
-                )
+                print(f"Warning: Sempyro types source file not found at {sempyro_types_source}")

@@ -42,9 +42,7 @@ class CustomPydanticGenerator(PydanticGenerator):
         enums = self.before_generate_enums(list(sv.all_enums().values()), sv)
         enums = self.generate_enums({e.name: e for e in enums})
 
-        base_model = PydanticBaseModel(
-            extra_fields=self.extra_fields, fields=self.injected_fields
-        )
+        base_model = PydanticBaseModel(extra_fields=self.extra_fields, fields=self.injected_fields)
 
         # schema classes
         class_results = []
@@ -52,9 +50,7 @@ class CustomPydanticGenerator(PydanticGenerator):
         source_classes = self.sort_classes(source_classes, imported_classes)
         # Don't want to generate classes when class_uri is linkml:Any, will
         # just swap in typing.Any instead down below
-        source_classes = [
-            c for c in source_classes if c.class_uri != "linkml:Any"
-        ]
+        source_classes = [c for c in source_classes if c.class_uri != "linkml:Any"]
         source_classes = self.before_generate_classes(source_classes, sv)
         self.sorted_class_names = [camelcase(c.name) for c in source_classes]
         for cls in source_classes:
