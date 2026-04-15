@@ -54,14 +54,14 @@ classes:
         \ valid email or mailto URI, fulfills an email to mailto URI\n        \"\"\
         \"\n        return validate_convert_email(value)\n"
     slots:
-    - contact_page
-    - has_email
-    - formatted_name
+    - vcard_contact_page
+    - vcard_has_email
+    - vcard_formatted_name
     is_a: VCARDKind
   VCARDKind:
     class_uri: vcard:Kind
 slots:
-  contact_page:
+  vcard_contact_page:
     description: To specify a uniform resource locator associated with the object.
     slot_uri: vcard:hasURL
     annotations:
@@ -70,7 +70,7 @@ slots:
     required: false
     multivalued: true
     range: AnyHttpUrl
-  has_email:
+  vcard_has_email:
     description: To specify the electronic mail address for communication with the
       object.
     slot_uri: vcard:hasEmail
@@ -80,7 +80,7 @@ slots:
     required: true
     multivalued: false
     range: AnyUrl
-  formatted_name:
+  vcard_formatted_name:
     description: The formatted text corresponding to the name of the object.
     slot_uri: vcard:fn
     annotations:

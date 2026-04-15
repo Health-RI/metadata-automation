@@ -50,11 +50,11 @@ classes:
       namespace: HRI
       prefix: hri
     slots:
-    - target
-    - body
+    - oa_target
+    - oa_body
     is_a: RDFModel
 slots:
-  target:
+  oa_target:
     description: The relationship between an Annotation and its Target.
     slot_uri: oa:hasTarget
     annotations:
@@ -63,7 +63,7 @@ slots:
     required: false
     multivalued: false
     range: AnyHttpUrl
-  body:
+  oa_body:
     description: The object of the relationship is a resource that is a body of the
       Annotation.
     slot_uri: oa:hasBody

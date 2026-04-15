@@ -59,58 +59,58 @@ classes:
         \ mode=\"before\")\n    @classmethod\n    def validate_literal(cls, value:\
         \ List[Union[str, LiteralField]]) -> List[LiteralField]:\n        return convert_to_literal(value)\n"
     slots:
-    - access_rights
-    - analytics
-    - applicable_legislation
-    - code_values
-    - coding_system
-    - conforms_to
-    - contact_point
-    - creator
-    - description
-    - distribution
-    - documentation
-    - frequency
-    - geographical_coverage
-    - has_version
-    - health_theme
-    - identifier
-    - in_series
-    - is_referenced_by
-    - keyword
-    - language
-    - legal_basis
-    - maximum_typical_age
-    - minimum_typical_age
-    - modification_date
-    - number_of_records
-    - number_of_unique_infividuals
-    - other_identifier
-    - personal_data
-    - population_coverage
-    - publisher
-    - purpose
-    - qualified_attribution
-    - qualified_relation
-    - quality_annotation
-    - release_date
-    - retention_period
-    - sample
-    - source
-    - status
-    - temporal_coverage
-    - temporal_resolution
-    - theme
-    - title
-    - type
-    - version
-    - version_notes
-    - was_generated_by
+    - dct_access_rights
+    - healthdcatap_analytics
+    - dcatap_applicable_legislation
+    - healthdcatap_code_values
+    - healthdcatap_coding_system
+    - dct_conforms_to
+    - dcat_contact_point
+    - dct_creator
+    - dct_description
+    - dcat_distribution
+    - foaf_documentation
+    - dct_frequency
+    - dct_geographical_coverage
+    - dcat_has_version
+    - healthdcatap_health_theme
+    - dct_identifier
+    - dcat_in_series
+    - dct_is_referenced_by
+    - dcat_keyword
+    - dct_language
+    - dpv_legal_basis
+    - healthdcatap_maximum_typical_age
+    - healthdcatap_minimum_typical_age
+    - dct_modification_date
+    - healthdcatap_number_of_records
+    - healthdcatap_number_of_unique_infividuals
+    - adms_other_identifier
+    - dpv_personal_data
+    - healthdcatap_population_coverage
+    - dct_publisher
+    - dpv_purpose
+    - prov_qualified_attribution
+    - dcat_qualified_relation
+    - dqv_quality_annotation
+    - dct_release_date
+    - healthdcatap_retention_period
+    - adms_sample
+    - dct_source
+    - adms_status
+    - dct_temporal_coverage
+    - dcat_temporal_resolution
+    - dcat_theme
+    - dct_title
+    - dct_type
+    - dcat_version
+    - adms_version_notes
+    - prov_was_generated_by
     is_a: DCATDataset
   DCATDataset:
     class_uri: dcat:Dataset
 slots:
-  access_rights:
+  dct_access_rights:
     description: Information about who access the resource or an indication of its
       security status.
     slot_uri: dct:accessRights
@@ -120,7 +120,7 @@ slots:
     required: true
     multivalued: false
     range: AccessRights
-  analytics:
+  healthdcatap_analytics:
     description: An analytics distribution of the dataset.
     slot_uri: healthdcatap:analytics
     annotations:
@@ -131,7 +131,7 @@ slots:
     any_of:
     - range: AnyHttpUrl
     - range: DCATDistribution
-  applicable_legislation:
+  dcatap_applicable_legislation:
     description: The legislation that is applicable to this resource.
     slot_uri: dcatap:applicableLegislation
     annotations:
@@ -140,7 +140,7 @@ slots:
     required: true
     multivalued: true
     range: AnyHttpUrl
-  code_values:
+  healthdcatap_code_values:
     description: Health classifications and their codes associated with the dataset
     slot_uri: healthdcatap:hasCodeValues
     annotations:
@@ -149,7 +149,7 @@ slots:
     required: false
     multivalued: true
     range: AnyHttpUrl
-  coding_system:
+  healthdcatap_coding_system:
     description: 'Coding systems in use (ex: ICD-10-CM, DGRs, SNOMED=CT, ...)'
     slot_uri: healthdcatap:hasCodingSystem
     annotations:
@@ -158,7 +158,7 @@ slots:
     required: false
     multivalued: true
     range: AnyHttpUrl
-  conforms_to:
+  dct_conforms_to:
     description: An established standard to which the described resource conforms.
     slot_uri: dct:conformsTo
     annotations:
@@ -167,7 +167,7 @@ slots:
     required: false
     multivalued: true
     range: AnyHttpUrl
-  contact_point:
+  dcat_contact_point:
     description: Relevant contact information for the cataloged resource.
     slot_uri: dcat:contactPoint
     annotations:
@@ -178,7 +178,7 @@ slots:
     any_of:
     - range: AnyHttpUrl
     - range: HRIVCard
-  creator:
+  dct_creator:
     description: An entity responsible for making the resource.
     slot_uri: dct:creator
     annotations:
@@ -189,7 +189,7 @@ slots:
     any_of:
     - range: AnyHttpUrl
     - range: HRIAgent
-  description:
+  dct_description:
     description: An account of the resource.
     slot_uri: dct:description
     annotations:
@@ -200,7 +200,7 @@ slots:
     any_of:
     - range: LiteralField
     - range: str
-  distribution:
+  dcat_distribution:
     description: An available Distribution for the Dataset.
     slot_uri: dcat:distribution
     annotations:
@@ -211,7 +211,7 @@ slots:
     any_of:
     - range: AnyHttpUrl
     - range: DCATDistribution
-  documentation:
+  foaf_documentation:
     description: A page or document about this thing.
     slot_uri: foaf:page
     annotations:
@@ -220,7 +220,7 @@ slots:
     required: false
     multivalued: true
     range: AnyHttpUrl
-  frequency:
+  dct_frequency:
     description: The frequency with which items are added to a collection.
     slot_uri: dct:accrualPeriodicity
     annotations:
@@ -229,7 +229,7 @@ slots:
     required: false
     multivalued: false
     range: AnyHttpUrl
-  geographical_coverage:
+  dct_geographical_coverage:
     description: Spatial characteristics of the resource.
     slot_uri: dct:spatial
     annotations:
@@ -240,7 +240,7 @@ slots:
     any_of:
     - range: AnyHttpUrl
     - range: Location
-  has_version:
+  dcat_has_version:
     description: This resource has a more specific, versioned resource.
     slot_uri: dcat:hasVersion
     annotations:
@@ -249,7 +249,7 @@ slots:
     required: false
     multivalued: true
     range: AnyHttpUrl
-  health_theme:
+  healthdcatap_health_theme:
     description: A category of the Dataset or tag describing the Dataset.
     slot_uri: healthdcatap:healthTheme
     annotations:
@@ -258,7 +258,7 @@ slots:
     required: false
     multivalued: true
     range: AnyHttpUrl
-  identifier:
+  dct_identifier:
     description: An unambiguous reference to the resource within a given context.
     slot_uri: dct:identifier
     annotations:
@@ -269,7 +269,7 @@ slots:
     any_of:
     - range: str
     - range: LiteralField
-  in_series:
+  dcat_in_series:
     description: A dataset series of which the dataset is part.
     slot_uri: dcat:inSeries
     annotations:
@@ -280,7 +280,7 @@ slots:
     any_of:
     - range: DCATDatasetSeries
     - range: AnyHttpUrl
-  is_referenced_by:
+  dct_is_referenced_by:
     description: A related resource that references, cites, or otherwise points to
       the described resource.
     slot_uri: dct:isReferencedBy
@@ -290,7 +290,7 @@ slots:
     required: false
     multivalued: true
     range: AnyHttpUrl
-  keyword:
+  dcat_keyword:
     description: A keyword or tag describing the resource.
     slot_uri: dcat:keyword
     annotations:
@@ -299,7 +299,7 @@ slots:
     required: true
     multivalued: true
     range: LiteralField
-  language:
+  dct_language:
     description: A language of the resource.
     slot_uri: dct:language
     annotations:
@@ -308,7 +308,7 @@ slots:
     required: false
     multivalued: true
     range: AnyHttpUrl
-  legal_basis:
+  dpv_legal_basis:
     description: Indicates use or applicability of a Legal Basis.
     slot_uri: dpv:hasLegalBasis
     annotations:
@@ -317,7 +317,7 @@ slots:
     required: false
     multivalued: true
     range: AnyHttpUrl
-  maximum_typical_age:
+  healthdcatap_maximum_typical_age:
     description: Maximum typical age of the population within the dataset
     slot_uri: healthdcatap:maxTypicalAge
     annotations:
@@ -328,7 +328,7 @@ slots:
     any_of:
     - range: int
     - range: LiteralField
-  minimum_typical_age:
+  healthdcatap_minimum_typical_age:
     description: Minimum typical age of the population within the dataset
     slot_uri: healthdcatap:minTypicalAge
     annotations:
@@ -339,7 +339,7 @@ slots:
     any_of:
     - range: int
     - range: LiteralField
-  modification_date:
+  dct_modification_date:
     description: Date on which the resource was changed.
     slot_uri: dct:modified
     annotations:
@@ -352,7 +352,7 @@ slots:
     - range: date
     - range: AwareDatetime
     - range: NaiveDatetime
-  number_of_records:
+  healthdcatap_number_of_records:
     description: Size of the dataset in terms of the number of records
     slot_uri: healthdcatap:numberOfRecords
     annotations:
@@ -363,7 +363,7 @@ slots:
     any_of:
     - range: int
     - range: LiteralField
-  number_of_unique_infividuals:
+  healthdcatap_number_of_unique_infividuals:
     description: Number of records for unique individuals.
     slot_uri: healthdcatap:numberOfUniqueIndividuals
     annotations:
@@ -374,7 +374,7 @@ slots:
     any_of:
     - range: int
     - range: LiteralField
-  other_identifier:
+  adms_other_identifier:
     description: Links a resource to an adms:Identifier class.
     slot_uri: adms:identifier
     annotations:
@@ -383,7 +383,7 @@ slots:
     required: false
     multivalued: true
     range: Identifier
-  personal_data:
+  dpv_personal_data:
     description: Indicates association with Personal Data.
     slot_uri: dpv:hasPersonalData
     annotations:
@@ -392,7 +392,7 @@ slots:
     required: false
     multivalued: true
     range: AnyHttpUrl
-  population_coverage:
+  healthdcatap_population_coverage:
     description: A definition of the population within the dataset
     slot_uri: healthdcatap:populationCoverage
     annotations:
@@ -403,7 +403,7 @@ slots:
     any_of:
     - range: str
     - range: LiteralField
-  publisher:
+  dct_publisher:
     description: An entity responsible for making the resource available.
     slot_uri: dct:publisher
     annotations:
@@ -414,7 +414,7 @@ slots:
     any_of:
     - range: AnyHttpUrl
     - range: HRIAgent
-  purpose:
+  dpv_purpose:
     description: Indicates association with Purpose.
     slot_uri: dpv:hasPurpose
     annotations:
@@ -423,7 +423,7 @@ slots:
     required: false
     multivalued: true
     range: AnyHttpUrl
-  qualified_attribution:
+  prov_qualified_attribution:
     description: Attribution is the ascribing of an entity to an agent.
     slot_uri: prov:qualifiedAttribution
     annotations:
@@ -434,7 +434,7 @@ slots:
     any_of:
     - range: AnyHttpUrl
     - range: Attribution
-  qualified_relation:
+  dcat_qualified_relation:
     description: Link to a description of a relationship with another resource.
     slot_uri: dcat:qualifiedRelation
     annotations:
@@ -445,7 +445,7 @@ slots:
     any_of:
     - range: AnyHttpUrl
     - range: Relationship
-  quality_annotation:
+  dqv_quality_annotation:
     description: Refers to a quality annotation.
     slot_uri: dqv:hasQualityAnnotation
     annotations:
@@ -456,7 +456,7 @@ slots:
     any_of:
     - range: AnyHttpUrl
     - range: QualityCertificate
-  release_date:
+  dct_release_date:
     description: Date of formal issuance of the resource.
     slot_uri: dct:issued
     annotations:
@@ -470,7 +470,7 @@ slots:
     - range: date
     - range: AwareDatetime
     - range: NaiveDatetime
-  retention_period:
+  healthdcatap_retention_period:
     description: A temporal period which the dataset is available for secondary use.
     slot_uri: healthdcatap:retentionPeriod
     annotations:
@@ -479,7 +479,7 @@ slots:
     required: false
     multivalued: false
     range: PeriodOfTime
-  sample:
+  adms_sample:
     description: Links to a sample of an Asset (which is itself an Asset).
     slot_uri: adms:sample
     annotations:
@@ -490,7 +490,7 @@ slots:
     any_of:
     - range: AnyHttpUrl
     - range: DCATDistribution
-  source:
+  dct_source:
     description: A related resource from which the described resource is derived.
     slot_uri: dct:source
     annotations:
@@ -501,7 +501,7 @@ slots:
     any_of:
     - range: AnyHttpUrl
     - range: DCATDataset
-  status:
+  adms_status:
     description: The status of the Asset in the context of a particular workflow process.
     slot_uri: adms:status
     annotations:
@@ -510,7 +510,7 @@ slots:
     required: false
     multivalued: false
     range: DatasetStatus
-  temporal_coverage:
+  dct_temporal_coverage:
     description: Temporal characteristics of the resource.
     slot_uri: dct:temporal
     annotations:
@@ -519,7 +519,7 @@ slots:
     required: false
     multivalued: true
     range: PeriodOfTime
-  temporal_resolution:
+  dcat_temporal_resolution:
     description: Minimum time period resolvable in the dataset.
     slot_uri: dcat:temporalResolution
     annotations:
@@ -530,7 +530,7 @@ slots:
     any_of:
     - range: str
     - range: LiteralField
-  theme:
+  dcat_theme:
     description: A main category of the resource. A resource can have multiple themes.
     slot_uri: dcat:theme
     annotations:
@@ -539,7 +539,7 @@ slots:
     required: true
     multivalued: true
     range: DatasetTheme
-  title:
+  dct_title:
     description: A name given to the resource.
     slot_uri: dct:title
     annotations:
@@ -550,7 +550,7 @@ slots:
     any_of:
     - range: LiteralField
     - range: str
-  type:
+  dct_type:
     description: The nature or genre of the resource.
     slot_uri: dct:type
     annotations:
@@ -559,7 +559,7 @@ slots:
     required: false
     multivalued: true
     range: AnyHttpUrl
-  version:
+  dcat_version:
     description: The version indicator (name or identifier) of a resource.
     slot_uri: dcat:version
     annotations:
@@ -570,7 +570,7 @@ slots:
     any_of:
     - range: str
     - range: LiteralField
-  version_notes:
+  adms_version_notes:
     description: A description of changes between this version and the previous version
       of the Asset.
     slot_uri: adms:versionNotes
@@ -582,7 +582,7 @@ slots:
     any_of:
     - range: str
     - range: LiteralField
-  was_generated_by:
+  prov_was_generated_by:
     description: Generation is the completion of production of a new entity by an
       activity. This entity did not exist before generation and becomes available
       for usage after this generation.

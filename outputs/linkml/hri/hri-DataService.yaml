@@ -49,33 +49,33 @@ classes:
       namespace: HRI
       prefix: hri
     slots:
-    - access_rights
-    - applicable_legislation
-    - application_profile
-    - contact_point
-    - creator
-    - rights
-    - description
-    - end_point_description
-    - end_point_URL
-    - format
-    - HVD_Category
-    - identifier
-    - keyword
-    - landing_Page
-    - language
-    - licence
-    - modification_date
-    - other_identifier
-    - publisher
-    - serves_dataset
-    - theme
-    - title
+    - dct_access_rights
+    - dcatap_applicable_legislation
+    - dct_application_profile
+    - dcat_contact_point
+    - dct_creator
+    - dct_rights
+    - dct_description
+    - dcat_end_point_description
+    - dcat_end_point_url
+    - dct_format
+    - dcatap_hvd_category
+    - dct_identifier
+    - dcat_keyword
+    - dcat_landing_page
+    - dct_language
+    - dct_licence
+    - dct_modification_date
+    - adms_other_identifier
+    - dct_publisher
+    - dcat_serves_dataset
+    - dcat_theme
+    - dct_title
     is_a: DCATDataservice
   DCATDataservice:
     class_uri: dcat:DataService
 slots:
-  access_rights:
+  dct_access_rights:
     description: Information about who access the resource or an indication of its
       security status.
     slot_uri: dct:accessRights
@@ -85,7 +85,7 @@ slots:
     required: true
     multivalued: false
     range: AccessRights
-  applicable_legislation:
+  dcatap_applicable_legislation:
     description: The legislation that is applicable to this resource.
     slot_uri: dcatap:applicableLegislation
     annotations:
@@ -94,7 +94,7 @@ slots:
     required: false
     multivalued: true
     range: AnyHttpUrl
-  application_profile:
+  dct_application_profile:
     description: An established standard to which the described resource conforms.
     slot_uri: dct:conformsTo
     annotations:
@@ -103,7 +103,7 @@ slots:
     required: false
     multivalued: true
     range: AnyHttpUrl
-  contact_point:
+  dcat_contact_point:
     description: Relevant contact information for the cataloged resource.
     slot_uri: dcat:contactPoint
     annotations:
@@ -114,7 +114,7 @@ slots:
     any_of:
     - range: AnyHttpUrl
     - range: HRIVCard
-  creator:
+  dct_creator:
     description: An entity responsible for making the resource.
     slot_uri: dct:creator
     annotations:
@@ -125,7 +125,7 @@ slots:
     any_of:
     - range: AnyHttpUrl
     - range: HRIAgent
-  rights:
+  dct_rights:
     description: Information about rights held in and over the resource.
     slot_uri: dct:rights
     annotations:
@@ -134,7 +134,7 @@ slots:
     required: false
     multivalued: true
     range: AnyHttpUrl
-  description:
+  dct_description:
     description: An account of the resource.
     slot_uri: dct:description
     annotations:
@@ -145,7 +145,7 @@ slots:
     any_of:
     - range: LiteralField
     - range: str
-  end_point_description:
+  dcat_end_point_description:
     description: A description of the services available via the end-points, including
       their operations, parameters etc.
     slot_uri: dcat:endpointDescription
@@ -155,7 +155,7 @@ slots:
     required: true
     multivalued: false
     range: AnyHttpUrl
-  end_point_URL:
+  dcat_end_point_url:
     description: The root location or primary endpoint of the service (a Web-resolvable
       IRI).
     slot_uri: dcat:endPointURL
@@ -167,7 +167,7 @@ slots:
     any_of:
     - range: AnyHttpUrl
     - range: DCATResource
-  format:
+  dct_format:
     description: The file format, physical medium, or dimensions of the resource.
     slot_uri: dct:format
     annotations:
@@ -176,7 +176,7 @@ slots:
     required: false
     multivalued: true
     range: AnyHttpUrl
-  HVD_Category:
+  dcatap_hvd_category:
     description: A data category defined in the High Value Dataset Implementing Regulation.
     slot_uri: dcatap:hvdCategory
     annotations:
@@ -185,7 +185,7 @@ slots:
     required: false
     multivalued: true
     range: AnyHttpUrl
-  identifier:
+  dct_identifier:
     description: An unambiguous reference to the resource within a given context.
     slot_uri: dct:identifier
     annotations:
@@ -196,7 +196,7 @@ slots:
     any_of:
     - range: str
     - range: LiteralField
-  keyword:
+  dcat_keyword:
     description: A keyword or tag describing the resource.
     slot_uri: dcat:keyword
     annotations:
@@ -205,7 +205,7 @@ slots:
     required: false
     multivalued: true
     range: LiteralField
-  landing_Page:
+  dcat_landing_page:
     description: A Web page that can be navigated to in a Web browser to gain access
       to the catalog, a dataset, its distributions and/or additional information.
     slot_uri: dcat:landingPage
@@ -215,7 +215,7 @@ slots:
     required: false
     multivalued: true
     range: AnyHttpUrl
-  language:
+  dct_language:
     description: A language of the resource.
     slot_uri: dct:language
     annotations:
@@ -224,7 +224,7 @@ slots:
     required: false
     multivalued: true
     range: AnyHttpUrl
-  licence:
+  dct_licence:
     description: A legal document giving official permission to do something with
       the resource.
     slot_uri: dct:license
@@ -236,7 +236,7 @@ slots:
     any_of:
     - range: AnyHttpUrl
     - range: GeonovumLicenses
-  modification_date:
+  dct_modification_date:
     description: Date on which the resource was changed.
     slot_uri: dct:modified
     annotations:
@@ -249,7 +249,7 @@ slots:
     - range: date
     - range: AwareDatetime
     - range: NaiveDatetime
-  other_identifier:
+  adms_other_identifier:
     description: Links a resource to an adms:Identifier class.
     slot_uri: adms:identifier
     annotations:
@@ -260,7 +260,7 @@ slots:
     any_of:
     - range: AnyHttpUrl
     - range: Identifier
-  publisher:
+  dct_publisher:
     description: An entity responsible for making the resource available.
     slot_uri: dct:publisher
     annotations:
@@ -271,7 +271,7 @@ slots:
     any_of:
     - range: AnyHttpUrl
     - range: HRIAgent
-  serves_dataset:
+  dcat_serves_dataset:
     description: A collection of data that this data service can distribute.
     slot_uri: dcat:servesDataset
     annotations:
@@ -282,7 +282,7 @@ slots:
     any_of:
     - range: AnyHttpUrl
     - range: DCATDataset
-  theme:
+  dcat_theme:
     description: A main category of the resource. A resource can have multiple themes.
     slot_uri: dcat:theme
     annotations:
@@ -291,7 +291,7 @@ slots:
     required: true
     multivalued: true
     range: DatasetTheme
-  title:
+  dct_title:
     description: A name given to the resource.
     slot_uri: dct:title
     annotations:

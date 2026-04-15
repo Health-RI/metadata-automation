@@ -23,12 +23,12 @@ class HRIChecksum(RDFModel):
             "$prefix": "hri",
         },
     )
-    algorithm: AnyHttpUrl = Field(
+    spdx_algorithm: AnyHttpUrl = Field(
         description="""Identifies the algorithm used to produce the subject Checksum.""",
         json_schema_extra={"rdf_term": SPDX.algorithm, "rdf_type": "uri"},
     )
 
-    checksum_value: Union[LiteralField, str] = Field(
+    spdx_checksum_value: Union[LiteralField, str] = Field(
         description="""The checksumValue property provides a lower case hexidecimal encoded digest value produced using a specific algorithm.""",
         json_schema_extra={"rdf_term": SPDX.checksumValue, "rdf_type": "xsd:hexBinary"},
     )

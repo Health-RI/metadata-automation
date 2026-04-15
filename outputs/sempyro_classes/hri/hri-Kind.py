@@ -25,18 +25,18 @@ class HRIKind(VCARDKind):
             "$prefix": "hri",
         },
     )
-    contact_page: Optional[list[AnyHttpUrl]] = Field(
+    vcard_contact_page: Optional[list[AnyHttpUrl]] = Field(
         default=None,
         description="""To specify a uniform resource locator associated with the object.""",
         json_schema_extra={"rdf_term": VCARD.hasURL, "rdf_type": "uri"},
     )
 
-    has_email: AnyUrl = Field(
+    vcard_has_email: AnyUrl = Field(
         description="""To specify the electronic mail address for communication with the object.""",
         json_schema_extra={"rdf_term": VCARD.hasEmail, "rdf_type": "uri"},
     )
 
-    formatted_name: Union[LiteralField, str] = Field(
+    vcard_formatted_name: Union[LiteralField, str] = Field(
         description="""The formatted text corresponding to the name of the object.""",
         json_schema_extra={"rdf_term": VCARD.fn, "rdf_type": "rdfs_literal"},
     )

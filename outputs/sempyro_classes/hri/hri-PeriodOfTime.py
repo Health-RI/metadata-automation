@@ -30,13 +30,13 @@ class HRIPeriodoftime(RDFModel):
             "$prefix": "hri",
         },
     )
-    end_date: Optional[LiteralField] = Field(
+    dcat_end_date: Optional[LiteralField] = Field(
         default=None,
         description="""The end of the period.""",
         json_schema_extra={"rdf_term": DCAT.startDate, "rdf_type": "rdfs_literal"},
     )
 
-    start_date: Optional[LiteralField] = Field(
+    dcat_start_date: Optional[LiteralField] = Field(
         default=None,
         description="""The start of the period.""",
         json_schema_extra={"rdf_term": DCAT.endDate, "rdf_type": "rdfs_literal"},
