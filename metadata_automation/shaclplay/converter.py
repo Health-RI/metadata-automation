@@ -4,14 +4,15 @@ SHACLPlay Excel converter for Health-RI metadata.
 Converts Health-RI Excel metadata files to SHACLPlay-compatible Excel format.
 """
 
-import pandas as pd
-import numpy as np
 from pathlib import Path
 from typing import Optional
 
+import numpy as np
+import pandas as pd
+
 from .utils import (
-    parse_cardinality,
     get_current_datetime_iso,
+    parse_cardinality,
 )
 from .vocab_mappings import get_vocab_mapping
 
@@ -38,9 +39,7 @@ class SHACLPlayConverter:
     def _load_template(self):
         """Load the SHACLPlay template to get structure."""
         # Read template structure for NodeShapes (to get headers and metadata structure)
-        self.template_nodeshapes = pd.read_excel(
-            self.template_path, sheet_name="NodeShapes (classes)", header=None
-        )
+        self.template_nodeshapes = pd.read_excel(self.template_path, sheet_name="NodeShapes (classes)", header=None)
 
         # Read template structure for PropertyShapes
         self.template_propertyshapes = pd.read_excel(
@@ -60,10 +59,8 @@ class SHACLPlayConverter:
 
         # Create a prefix lookup dictionary for easy access
         self.prefix_lookup = {}
-        for idx, row in source_prefixes.iterrows():
-            self.prefix_lookup[str(row["prefix"]).strip()] = str(
-                row["namespace"]
-            ).strip()
+        for _idx, row in source_prefixes.iterrows():
+            self.prefix_lookup[str(row["prefix"]).strip()] = str(row["namespace"]).strip()
 
         # Convert to SHACLPlay format:
         # - Row 0: empty row (all NaN)
@@ -74,7 +71,7 @@ class SHACLPlayConverter:
 
         # Create prefix rows
         prefix_rows = []
-        for idx, row in source_prefixes.iterrows():
+        for _idx, row in source_prefixes.iterrows():
             prefix_row = pd.Series(["PREFIX", row["prefix"], row["namespace"]])
             prefix_rows.append(prefix_row)
 
@@ -99,9 +96,7 @@ class SHACLPlayConverter:
             KeyError: If the prefix is not found in the prefixes
         """
         if namespace_prefix not in self.prefix_lookup:
-            raise KeyError(
-                f"Namespace prefix '{namespace_prefix}' not found in prefixes"
-            )
+            raise KeyError(f"Namespace prefix '{namespace_prefix}' not found in prefixes")
         return self.prefix_lookup[namespace_prefix]
 
     def convert_class_sheet(
@@ -137,9 +132,7 @@ class SHACLPlayConverter:
         )
 
         # Build PropertyShapes sheet
-        propertyshapes_df = self._build_propertyshapes(
-            class_sheet_df, class_name, class_uri, namespace_override
-        )
+        propertyshapes_df = self._build_propertyshapes(class_sheet_df, class_name, class_uri, namespace_override)
 
         return nodeshapes_df, propertyshapes_df
 
@@ -166,11 +159,7 @@ class SHACLPlayConverter:
         """
         # Extract namespace prefix from class_uri (e.g., 'hri:Dataset' -> 'hri')
         # Use override if provided
-        namespace_prefix = (
-            namespace_override
-            if namespace_override
-            else class_uri.split(":")[0]
-        )
+        namespace_prefix = namespace_override if namespace_override else class_uri.split(":")[0]
 
         # Create a deep copy of the template structure
         df = self.template_nodeshapes.copy(deep=True)
@@ -188,9 +177,7 @@ class SHACLPlayConverter:
         if description:
             df.iat[4, 1] = description  # dcterms:description@en
         else:
-            df.iat[4, 1] = (
-                f"This is an excel template for {class_name} class in Health RI Core plateau 2."
-            )
+            df.iat[4, 1] = f"This is an excel template for {class_name} class in Health RI Core plateau 2."
 
         # Update version and modified date
         df.iat[5, 1] = "0.1"  # owl:versionInfo
@@ -199,9 +186,7 @@ class SHACLPlayConverter:
         # Add a new row for the actual NodeShape data (after the 13 template rows)
         # Create new row with the NodeShape data
         new_nodeshape_row = pd.Series([np.nan] * len(df.columns), dtype=str)
-        new_nodeshape_row.iloc[0] = (
-            f"{namespace_prefix}:{class_name}Shape"  # URI
-        )
+        new_nodeshape_row.iloc[0] = f"{namespace_prefix}:{class_name}Shape"  # URI
         new_nodeshape_row.iloc[1] = class_name  # rdfs:label@en
         new_nodeshape_row.iloc[2] = np.nan  # rdfs:comment@en (usually empty)
         new_nodeshape_row.iloc[3] = "sh:NodeShape"  # rdf:type
@@ -233,11 +218,7 @@ class SHACLPlayConverter:
         """
         # Extract namespace prefix from class_uri (e.g., 'hri:Dataset' -> 'hri')
         # Use override if provided
-        namespace_prefix = (
-            namespace_override
-            if namespace_override
-            else class_uri.split(":")[0]
-        )
+        namespace_prefix = namespace_override if namespace_override else class_uri.split(":")[0]
 
         # Start with template structure (rows 0-6 contain headers and metadata)
         df = self.template_propertyshapes.copy(deep=True)
@@ -255,16 +236,11 @@ class SHACLPlayConverter:
         property_rows.append(section_header)
 
         # Process each property from the class sheet
-        for idx, row in class_sheet_df.iterrows():
-            if (
-                pd.isna(row["Property label"])
-                or row["Property label"] == "nan"
-            ):
+        for _idx, row in class_sheet_df.iterrows():
+            if pd.isna(row["Property label"]) or row["Property label"] == "nan":
                 continue
 
-            property_row = self._convert_property_to_shaclplay(
-                row, class_name, class_uri, namespace_prefix
-            )
+            property_row = self._convert_property_to_shaclplay(row, class_name, class_uri, namespace_prefix)
             property_rows.append(property_row)
 
         # Combine header rows (0-6) with property rows
@@ -342,9 +318,7 @@ class SHACLPlayConverter:
         # Columns 8-10: sh:nodeKind, sh:datatype, sh:node
         # Decision logic based on Range column (Option 3)
         range_value = str(property_row.get("Range", ""))
-        sh_node_col = str(
-            property_row.get("SHACL_sh:node", "")
-        )  # Renamed from 'SHACL range'
+        sh_node_col = str(property_row.get("SHACL_sh:node", ""))  # Renamed from 'SHACL range'
 
         # Pattern 1: Range contains "(IRI)" suffix → sh:nodeKind = sh:IRI only
         # Check explicitly for (IRI) at the end to avoid matching "dcat:Class (IRI)" in middle
@@ -358,19 +332,12 @@ class SHACLPlayConverter:
             # No sh:datatype, no sh:node
 
         # Pattern 3: Range contains ":" but no "(IRI)" suffix → use sh:node from 'SHACL_sh:node' column
-        elif (
-            ":" in range_value
-            and not range_value.strip().endswith("(IRI)")
-            and sh_node_col
-            and sh_node_col != "nan"
-        ):
+        elif ":" in range_value and not range_value.strip().endswith("(IRI)") and sh_node_col and sh_node_col != "nan":
             # Convert SHACL_sh:node column value to full URI if needed
             if ":" in sh_node_col:
                 # Prefixed format (e.g., "hri:KindShape", "eucaim:RelationshipShape")
                 sh_node_prefix = sh_node_col.split(":")[0]
-                shape_name = sh_node_col.split(":")[
-                    1
-                ]  # Gets "KindShape", "RelationshipShape", etc.
+                shape_name = sh_node_col.split(":")[1]  # Gets "KindShape", "RelationshipShape", etc.
                 # Look up the namespace URL from prefixes
                 sh_node_namespace_url = self._get_namespace_url(sh_node_prefix)
                 new_row[10] = f"{sh_node_namespace_url}{shape_name}"
@@ -400,9 +367,7 @@ class SHACLPlayConverter:
         # Column 16: SHACL_sh:uniqueLang (leave empty for now)
 
         # Column 17: sh:in (controlled vocabulary)
-        vocab_url = property_row.get(
-            "Controlled vocabluary (if applicable)", ""
-        )
+        vocab_url = property_row.get("Controlled vocabluary (if applicable)", "")
         if pd.notna(vocab_url) and vocab_url != "nan":
             vocab_mapping = get_vocab_mapping(vocab_url)
             if vocab_mapping:

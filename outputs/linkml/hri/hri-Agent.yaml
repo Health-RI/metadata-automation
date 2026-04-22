@@ -54,19 +54,19 @@ classes:
         \ valid email or mailto URI, fulfills an email to mailto URI\n        \"\"\
         \"\n        return validate_convert_email(value)\n"
     slots:
-    - country
-    - email
-    - identifier
-    - name
-    - publisher_note
-    - publisher_type
-    - type
-    - URL
+    - dct_country
+    - foaf_email
+    - dct_identifier
+    - foaf_name
+    - healthdcatap_publisher_note
+    - healthdcatap_publisher_type
+    - dct_type
+    - foaf_url
     is_a: FOAFAgent
   FOAFAgent:
     class_uri: foaf:Agent
 slots:
-  country:
+  dct_country:
     description: Spatial characteristics of the resource.
     slot_uri: dct:spatial
     annotations:
@@ -77,7 +77,7 @@ slots:
     any_of:
     - range: AnyHttpUrl
     - range: Location
-  email:
+  foaf_email:
     description: 'A email address via which contact can be made. This property SHOULD
       be used to provide the email address of the Agent, specified using fully qualified
       mailto: URI scheme [RFC6068]. The email SHOULD be used to establish a communication
@@ -89,7 +89,7 @@ slots:
     required: true
     multivalued: false
     range: AnyUrl
-  identifier:
+  dct_identifier:
     description: An unambiguous reference to the resource within a given context.
     slot_uri: dct:identifier
     annotations:
@@ -100,7 +100,7 @@ slots:
     any_of:
     - range: str
     - range: LiteralField
-  name:
+  foaf_name:
     description: A name for some thing.
     slot_uri: foaf:name
     annotations:
@@ -111,7 +111,7 @@ slots:
     any_of:
     - range: str
     - range: LiteralField
-  publisher_note:
+  healthdcatap_publisher_note:
     description: A description of the publisher activities.
     slot_uri: healthdcatap:publishernote
     annotations:
@@ -122,7 +122,7 @@ slots:
     any_of:
     - range: str
     - range: LiteralField
-  publisher_type:
+  healthdcatap_publisher_type:
     description: A type of organisation that makes the Dataset available.
     slot_uri: healthdcatap:publishertype
     annotations:
@@ -133,7 +133,7 @@ slots:
     any_of:
     - range: AnyUrl
     - range: URIRef
-  type:
+  dct_type:
     description: The nature or genre of the resource.
     slot_uri: dct:type
     annotations:
@@ -142,7 +142,7 @@ slots:
     required: false
     multivalued: false
     range: AnyHttpUrl
-  URL:
+  foaf_url:
     description: A homepage for some thing.
     slot_uri: foaf:homepage
     annotations:

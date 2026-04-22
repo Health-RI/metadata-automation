@@ -50,11 +50,11 @@ classes:
       namespace: HRI
       prefix: hri
     slots:
-    - algorithm
-    - checksum_value
+    - spdx_algorithm
+    - spdx_checksum_value
     is_a: RDFModel
 slots:
-  algorithm:
+  spdx_algorithm:
     description: Identifies the algorithm used to produce the subject Checksum.
     slot_uri: spdx:algorithm
     annotations:
@@ -63,7 +63,7 @@ slots:
     required: true
     multivalued: false
     range: AnyHttpUrl
-  checksum_value:
+  spdx_checksum_value:
     description: The checksumValue property provides a lower case hexidecimal encoded
       digest value produced using a specific algorithm.
     slot_uri: spdx:checksumValue

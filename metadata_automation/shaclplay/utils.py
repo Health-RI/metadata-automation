@@ -5,7 +5,8 @@ Utility functions for SHACLPlay Excel generation.
 import re
 from datetime import datetime
 from pathlib import Path
-from typing import Tuple, Optional
+from typing import Optional, Tuple
+
 import pandas as pd
 
 
@@ -91,9 +92,7 @@ def write_shaclplay_excel(
 
     # Write to Excel with three sheets
     with pd.ExcelWriter(output_path, engine="openpyxl") as writer:
-        prefixes_df.to_excel(
-            writer, sheet_name="prefixes", index=False, header=False
-        )
+        prefixes_df.to_excel(writer, sheet_name="prefixes", index=False, header=False)
         nodeshapes_df.to_excel(
             writer,
             sheet_name="NodeShapes (classes)",

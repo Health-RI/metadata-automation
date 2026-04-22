@@ -50,11 +50,11 @@ classes:
       namespace: HRI
       prefix: hri
     slots:
-    - end_date
-    - start_date
+    - dcat_end_date
+    - dcat_start_date
     is_a: RDFModel
 slots:
-  end_date:
+  dcat_end_date:
     description: The end of the period.
     slot_uri: dcat:endDate
     annotations:
@@ -63,7 +63,7 @@ slots:
     required: false
     multivalued: false
     range: LiteralField
-  start_date:
+  dcat_start_date:
     description: The start of the period.
     slot_uri: dcat:startDate
     annotations:

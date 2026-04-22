@@ -26,59 +26,59 @@ class HRIDatasetseries(DCATDatasetseries):
             "$prefix": "hri",
         },
     )
-    applicable_legislation: Optional[list[AnyHttpUrl]] = Field(
+    dcatap_applicable_legislation: Optional[list[AnyHttpUrl]] = Field(
         default=None,
         description="""The legislation that is applicable to this resource.""",
         json_schema_extra={"rdf_term": DCATAPv3.applicableLegislation, "rdf_type": "uri"},
     )
 
-    contact_point: list[Union[AnyHttpUrl, VCard]] = Field(
+    dcat_contact_point: list[Union[AnyHttpUrl, VCard]] = Field(
         description="""Relevant contact information for the cataloged resource.""",
         json_schema_extra={"rdf_term": DCAT.contactPoint, "rdf_type": "uri"},
     )
 
-    description: list[Union[LiteralField, str]] = Field(
+    dct_description: list[Union[LiteralField, str]] = Field(
         description="""An account of the resource.""",
         json_schema_extra={"rdf_term": DCTERMS.description, "rdf_type": "rdfs_literal"},
     )
 
-    frequency: Optional[AnyHttpUrl] = Field(
+    dct_frequency: Optional[AnyHttpUrl] = Field(
         default=None,
         description="""The frequency with which items are added to a collection.""",
         json_schema_extra={"rdf_term": DCTERMS.accrualPeriodicity, "rdf_type": "uri"},
     )
 
-    geographical_coverage: Optional[list[Union[AnyHttpUrl, Location]]] = Field(
+    dct_geographical_coverage: Optional[list[Union[AnyHttpUrl, Location]]] = Field(
         default=None,
         description="""Spatial characteristics of the resource.""",
         json_schema_extra={"rdf_term": DCTERMS.spatial, "rdf_type": "uri"},
     )
 
-    modification_date: Optional[Union[AwareDatetime, NaiveDatetime, date, str]] = Field(
+    dct_modification_date: Optional[Union[AwareDatetime, NaiveDatetime, date, str]] = Field(
         default=None,
         description="""Date on which the resource was changed.""",
         json_schema_extra={"rdf_term": DCTERMS.modified, "rdf_type": "datetime_literal"},
     )
 
-    publisher: Optional[Union[Agent, AnyHttpUrl]] = Field(
+    dct_publisher: Optional[Union[Agent, AnyHttpUrl]] = Field(
         default=None,
         description="""An entity responsible for making the resource available.""",
         json_schema_extra={"rdf_term": DCTERMS.publisher, "rdf_type": "uri"},
     )
 
-    release_date: Optional[Union[AwareDatetime, NaiveDatetime, date, str]] = Field(
+    dct_release_date: Optional[Union[AwareDatetime, NaiveDatetime, date, str]] = Field(
         default=None,
         description="""Date of formal issuance of the resource.""",
         json_schema_extra={"rdf_term": DCTERMS.issued, "rdf_type": "datetime_literal"},
     )
 
-    temporal_coverage: Optional[list[PeriodOfTime]] = Field(
+    dct_temporal_coverage: Optional[list[PeriodOfTime]] = Field(
         default=None,
         description="""Temporal characteristics of the resource.""",
         json_schema_extra={"rdf_term": DCTERMS.temporal, "rdf_type": "DCTERMS.PeriodOfTime"},
     )
 
-    title: list[Union[LiteralField, str]] = Field(
+    dct_title: list[Union[LiteralField, str]] = Field(
         description="""A name given to the resource.""",
         json_schema_extra={"rdf_term": DCTERMS.title, "rdf_type": "rdfs_literal"},
     )

@@ -24,13 +24,13 @@ class HRIAttribution(RDFModel):
             "$prefix": "hri",
         },
     )
-    agent: Optional[Union[Agent, AnyHttpUrl]] = Field(
+    prov_agent: Optional[Union[Agent, AnyHttpUrl]] = Field(
         default=None,
         description="""The prov:agent property references an prov:Agent which influenced a resource.""",
         json_schema_extra={"rdf_term": PROV.agent, "rdf_type": "uri"},
     )
 
-    role: Optional[AnyHttpUrl] = Field(
+    dcat_role: Optional[AnyHttpUrl] = Field(
         default=None,
         description="""The function of an entity or agent with respect to another entity or resource.""",
         json_schema_extra={"rdf_term": DCAT.hadRole, "rdf_type": "uri"},

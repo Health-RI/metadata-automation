@@ -27,11 +27,11 @@ class HRITestclass(RDFModel):
             "$prefix": "hri",
         },
     )
-    title: list[Union[LiteralField, str]] = Field(
+    dct_title: list[Union[LiteralField, str]] = Field(
         description="""The title""", json_schema_extra={"rdf_term": DCTERMS.title, "rdf_type": "rdfs_literal"}
     )
 
-    description: list[Union[LiteralField, str]] = Field(
+    dct_description: list[Union[LiteralField, str]] = Field(
         description="""The description""",
         json_schema_extra={"rdf_term": DCTERMS.description, "rdf_type": "rdfs_literal"},
     )

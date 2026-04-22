@@ -22,13 +22,13 @@ class HRIQualitycertificate(RDFModel):
             "$prefix": "hri",
         },
     )
-    target: Optional[AnyHttpUrl] = Field(
+    oa_target: Optional[AnyHttpUrl] = Field(
         default=None,
         description="""The relationship between an Annotation and its Target.""",
         json_schema_extra={"rdf_term": OA.hasTarget, "rdf_type": "uri"},
     )
 
-    body: Optional[AnyHttpUrl] = Field(
+    oa_body: Optional[AnyHttpUrl] = Field(
         default=None,
         description="""The object of the relationship is a resource that is a body of the Annotation.""",
         json_schema_extra={"rdf_term": OA.hasBody, "rdf_type": "uri"},

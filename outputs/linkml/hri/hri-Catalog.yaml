@@ -61,30 +61,30 @@ classes:
         \ value.datatype != \"xsd:duration\":\n            return LiteralField(value=value.value,\
         \ datatype=\"xsd:duration\")\n        return value\n"
     slots:
-    - applicable_legislation
-    - catalog
-    - contact_point
-    - creator
-    - dataset
-    - description
-    - geographical_coverage
-    - has_part
-    - home_page
-    - language
-    - licence
-    - modification_date
-    - publisher
-    - release_date
-    - rights
-    - service
-    - temporal_coverage
-    - themes
-    - title
+    - dcatap_applicable_legislation
+    - dcat_catalog
+    - dcat_contact_point
+    - dct_creator
+    - dcat_dataset
+    - dct_description
+    - dct_geographical_coverage
+    - dct_has_part
+    - foaf_home_page
+    - dct_language
+    - dct_licence
+    - dct_modification_date
+    - dct_publisher
+    - dct_release_date
+    - dct_rights
+    - dcat_service
+    - dct_temporal_coverage
+    - dcat_themes
+    - dct_title
     is_a: DCATCatalog
   DCATCatalog:
     class_uri: dcat:Catalog
 slots:
-  applicable_legislation:
+  dcatap_applicable_legislation:
     description: The legislation that is applicable to this resource.
     slot_uri: dcatap:applicableLegislation
     annotations:
@@ -93,7 +93,7 @@ slots:
     required: false
     multivalued: true
     range: AnyHttpUrl
-  catalog:
+  dcat_catalog:
     description: A catalog that is listed in the catalog.
     slot_uri: dcat:catalog
     annotations:
@@ -102,7 +102,7 @@ slots:
     required: false
     multivalued: true
     range: AnyHttpUrl
-  contact_point:
+  dcat_contact_point:
     description: Relevant contact information for the cataloged resource.
     slot_uri: dcat:contactPoint
     annotations:
@@ -113,7 +113,7 @@ slots:
     any_of:
     - range: AnyHttpUrl
     - range: HRIVCard
-  creator:
+  dct_creator:
     description: An entity responsible for making the resource.
     slot_uri: dct:creator
     annotations:
@@ -124,7 +124,7 @@ slots:
     any_of:
     - range: AnyHttpUrl
     - range: HRIAgent
-  dataset:
+  dcat_dataset:
     description: A dataset that is listed in the catalog.
     slot_uri: dcat:dataset
     annotations:
@@ -135,7 +135,7 @@ slots:
     any_of:
     - range: AnyHttpUrl
     - range: DCATDataset
-  description:
+  dct_description:
     description: An account of the resource.
     slot_uri: dct:description
     annotations:
@@ -146,7 +146,7 @@ slots:
     any_of:
     - range: LiteralField
     - range: str
-  geographical_coverage:
+  dct_geographical_coverage:
     description: Spatial characteristics of the resource.
     slot_uri: dct:spatial
     annotations:
@@ -157,7 +157,7 @@ slots:
     any_of:
     - range: AnyHttpUrl
     - range: Location
-  has_part:
+  dct_has_part:
     description: A related resource that is included either physically or logically
       in the described resource.
     slot_uri: dct:hasPart
@@ -169,7 +169,7 @@ slots:
     any_of:
     - range: AnyHttpUrl
     - range: DCATCatalog
-  home_page:
+  foaf_home_page:
     description: A homepage for some thing.
     slot_uri: foaf:homepage
     annotations:
@@ -178,7 +178,7 @@ slots:
     required: false
     multivalued: false
     range: AnyHttpUrl
-  language:
+  dct_language:
     description: A language of the resource.
     slot_uri: dct:language
     annotations:
@@ -187,7 +187,7 @@ slots:
     required: false
     multivalued: true
     range: AnyHttpUrl
-  licence:
+  dct_licence:
     description: A legal document giving official permission to do something with
       the resource.
     slot_uri: dct:license
@@ -197,7 +197,7 @@ slots:
     required: false
     multivalued: false
     range: AnyHttpUrl
-  modification_date:
+  dct_modification_date:
     description: Date on which the resource was changed.
     slot_uri: dct:modified
     annotations:
@@ -210,7 +210,7 @@ slots:
     - range: date
     - range: AwareDatetime
     - range: NaiveDatetime
-  publisher:
+  dct_publisher:
     description: An entity responsible for making the resource available.
     slot_uri: dct:publisher
     annotations:
@@ -221,7 +221,7 @@ slots:
     any_of:
     - range: AnyHttpUrl
     - range: HRIAgent
-  release_date:
+  dct_release_date:
     description: Date of formal issuance of the resource.
     slot_uri: dct:issued
     annotations:
@@ -234,7 +234,7 @@ slots:
     - range: date
     - range: AwareDatetime
     - range: NaiveDatetime
-  rights:
+  dct_rights:
     description: Information about rights held in and over the resource.
     slot_uri: dct:rights
     annotations:
@@ -245,7 +245,7 @@ slots:
     any_of:
     - range: LiteralField
     - range: AnyHttpUrl
-  service:
+  dcat_service:
     description: A service that is listed in the catalog.
     slot_uri: dcat:service
     annotations:
@@ -256,7 +256,7 @@ slots:
     any_of:
     - range: AnyHttpUrl
     - range: HRIDataService
-  temporal_coverage:
+  dct_temporal_coverage:
     description: Temporal characteristics of the resource.
     slot_uri: dct:temporal
     annotations:
@@ -265,7 +265,7 @@ slots:
     required: false
     multivalued: true
     range: PeriodOfTime
-  themes:
+  dcat_themes:
     description: A main category of the resource. A resource can have multiple themes.
     slot_uri: dcat:themeTaxonomy
     annotations:
@@ -274,7 +274,7 @@ slots:
     required: false
     multivalued: true
     range: AnyHttpUrl
-  title:
+  dct_title:
     description: A name given to the resource.
     slot_uri: dct:title
     annotations:

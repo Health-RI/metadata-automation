@@ -23,11 +23,11 @@ class HRIRelationship(RDFModel):
             "$prefix": "hri",
         },
     )
-    had_role: list[AnyHttpUrl] = Field(
+    dcat_had_role: list[AnyHttpUrl] = Field(
         description="""The function of an entity or agent with respect to another entity or resource.""",
         json_schema_extra={"rdf_term": DCAT.hadRole, "rdf_type": "uri"},
     )
 
-    relation: list[AnyHttpUrl] = Field(
+    dct_relation: list[AnyHttpUrl] = Field(
         description="""A related resource.""", json_schema_extra={"rdf_term": DCTERMS.relation, "rdf_type": "uri"}
     )

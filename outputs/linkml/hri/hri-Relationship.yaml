@@ -50,11 +50,11 @@ classes:
       namespace: HRI
       prefix: hri
     slots:
-    - had_role
-    - relation
+    - dcat_had_role
+    - dct_relation
     is_a: RDFModel
 slots:
-  had_role:
+  dcat_had_role:
     description: The function of an entity or agent with respect to another entity
       or resource.
     slot_uri: dcat:hadRole
@@ -64,7 +64,7 @@ slots:
     required: true
     multivalued: true
     range: AnyHttpUrl
-  relation:
+  dct_relation:
     description: A related resource.
     slot_uri: dct:relation
     annotations:

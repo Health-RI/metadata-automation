@@ -21,11 +21,11 @@ classes:
       namespace: HRI
       prefix: hri
     slots:
-    - title
+    - dct_title
     description: Class B
     is_a: RDFModel
 slots:
-  title:
+  dct_title:
     description: The title
     slot_uri: dct:title
     annotations:

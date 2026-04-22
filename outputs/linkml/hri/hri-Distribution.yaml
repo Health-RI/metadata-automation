@@ -60,33 +60,33 @@ classes:
         release_date\", \"modification_date\", mode=\"before\")\n    @classmethod\n\
         \    def date_validator(cls, value):\n        return date_handler(value)\n"
     slots:
-    - access_service
-    - access_url
-    - applicable_legislation
-    - byte_size
-    - checksum
-    - compression_format
-    - description
-    - documentation
-    - download_URL
-    - format
-    - language
-    - license
-    - linked_schemas
-    - media_type
-    - modification_date
-    - packaging_format
-    - release_date
-    - retention_period
-    - rights
-    - status
-    - temporal_resolution
-    - title
+    - dcat_access_service
+    - dcat_access_url
+    - dcatap_applicable_legislation
+    - dcat_byte_size
+    - spdx_checksum
+    - dcat_compression_format
+    - dct_description
+    - foaf_documentation
+    - dcat_download_url
+    - dct_format
+    - dct_language
+    - dct_license
+    - dct_linked_schemas
+    - dcat_media_type
+    - dct_modification_date
+    - dcat_packaging_format
+    - dct_release_date
+    - healthdcatap_retention_period
+    - dct_rights
+    - adms_status
+    - dcat_temporal_resolution
+    - dct_title
     is_a: DCATDistribution
   DCATDistribution:
     class_uri: dcat:Distribution
 slots:
-  access_service:
+  dcat_access_service:
     description: A data service that gives access to the distribution of the dataset.
     slot_uri: dcat:accessService
     annotations:
@@ -97,7 +97,7 @@ slots:
     any_of:
     - range: AnyHttpUrl
     - range: HRIDataService
-  access_url:
+  dcat_access_url:
     description: A URL of the resource that gives access to a distribution of the
       dataset. E.g., landing page, feed, SPARQL endpoint.
     slot_uri: dcat:accessURL
@@ -107,7 +107,7 @@ slots:
     required: true
     multivalued: false
     range: AnyHttpUrl
-  applicable_legislation:
+  dcatap_applicable_legislation:
     description: The legislation that is applicable to this resource.
     slot_uri: dcatap:applicableLegislation
     annotations:
@@ -116,7 +116,7 @@ slots:
     required: false
     multivalued: true
     range: AnyHttpUrl
-  byte_size:
+  dcat_byte_size:
     description: The size of a distribution in bytes.
     slot_uri: dcat:byteSize
     annotations:
@@ -127,7 +127,7 @@ slots:
     any_of:
     - range: int
     - range: LiteralField
-  checksum:
+  spdx_checksum:
     description: The checksum property provides a mechanism that can be used to verify
       that the contents of a file or package have not changed.
     slot_uri: spdx:checksum
@@ -137,7 +137,7 @@ slots:
     required: false
     multivalued: false
     range: Checksum
-  compression_format:
+  dcat_compression_format:
     description: The compression format of the distribution in which the data is contained
       in a compressed form, e.g., to reduce the size of the downloadable file.
     slot_uri: dcat:compressFormat
@@ -147,7 +147,7 @@ slots:
     required: false
     multivalued: false
     range: AnyHttpUrl
-  description:
+  dct_description:
     description: An account of the resource.
     slot_uri: dct:description
     annotations:
@@ -156,7 +156,7 @@ slots:
     required: false
     multivalued: true
     range: LiteralField
-  documentation:
+  foaf_documentation:
     description: A homepage for some thing.
     slot_uri: foaf:page
     annotations:
@@ -165,7 +165,7 @@ slots:
     required: false
     multivalued: true
     range: AnyHttpUrl
-  download_URL:
+  dcat_download_url:
     description: The URL of the downloadable file in a given format. E.g., CSV file
       or RDF file. The format is indicated by the distribution's dcterms:format and/or
       dcat:mediaType.
@@ -176,7 +176,7 @@ slots:
     required: false
     multivalued: false
     range: AnyHttpUrl
-  format:
+  dct_format:
     description: The file format, physical medium, or dimensions of the resource.
     slot_uri: dct:format
     annotations:
@@ -185,7 +185,7 @@ slots:
     required: true
     multivalued: false
     range: AnyUrl
-  language:
+  dct_language:
     description: A language of the resource.
     slot_uri: dct:language
     annotations:
@@ -194,7 +194,7 @@ slots:
     required: false
     multivalued: true
     range: AnyHttpUrl
-  license:
+  dct_license:
     description: A legal document giving official permission to do something with
       the resource.
     slot_uri: dct:license
@@ -206,7 +206,7 @@ slots:
     any_of:
     - range: AnyHttpUrl
     - range: GeonovumLicenses
-  linked_schemas:
+  dct_linked_schemas:
     description: An established standard to which the described resource conforms.
     slot_uri: dct:conformsTo
     annotations:
@@ -215,7 +215,7 @@ slots:
     required: false
     multivalued: true
     range: AnyHttpUrl
-  media_type:
+  dcat_media_type:
     description: The media type of the distribution as defined by IANA.
     slot_uri: dcat:mediaType
     annotations:
@@ -224,7 +224,7 @@ slots:
     required: false
     multivalued: false
     range: AnyHttpUrl
-  modification_date:
+  dct_modification_date:
     description: Date on which the resource was changed.
     slot_uri: dct:modified
     annotations:
@@ -237,7 +237,7 @@ slots:
     - range: date
     - range: AwareDatetime
     - range: NaiveDatetime
-  packaging_format:
+  dcat_packaging_format:
     description: The package format of the distribution in which one or more data
       files are grouped together, e.g., to enable a set of related files to be downloaded
       together.
@@ -248,7 +248,7 @@ slots:
     required: false
     multivalued: false
     range: AnyHttpUrl
-  release_date:
+  dct_release_date:
     description: Date of formal issuance of the resource.
     slot_uri: dct:issued
     annotations:
@@ -261,7 +261,7 @@ slots:
     - range: date
     - range: AwareDatetime
     - range: NaiveDatetime
-  retention_period:
+  healthdcatap_retention_period:
     description: A temporal period which the dataset is available for secondary use.
     slot_uri: healthdcatap:retentionperiod
     annotations:
@@ -272,7 +272,7 @@ slots:
     any_of:
     - range: AnyHttpUrl
     - range: PeriodOfTime
-  rights:
+  dct_rights:
     description: Information about rights held in and over the resource.
     slot_uri: dct:rights
     annotations:
@@ -281,7 +281,7 @@ slots:
     required: true
     multivalued: false
     range: AnyHttpUrl
-  status:
+  adms_status:
     description: The status of the Asset in the context of a particular workflow process.
     slot_uri: adms:status
     annotations:
@@ -292,7 +292,7 @@ slots:
     any_of:
     - range: AnyHttpUrl
     - range: DistributionStatus
-  temporal_resolution:
+  dcat_temporal_resolution:
     description: Minimum time period resolvable in the dataset.
     slot_uri: dcat:temporalResolution
     annotations:
@@ -303,7 +303,7 @@ slots:
     any_of:
     - range: str
     - range: LiteralField
-  title:
+  dct_title:
     description: A name given to the resource.
     slot_uri: dct:title
     annotations:

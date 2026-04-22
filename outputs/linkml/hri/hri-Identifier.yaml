@@ -50,11 +50,11 @@ classes:
       namespace: HRI
       prefix: hri
     slots:
-    - notation
-    - schema_agency
+    - skos_notation
+    - adms_schema_agency
     is_a: RDFModel
 slots:
-  notation:
+  skos_notation:
     description: 'A string that is an identifier in the context of the identifier
       scheme referenced by its datatype. '
     slot_uri: skos:notation
@@ -66,7 +66,7 @@ slots:
     any_of:
     - range: str
     - range: LiteralField
-  schema_agency:
+  adms_schema_agency:
     description: The name of the agency that issued the identifier.
     slot_uri: adms:schemaAgency
     annotations:
