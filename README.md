@@ -22,9 +22,12 @@ UV is a fast, modern Python package manager. Install the CLI globally in an isol
 # Install uv (if not installed already)
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
+# Install Python 3.13 (required: pydantic-core does not yet build on 3.14)
+uv python install 3.13
+
 # Install metadata-automation CLI
 cd /path/to/metadata-automation
-uv tool install . # add --editable argument if editable mode is wanted
+uv tool install . --python 3.13  # add --editable argument if editable mode is wanted
 ```
 
 After installation, the CLI is available globally:
@@ -38,9 +41,9 @@ metadata-automation --help
 Use Python's built-in virtual environment with pip:
 
 ```bash
-# Create a virtual environment
+# Create a virtual environment (Python 3.13 required; pydantic-core does not yet build on 3.14)
 cd /path/to/metadata-automation
-python3 -m venv .venv
+python3.13 -m venv .venv
 
 # Activate the virtual environment
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
@@ -48,6 +51,10 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 # Install the package
 pip install -e .
 ```
+
+The inheritance inspector resolves external SeMPyRO parent classes from the
+installed `sempyro` package. Installing the project from `pyproject.toml` or
+`requirements.txt` will install the pinned `sempyro` dependency automatically.
 
 After installation, the CLI is available in the activated virtual environment:
 ```bash
@@ -234,6 +241,62 @@ This can be done in `./inputs/sempyro/imports.yaml`. The imports are automatical
 Python files are generated in `./outputs/sempyro_classes/{namespace}/` and automatically formatted with ruff.
 LinkML schemas are generated in `./outputs/linkml/{namespace}/`.
 
+### `inspect_inheritance`: Analyzing SeMPyRO Class Inheritance Overlap
+
+```bash
+metadata-automation inspect-inheritance -i ./outputs/sempyro_classes/hri/ [-o report.txt]
+```
+
+#### Command Options
+
+- `-i, --input-dir`: Directory containing generated SeMPyRO Python class files (required)
+- `-o, --output-file`: Optional path to write the report to a text file
+
+#### Description
+
+This command analyzes generated SeMPyRO Pydantic classes to identify properties that are redefined in subclasses but already exist in ancestor classes. This is useful for cleaning up generated code by removing redundant property definitions that are already inherited.
+
+The inspector:
+- Parses each generated class file using AST (Abstract Syntax Tree) — no imports are executed
+- Walks the full ancestor chain to find where each overlapping field originates
+- Compares field metadata (`description`, `rdf_term`, `rdf_type`) between child and parent
+- Reports whether overlapping fields are identical or differ (and how they differ)
+- Works without requiring the `sempyro` package to be installed
+
+#### Outputs
+
+The report is printed to stdout in a human-readable format. Example output:
+
+```
+================================================================================
+HRIDataset  (inherits from: DCATDataset → DCATResource → RDFModel)
+
+Overlapping properties: 12 of 47 direct fields are also defined in an ancestor class
+
+  dct_title
+    found in    : DCATDataset  (1 level up)
+    description : SAME    → A name given to the resource.
+    rdf_term    : SAME    → DCTERMS.title
+    rdf_type    : SAME    → rdfs_literal
+    [IDENTICAL – can be removed]
+
+  dcat_contact_point
+    found in    : DCATResource  (2 levels up)
+    rdf_type    : DIFFERENT
+                   child  : uri
+                  parent : rdfs_literal
+    [DIFFERS – review before removing]
+
+  Summary: 8 identical, 4 different
+```
+
+**Notes:**
+- **IDENTICAL**: The field definition is identical in both child and parent. It can safely be removed from the subclass.
+- **DIFFERS**: The field exists in both but with different metadata. Review before removing to ensure the child definition is not intentionally specialized.
+- **found in**: Shows which ancestor class originally defines the field and how many inheritance levels up it is (1 = direct parent, 2 = grandparent, etc.)
+
+When using `--output-file`, the same report is also written to the specified file.
+
 ## Testing
 
 The repository includes comprehensive integration and unit tests for all CLI commands and utility modules. Tests use pre-generated input files in `tests/test_input/` and compare outputs against expected results in `tests/test_expected/` to ensure regression testing.
@@ -247,6 +310,7 @@ Run specific test files:
 ```bash
 uv run pytest tests/test_cli_shaclplay.py -v
 uv run pytest tests/test_cli_sempyro.py -v
+uv run pytest tests/test_cli_inheritance_inspector.py -v
 ```
 
 **Note:** SHACL Turtle generation tests require Java to be installed.
@@ -273,8 +337,5 @@ uv run pytest tests/test_cli_sempyro.py -v
 
 ## Future work
 
-### SeMPyro inheritance
-The generated SeMPyRO classes currently present all properties that are defined in the Excel file, 
-without dealing with inheritance from superclasses. The properties of the newly generated classes should be removed 
-if they already exist in a superclass, given that they have identical names and behaviour.
+(None currently planned.)
 
