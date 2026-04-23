@@ -1,13 +1,18 @@
 """Inspect inheritance overlap in generated SeMPyRO Pydantic classes.
 
-Parses Python source files statically via AST — no imports are executed.
-This means the tool works even when the dependencies of the generated files
-(e.g. the ``sempyro`` package) are not installed in the current environment.
+Parses Python source files statically via AST and compares field metadata
+without importing the analyzed class files.
 
 Ancestor classes are resolved by:
-1. Searching ``search_dirs`` (files in the same directory by default).
-2. Falling back to locating the source file via ``importlib.util.find_spec``
-   when the package containing the ancestor is installed.
+1. Searching search_dirs (the target file directory by default).
+2. Falling back to importlib.util.find_spec for installed packages, then
+   reading/parsing located source files with AST.
+
+Notes:
+- find_spec may import parent packages during module resolution.
+- If dependency packages (for example sempyro) are not installed, inspection
+  still works for classes whose ancestor source is available locally.
+- External ancestors may be reported as [source unavailable] when not resolvable.
 """
 
 import ast
@@ -184,15 +189,15 @@ def _find_in_dirs(class_name: str, search_dirs: list[Path]) -> ClassInfo | None:
 
 
 def _find_in_package(class_name: str, module_path: str) -> ClassInfo | None:
-    """Locate a class's source file via ``importlib`` and parse it with AST.
+    """Locate a class source file via importlib and parse it with AST.
 
-    When *module_path* resolves to a package ``__init__.py`` (i.e. the class
-    is re-exported from the package rather than defined there), all ``.py``
-    files under the package directory are scanned until the class definition
-    is found.
+    When module_path resolves to a package __init__.py (class re-exported from
+    package), all .py files under that package directory are scanned until the
+    class definition is found.
 
-    This does **not** execute the module; it only finds the file on disk.
-    Returns ``None`` if the package is not installed or the file cannot be read.
+    No analyzed class module is imported or executed directly; this function uses
+    find_spec for discovery and parses source text from disk.
+    Returns None if the package cannot be resolved or source cannot be read.
     """
     try:
         spec = importlib.util.find_spec(module_path)
@@ -316,8 +321,8 @@ def inspect_file(
 ) -> dict[str, Any]:
     """Inspect a generated SeMPyRO file for fields that overlap with ancestors.
 
-    Parses the file with AST (no import/execution), then walks the ancestor
-    chain by resolving each parent class's source file in turn.
+    Parses the file with AST (no direct import/execution of the analyzed file),
+    then follows the primary base-class chain by resolving each parent source file.
 
     Args:
         file_path: Path to a generated ``.py`` SeMPyRO file.
