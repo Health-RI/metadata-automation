@@ -22,7 +22,8 @@ UV is a fast, modern Python package manager. Install the CLI globally in an isol
 # Install uv (if not installed already)
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Install Python 3.13 (required: pydantic-core does not yet build on 3.14)
+# Install a supported Python version (3.13 shown as an example)
+# Tested with Python 3.10-3.13; 3.14+ is currently blocked by older pydantic-core version used by SeMPyRo.
 uv python install 3.13
 
 # Install metadata-automation CLI
@@ -41,7 +42,8 @@ metadata-automation --help
 Use Python's built-in virtual environment with pip:
 
 ```bash
-# Create a virtual environment (Python 3.13 required; pydantic-core does not yet build on 3.14)
+# Create a virtual environment (3.13 shown as an example)
+# Tested with Python 3.10-3.13; 3.14+ is currently blocked by older pydantic-core version used by SeMPyRo.
 cd /path/to/metadata-automation
 python3.13 -m venv .venv
 
