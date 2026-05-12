@@ -3,7 +3,7 @@ name = "metadata-automation"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.10,<3.14"
 dependencies = [
     "black==25.1.0",
     "click==8.3.1",
@@ -11,6 +11,7 @@ dependencies = [
     "linkml-runtime==1.9.3",
     "pandas==2.3.1",
     "ruff>=0.14.11",
+    "sempyro==2.2.0",
 ]
 
 [dependency-groups]
@@ -24,8 +25,8 @@ dev = [
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-packages = ["metadata_automation"]
+[tool.setuptools.packages.find]
+include = ["metadata_automation*"]
 
 [tool.ruff]
 line-length = 120
