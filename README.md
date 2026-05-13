@@ -14,6 +14,8 @@ This repository contains a pipeline for generating metadata-related artifacts, s
 
 ## Installation
 
+Dependencies are managed via `pyproject.toml` (and `uv.lock` when using uv).
+
 ### Option 1: Using UV (Recommended)
 
 UV is a fast, modern Python package manager. Install the CLI globally in an isolated environment:
