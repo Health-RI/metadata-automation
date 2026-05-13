@@ -5,7 +5,6 @@ from pydantic import ConfigDict, Field
 from rdflib.namespace import DCTERMS
 from sempyro import LiteralField, RDFModel
 
-
 metamodel_version = "1.7.0"
 version = "None"
 
