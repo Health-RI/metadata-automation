@@ -8,7 +8,6 @@ dependencies = [
     "black==25.1.0",
     "click>=8.0.0",
     "linkml==1.10.0",
-    "linkml-runtime==1.10.0",
     "pandas==2.3.3",
     "ruff>=0.14.11",
 ]
