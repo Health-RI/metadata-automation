@@ -7,7 +7,7 @@ requires-python = ">=3.10"
 dependencies = [
     "black==26.3.1",
     "click>=8.0.0",
-    "linkml==1.10.0",
+    "linkml==1.11.0",
     "pandas==2.3.3",
     "ruff>=0.14.11",
 ]
