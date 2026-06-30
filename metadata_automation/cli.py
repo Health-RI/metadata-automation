@@ -15,6 +15,7 @@ import pandas as pd
 
 from metadata_automation.linkml.creator import LinkMLCreator
 from metadata_automation.sempyro.cleanup import remove_unwanted_classes
+from metadata_automation.sempyro.inheritance_inspector import format_report, inspect_file
 from metadata_automation.sempyro.utils import generate_from_linkml, load_yaml
 from metadata_automation.shaclplay.converter import SHACLPlayConverter
 from metadata_automation.shaclplay.utils import write_shaclplay_excel
@@ -639,6 +640,75 @@ def sempyro(
         click.echo(f"Error: {e}", err=True)
         if click.get_current_context().obj:
             traceback.print_exc()
+        exit(1)
+
+
+@main.command()
+@click.option(
+    "-i",
+    "--input-dir",
+    type=click.Path(exists=True, file_okay=False),
+    required=True,
+    help="Directory containing generated SeMPyRO Python class files.",
+)
+@click.option(
+    "-o",
+    "--output-file",
+    type=click.Path(),
+    default=None,
+    help="Optional path to write the report to a file.",
+)
+def inspect_inheritance(
+    input_dir: str,
+    output_file: str | None,
+) -> None:
+    """Inspect inheritance overlap in generated SeMPyRO classes.
+
+    Loads every generated SeMPyRO ``.py`` file in INPUT_DIR, walks the full
+    MRO ancestor chain, and reports which fields in each subclass are already
+    defined in an ancestor.  Useful for identifying properties that can be
+    removed because they are already inherited.
+
+    \b
+    For each overlapping field the report shows:
+    - Which ancestor class defines it (and how many levels up)
+    - Whether description, rdf_term, and rdf_type are identical or differ
+    - A verdict: [IDENTICAL – can be removed] or [DIFFERS – review before removing]
+    """
+    try:
+        input_path = Path(input_dir)
+        py_files = sorted(f for f in input_path.glob("*.py") if f.name != "__init__.py")
+
+        click.echo("=" * 80)
+        click.echo("Inheritance Inspector")
+        click.echo("=" * 80)
+        click.echo()
+
+        if not py_files:
+            click.echo(f"No Python class files found in {input_path}", err=True)
+            exit(1)
+
+        click.echo(f"Found {len(py_files)} class file(s) in {input_path}")
+        click.echo()
+
+        results = []
+        for py_file in py_files:
+            click.echo(f"  Inspecting {py_file.name}...")
+            results.append(inspect_file(py_file))
+
+        click.echo()
+        report = format_report(results)
+        click.echo(report)
+
+        if output_file:
+            output_path = Path(output_file)
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            output_path.write_text(report, encoding="utf-8")
+            click.echo(f"Report written to {output_path}")
+
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        traceback.print_exc()
         exit(1)
 
 
