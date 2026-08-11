@@ -1,0 +1,51 @@
+{%- if element.title %}
+    {%- set title = element.title ~ ' (' ~ element.name ~ ')' -%}
+{%- else %}
+    {%- if gen.use_class_uris -%}
+        {%- set title = element.name -%}
+    {%- else -%}
+        {%- set title = gen.name(element) -%}
+    {%- endif -%}
+{%- endif -%}
+
+{% macro compute_range(slot) -%}
+    {%- if slot.any_of or slot.exactly_one_of -%}
+        {%- for subslot_range in schemaview.slot_range_as_union(slot) -%}
+            {{ gen.link(subslot_range) }}
+            {%- if not loop.last -%}
+                &nbsp;or&nbsp;<br />
+            {%- endif -%}
+        {%- endfor -%}
+    {%- else -%}
+        {{ gen.link(slot.range) }}
+    {%- endif -%}
+{% endmacro %}
+
+# Class: {{ title }} {% if element.deprecated %} <span style="color: red;"><strong> (DEPRECATED) </strong></span> {% endif %}
+
+{%- if header -%}
+{{ header }}
+{%- endif -%}
+
+{% if element.description %}
+{% set element_description_lines = element.description.split('\n') %}
+{% for element_description_line in element_description_lines %}
+_{{ element_description_line }}_
+{% endfor %}
+{% endif %}
+
+{% if element.abstract %}
+* __NOTE__: this is an abstract class and should not be instantiated directly
+{% endif %}
+
+URI: {{ gen.uri_link(element) }}
+
+## Slots
+
+| Name | Cardinality and Range | Description | Inheritance |
+| ---  | --- | --- | --- |
+{% if gen.get_direct_slots(element)|length > 0 %}
+{%- for slot in gen.get_direct_slots(element) -%}
+| {{ gen.link(slot) }} | {{ gen.cardinality(slot) }} <br/> {{ compute_range(slot) }} | {{ slot.description|enshorten }} | direct |
+{% endfor -%}
+{% endif -%}
