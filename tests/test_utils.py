@@ -130,7 +130,6 @@ def test_linkml_creator_build_and_write(tmp_path: Path):
             "SeMPyRO_inherits_from": "nan",
             "description": "Test class",
             "SeMPyRO_import_classes": "hri:Other",
-            "SeMPyRO_add_rdf_model": "yes",
             "SeMPyRO_annotations_ontology": "http://example.com/ontology",
             "SeMPyRO_annotations_IRI": "http://example.com/TestClass",
         }
