@@ -104,6 +104,7 @@ metadata-automation shaclplay -i ./inputs/source_excel.xlsx -o ./outputs/shaclpl
 - `-i, --input-excel`: Path to source metadata Excel file (required)
 - `-o, --output-path`: Output directory for SHACLPlay Excel files (default: `./outputs/shaclplay/default`)
 - `-n, --namespace`: Namespace prefix to override all class and property namespaces (optional)
+- `-t, --template`: Path to the SHACLPlay template Excel file (default: `./inputs/shacls/shaclplay-template.xlsx` in the repository root)
 
 #### Description
 
@@ -144,7 +145,7 @@ Additional vocabulary mappings can be added by extending the `VOCAB_MAPPINGS` di
 
 **Template:**\
 For the generation of SHACLPlay Excel files, an empty template file is needed. In this repository there is one in 
-`./inputs/shacls/shaclplay-template.xlsx`.
+`./inputs/shacls/shaclplay-template.xlsx`, which is used by default. Use `-t, --template` to point to another one.
 
 #### Outputs
 

@@ -47,6 +47,47 @@ class TestShaclplayCLI:
         expected_file = Path(__file__).resolve().parent / "test_expected" / "default" / "SHACL-testclass.xlsx"
         self._assert_excel_matches(output_file, expected_file)
 
+    def test_shaclplay_explicit_template(self, runner, test_excel, template_file, tmp_path):
+        """Test that an explicitly passed template yields the same output as the default."""
+        output_dir = tmp_path / "output"
+
+        result = runner.invoke(
+            shaclplay,
+            [
+                "--input-excel",
+                str(test_excel),
+                "--output-path",
+                str(output_dir),
+                "--template",
+                str(template_file),
+            ],
+        )
+
+        assert result.exit_code == 0
+
+        output_file = output_dir / "SHACL-testclass.xlsx"
+        assert output_file.exists()
+
+        expected_file = Path(__file__).resolve().parent / "test_expected" / "default" / "SHACL-testclass.xlsx"
+        self._assert_excel_matches(output_file, expected_file)
+
+    def test_shaclplay_missing_template(self, runner, test_excel, tmp_path):
+        """Test error handling for a template path that does not exist."""
+        result = runner.invoke(
+            shaclplay,
+            [
+                "--input-excel",
+                str(test_excel),
+                "--output-path",
+                str(tmp_path / "output"),
+                "--template",
+                str(tmp_path / "nonexistent-template.xlsx"),
+            ],
+        )
+
+        assert result.exit_code != 0
+        assert "template not found" in result.output
+
     def test_shaclplay_missing_excel(self, runner, tmp_path):
         """Test error handling for missing input file."""
         result = runner.invoke(shaclplay, ["--input-excel", "nonexistent.xlsx", "--output-path", str(tmp_path)])
