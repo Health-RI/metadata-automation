@@ -193,7 +193,7 @@ class LinkMLCreator:
                     "rdf_term": slot_row["SeMPyRO_rdf_term"],
                     "rdf_type": slot_row["SeMPyRO_rdf_type"],
                 },
-                "required": (str(slot_row["Cardinality"]) == "1" or str(slot_row["Cardinality"]) == "1..n"),
+                "required": str(slot_row["Cardinality"]) in ("1", "1..1", "1..n"),
                 "multivalued": (str(slot_row["Cardinality"]) == "0..n" or str(slot_row["Cardinality"]) == "1..n"),
             }
 
