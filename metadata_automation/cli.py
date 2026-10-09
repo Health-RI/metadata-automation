@@ -53,10 +53,19 @@ def main() -> None:
     default=None,
     help="Namespace prefix to override all class and property namespaces.",
 )
+@click.option(
+    "-t",
+    "--template",
+    type=click.Path(),
+    default=None,
+    help="Path to the SHACLPlay template Excel file "
+    "(default: ./inputs/shacls/shaclplay-template.xlsx in the repository root).",
+)
 def shaclplay(
     input_excel: str,
     output_path: str,
     namespace: str,
+    template: str | None,
 ) -> None:
     """
     Generate SHACLPlay Excel files from metadata.
@@ -72,7 +81,10 @@ def shaclplay(
     """
     try:
         excel_path = Path(input_excel)
-        template_p = Path(__file__).parent.parent.resolve() / "inputs/shacls/shaclplay-template.xlsx"
+        if template is not None:
+            template_p = Path(template)
+        else:
+            template_p = Path(__file__).parent.parent.resolve() / "inputs/shacls/shaclplay-template.xlsx"
         output_dir = Path(output_path)
 
         click.echo("=" * 80)
