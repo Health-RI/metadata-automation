@@ -159,6 +159,46 @@ def test_linkml_creator_slot_name_fallback_without_prefixed_uri(tmp_path: Path):
     assert creator._create_slot_name("Access Rights", "https://example.com/accessRights") == "access_rights"
 
 
+@pytest.mark.parametrize("cardinality", ["1", "1..1"])
+def test_linkml_creator_exactly_one_is_required(tmp_path: Path, cardinality: str):
+    creator = LinkMLCreator(tmp_path)
+    creator.prefixes = {"hri": "http://example.com/"}
+    creator.filtered_sheets = {
+        "TestSheet": pd.DataFrame(
+            [
+                {
+                    "Property label": "title",
+                    "Definition": "Title",
+                    "Property URI": "dct:title",
+                    "SeMPyRO_rdf_term": "DCTERMS.title",
+                    "SeMPyRO_rdf_type": "rdfs_literal",
+                    "Cardinality": cardinality,
+                    "SeMPyRO_range": "str",
+                }
+            ]
+        )
+    }
+    row = pd.Series(
+        {
+            "sheet_name": "TestSheet",
+            "class_URI": "hri:TestClass",
+            "SeMPyRO_inherits_from": "nan",
+            "description": "Test class",
+            "SeMPyRO_import_classes": "hri:Other",
+            "SeMPyRO_add_rdf_model": "no",
+            "SeMPyRO_annotations_ontology": "http://example.com/ontology",
+            "SeMPyRO_annotations_IRI": "http://example.com/TestClass",
+        }
+    )
+
+    creator.build_base_class(row)
+    creator.build_sempyro_class(row)
+
+    slot_data = creator.linkml_data["http://example.com/TestClass"]["data"]["slots"]["dct_title"]
+    assert slot_data["required"] is True
+    assert slot_data["multivalued"] is False
+
+
 def test_slugify_property_label():
     assert slugify_property_label("Access Rights!") == "access-rights"
     assert slugify_property_label("Title") == "title"
@@ -166,6 +206,7 @@ def test_slugify_property_label():
 
 def test_parse_cardinality():
     assert parse_cardinality("1") == (1, 1)
+    assert parse_cardinality("1..1") == (1, 1)
     assert parse_cardinality("0..n") == (None, None)
     assert parse_cardinality("1..n") == (1, None)
     assert parse_cardinality("0..1") == (None, 1)
@@ -229,6 +270,12 @@ def test_shaclplay_converter_branches(template_file: Path, test_input_dir: Path)
         "SHACL_dash:viewer": "dash:TextFieldViewer",
         "SHACL_dash:editor": "dash:TextFieldEditor",
     }
+
+    for cardinality in ("1", "1..1"):
+        row = pd.Series({**base_row, "Cardinality": cardinality, "Range": "rdfs:Literal"})
+        out = converter._convert_property_to_shaclplay(row, "TestClass", "hri:TestClass", "hri")
+        assert out[6] == 1  # sh:minCount
+        assert out[7] == 1  # sh:maxCount
 
     row_iri = pd.Series({**base_row, "Range": "dcat:Dataset (IRI)"})
     iri_out = converter._convert_property_to_shaclplay(row_iri, "TestClass", "hri:TestClass", "hri")
