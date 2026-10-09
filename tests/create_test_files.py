@@ -32,7 +32,6 @@ classes_df = pd.DataFrame(
         "description": ["A test class"],
         "SeMPyRO_annotations_ontology": ["http://example.com/ontology"],
         "SeMPyRO_annotations_IRI": ["http://example.com/TestClass"],
-        "SeMPyRO_add_rdf_model": ["TRUE"],
     }
 )
 
@@ -87,7 +86,6 @@ multi_classes_df = pd.DataFrame(
         "description": ["Class A", "Class B"],
         "SeMPyRO_annotations_ontology": ["http://example.com/ontology", "http://example.com/ontology"],
         "SeMPyRO_annotations_IRI": ["http://example.com/ClassA", "http://example.com/ClassB"],
-        "SeMPyRO_add_rdf_model": ["TRUE", "TRUE"],
     }
 )
 

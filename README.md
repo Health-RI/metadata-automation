@@ -213,10 +213,9 @@ The Pydantic generation uses adapted Jinja templates located in `./metadata_auto
 In the Excel file, besides the general columns, information is needed in the following columns:
 - `classes` sheet:
   - `class_URI`: Name of the class with the corresponding namespace, formatted `{namespace}:{class_name}`, e.g., `hri:Dataset`.
-  - `SeMPyRO_inherits_from`: Class from which this class inherits from. 
+  - `SeMPyRO_inherits_from`: Class from which this class inherits from. If left empty, the class inherits from the `RDFModel` class.
   - `SeMPyRO_annotations_ontology`: URL of the ontology.
   - `SeMPyRO_annotations_IRI`: IRI to the class. This can be a URL or link to a Python variable. 
-  - `SeMPyRO_add_rdf_model`: If this model does not inherit from another class, it should inherit the `RDFModel` class. In that case, mark this row as `TRUE`.
 - Sheet per class:
   - `SeMPyRO_range`: Comma separated list of the types in the range of this property. 
 
