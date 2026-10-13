@@ -36,13 +36,14 @@ def parse_cardinality(cardinality: str) -> Tuple[Optional[int], Optional[int]]:
         cardinality: Cardinality string (e.g., "1", "0..n", "1..n")
 
     Returns:
-        Tuple of (min_count, max_count). max_count is None for unbounded.
+        Tuple of (min_count, max_count). min_count is None for a minimum of 0
+        (no sh:minCount); max_count is None for unbounded.
 
     Examples:
         "1" -> (1, 1)
-        "0..n" -> (0, None)
+        "0..n" -> (None, None)
         "1..n" -> (1, None)
-        "0..1" -> (0, 1)
+        "0..1" -> (None, 1)
     """
     if not cardinality or str(cardinality) == "nan":
         return (None, None)
