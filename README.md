@@ -93,6 +93,44 @@ In the Excel file there are three types of sheets:
   - `Range`: Data type of the property
   - `Cardinality`: Cardinality of the property, e.g., `1..n`.
 
+### `prepare-excel`: Preparing a plain metadata Excel
+
+```bash
+metadata-automation prepare-excel -i ./inputs/plain_model.xlsx -o ./outputs/prepared/model_prepared.xlsx
+```
+
+#### Command Options
+
+- `-i, --input-excel`: Path to the plain metadata Excel file (required). It is never modified.
+- `-o, --output-excel`: Path for the prepared Excel (default: `./outputs/prepared/{input}_prepared.xlsx`)
+- `-n, --namespace`: Namespace prefix used to derive `class_URI` (default: `hri`)
+
+#### Description
+
+Adds what `shaclplay` and `sempyro` need on top of a plain model Excel, using only information in the Excel itself.
+Existing values are never overwritten, so the command can be re-run on its own output.
+
+- Every sheet except `Info`, `User Guide`, `prefixes` and `classes` is a class sheet.
+- Adds the `prefixes`, `classes` and `Resource` sheets if missing, a `classes` row per class sheet, and all `SHACL_*` and `SeMPyRO_*` columns.
+- Adds every prefix used in the workbook to `prefixes`; unknown namespaces are left empty.
+- Derives `class_URI` as `{namespace}:{local name of SHACL_target_ontology_name}`.
+- Applies the range rules once every class has a `SHACL_target_ontology_name`:
+  - A range that is the target of a class with `SHACL_independent_class` `TRUE` (a class that exists on its own in the FDP) gets `(IRI)` appended and a non-required cardinality, e.g. `1..n` → `0..n`.
+  - A range that is the target of a class with `SHACL_independent_class` `FALSE` gets its shape in `SHACL_sh:node`, e.g. `hri:AgentShape`.
+  - Any other range outside the `xsd` and `rdfs` namespaces gets `(IRI)` appended.
+
+It then prints a report with:
+- the changes made;
+- issues, e.g. an independent class without a `dct:title` property, or a dependent class referenced as `(IRI)`;
+- a prefix check: used prefixes without a namespace, duplicate or aliased prefixes, case variants, full IRIs that could be CURIEs, and values with no prefix or stray whitespace in `Property URI` and `Range`;
+- every sheet, column and row that still has to be filled in by hand, plus a summary of empty optional columns.
+
+**Workflow:**
+1. Run `prepare-excel` on the plain Excel.
+2. Fill in `SHACL_target_ontology_name` and `SHACL_independent_class` in the `classes` sheet.
+3. Run `prepare-excel` on the prepared Excel to apply the range rules.
+4. Fill in the remaining reported cells, then run `shaclplay` and `sempyro`.
+
 ### `shaclplay`: Generating SHACLPlay Excel files
 
 ```bash
