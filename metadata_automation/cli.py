@@ -13,6 +13,7 @@ from pathlib import Path
 import click
 import pandas as pd
 
+from metadata_automation.excel_prep.preparer import prepare_workbook
 from metadata_automation.linkml.creator import LinkMLCreator
 from metadata_automation.sempyro.cleanup import remove_unwanted_classes
 from metadata_automation.sempyro.inheritance_inspector import format_report, inspect_file
@@ -641,6 +642,47 @@ def sempyro(
         if click.get_current_context().obj:
             traceback.print_exc()
         exit(1)
+
+
+@main.command()
+@click.option(
+    "-i",
+    "--input-excel",
+    type=click.Path(exists=True, dir_okay=False),
+    required=True,
+    help="Path to the plain metadata Excel file. It is not modified.",
+)
+@click.option(
+    "-o",
+    "--output-excel",
+    type=click.Path(dir_okay=False),
+    default=None,
+    help="Path for the prepared Excel (default: ./outputs/prepared/<input>_prepared.xlsx).",
+)
+@click.option(
+    "-n",
+    "--namespace",
+    type=str,
+    default="hri",
+    help="Namespace prefix used to derive class_URI values.",
+)
+def prepare_excel(input_excel: str, output_excel: str | None, namespace: str) -> None:
+    """Prepare a plain metadata Excel for the shaclplay and sempyro commands.
+
+    \b
+    Adds the prefixes, classes and Resource sheets and the SHACL_* and
+    SeMPyRO_* columns, applies the range rules, checks prefix consistency,
+    and prints the cells that still have to be filled in by hand.
+    """
+    input_path = Path(input_excel)
+    output_path = Path(output_excel or f"./outputs/prepared/{input_path.stem}_prepared.xlsx")
+    try:
+        report = prepare_workbook(input_path, output_path, namespace)
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        exit(1)
+    click.echo(report.format())
+    click.echo(f"Prepared Excel written to {output_path}")
 
 
 @main.command()
