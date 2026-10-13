@@ -4,6 +4,8 @@ import hashlib
 
 import pytest
 from openpyxl import Workbook, load_workbook
+from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl.utils import get_column_letter
 
 from metadata_automation.cli import prepare_excel, sempyro, shaclplay
 from metadata_automation.excel_prep.prefix_check import check_prefixes
@@ -118,6 +120,27 @@ class TestFirstPass:
         _, wb = prepared
         for name in class_sheet_names(wb):
             assert set(CLASS_SHEET_COLUMNS) <= set(headers(wb[name]))
+
+    def test_added_columns_copy_first_column_format(self, plain_small, tmp_path):
+        styled = tmp_path / "styled.xlsx"
+        wb = load_workbook(plain_small)
+        ws = wb["Dataset"]
+        ws["A1"].fill = PatternFill("solid", fgColor="FFC000")
+        ws["A1"].font = Font(bold=True, color="FF0000")
+        ws["A2"].alignment = Alignment(wrap_text=True)
+        ws.column_dimensions["A"].width = 31
+        wb.save(styled)
+
+        out = tmp_path / "prepared.xlsx"
+        prepare_workbook(styled, out)
+        ws = load_workbook(out)["Dataset"]
+        for name in CLASS_SHEET_COLUMNS:
+            col = headers(ws)[name]
+            header, data = ws.cell(row=1, column=col), ws.cell(row=2, column=col)
+            assert header.fill.fgColor.rgb == "00FFC000"
+            assert header.font.b and header.font.color.rgb == "00FF0000"
+            assert data.alignment.wrap_text
+            assert ws.column_dimensions[get_column_letter(col)].width == 31
 
     def test_prefixes_sheet_lists_used_prefixes_without_namespace(self, prepared):
         report, wb = prepared

@@ -18,6 +18,7 @@ from metadata_automation.excel_prep.report import Cell, Report
 from metadata_automation.excel_prep.workbook import (
     NON_CLASS_SHEETS,
     class_sheet_names,
+    copy_column_format,
     curie_prefix,
     data_rows,
     ensure_columns,
@@ -197,6 +198,8 @@ def _prepare_class_sheet(ws: Worksheet, model: dict[str, ModelClass] | None, rep
     """Add pipeline columns and, when ``model`` is given, apply the range rules."""
     cols, added = ensure_columns(ws, CLASS_SHEET_COLUMNS)
     if added:
+        for name in added:
+            copy_column_format(ws, 1, cols[name])
         report.change(ws.title, None, None, f"added columns {', '.join(added)}")
     if model is None:
         return
