@@ -205,6 +205,7 @@ plain_sheets = {
         ("publisher", "Publisher", "dct:publisher", "", "", "foaf:Agent", "1"),
         ("license", "License", "dct:license", "", "", "dct:LicenseDocument", "0..1"),
         ("modification date", "Last modified", "dct:modified", "", "", "xsd:dateTime", "0..1"),
+        ("description", "Catalog description", "dct:description", "", "", "rdfs:Literal", "0..n"),
     ],
     "Dataset": [
         ("title", "Dataset title", "dct:title", "", "", "rdfs:Literal", "1..n"),

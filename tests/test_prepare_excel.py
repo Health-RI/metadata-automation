@@ -15,7 +15,7 @@ from metadata_automation.excel_prep.preparer import (
     prepare_workbook,
     relax_cardinality,
 )
-from metadata_automation.excel_prep.report import compress_rows
+from metadata_automation.excel_prep.report import Cell, compress_rows
 from metadata_automation.excel_prep.workbook import class_sheet_names, data_rows, headers, property_rows, text
 
 # Answers a modeler gives after the first pass: target class and whether it is independent.
@@ -34,6 +34,7 @@ NAMESPACES = {
     "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
     "xsd": "http://www.w3.org/2001/XMLSchema#",
     "skos": "http://www.w3.org/2004/02/skos/core#",
+    "dash": "http://datashapes.org/dash#",
 }
 RDF_NAMESPACES = {"dct": "DCTERMS", "dcat": "DCAT", "foaf": "FOAF"}
 
@@ -211,6 +212,23 @@ class TestSecondPass:
         ws = wb[sheet]
         assert cell(ws, find_row(ws, "Property URI", uri), "Range") == expected
 
+    @pytest.mark.parametrize(
+        "uri, viewer, editor",
+        [
+            ("dcat:dataset", "dash:URIViewer", "dash:URIEditor"),
+            ("dct:publisher", "dash:DetailsViewer", "dash:BlankNodeEditor"),
+            ("dct:modified", "dash:LiteralViewer", "dash:DateTimePickerEditor"),
+            ("dct:description", "dash:LiteralViewer", "dash:TextAreaEditor"),
+            ("dct:title", "dash:LiteralViewer", "dash:TextFieldEditor"),
+        ],
+    )
+    def test_empty_dash_cells_are_filled(self, second_pass, uri, viewer, editor):
+        _, wb, _ = second_pass
+        ws = wb["Catalog"]
+        row = find_row(ws, "Property URI", uri)
+        assert cell(ws, row, "SHACL_dash:viewer") == viewer
+        assert cell(ws, row, "SHACL_dash:editor") == editor
+
     def test_is_idempotent(self, second_pass, tmp_path):
         _, _, path = second_pass
         report = prepare_workbook(path, tmp_path / "third.xlsx")
@@ -233,6 +251,33 @@ class TestIssues:
 
         report = prepare_workbook(first, tmp_path / "second.xlsx")
         assert any(f.cell.sheet == "Catalog" and "dependent class" in f.message for f in report.issues)
+
+    def test_differing_dash_value_is_reported_not_overwritten(self, plain_small, tmp_path):
+        first = tmp_path / "first.xlsx"
+        prepare_workbook(plain_small, first)
+        answer_classes(first)
+        wb = load_workbook(first)
+        ws = wb["Catalog"]
+        row = find_row(ws, "Property URI", "dct:publisher")
+        set_cell(ws, row, "SHACL_dash:viewer", "dash:URIViewer")
+        wb.save(first)
+
+        second = tmp_path / "second.xlsx"
+        report = prepare_workbook(first, second)
+        assert any(
+            f.cell == Cell("Catalog", row, "SHACL_dash:viewer")
+            and f.message == "expected 'dash:DetailsViewer', found 'dash:URIViewer'"
+            for f in report.issues
+        )
+        ws = load_workbook(second)["Catalog"]
+        assert cell(ws, row, "SHACL_dash:viewer") == "dash:URIViewer"
+        assert cell(ws, row, "SHACL_dash:editor") == "dash:BlankNodeEditor"
+
+    def test_no_dash_values_before_targets_are_known(self, plain_small, tmp_path):
+        out = tmp_path / "first.xlsx"
+        prepare_workbook(plain_small, out)
+        ws = load_workbook(out)["Catalog"]
+        assert not cell(ws, find_row(ws, "Property URI", "dct:title"), "SHACL_dash:viewer")
 
     def test_independent_class_without_title_is_reported(self, plain_small, tmp_path):
         first = tmp_path / "first.xlsx"
