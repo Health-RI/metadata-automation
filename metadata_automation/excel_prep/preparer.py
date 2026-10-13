@@ -13,6 +13,7 @@ from openpyxl import load_workbook
 from openpyxl.workbook import Workbook
 from openpyxl.worksheet.worksheet import Worksheet
 
+from metadata_automation.excel_prep.dash import DESCRIPTION_PROPERTY, expected_dash
 from metadata_automation.excel_prep.prefix_check import check_prefixes, namespace_map, used_prefixes
 from metadata_automation.excel_prep.report import Cell, Report
 from metadata_automation.excel_prep.workbook import (
@@ -115,6 +116,8 @@ def prepare_workbook(src: Path, dst: Path, namespace: str = "hri") -> Report:
         )
     for name in class_sheet_names(wb):
         _prepare_class_sheet(wb[name], model if not untargeted else None, report)
+    if not untargeted:
+        _apply_dash_rules(wb, report)
     _check_titles(wb, model, report)
     _prepare_prefixes_sheet(wb, report)
     report.prefix_issues = check_prefixes(wb)
@@ -268,6 +271,31 @@ def _set(ws: Worksheet, row: int, col: int, value: str, report: Report, column: 
     ws.cell(row=row, column=col, value=value)
     change = f"'{old}' -> '{value}'" if old else f"set to '{value}'"
     report.change(ws.title, row, column, f"{change} ({reason})")
+
+
+def _apply_dash_rules(wb: Workbook, report: Report) -> None:
+    """Fill empty viewer/editor cells with the expected value; report existing values that differ."""
+    namespaces = namespace_map(wb)
+    description_iri = _expand(DESCRIPTION_PROPERTY, namespaces)
+    for name in class_sheet_names(wb):
+        ws = wb[name]
+        cols = headers(ws)
+        for row in property_rows(ws, cols):
+            uri = text(ws, row, cols.get("Property URI"))
+            is_description = uri == DESCRIPTION_PROPERTY or bool(
+                description_iri and _expand(uri, namespaces) == description_iri
+            )
+            expected = expected_dash(
+                text(ws, row, cols.get("Range")), text(ws, row, cols["SHACL_sh:node"]), is_description
+            )
+            if expected is None:
+                continue
+            for column, value in zip(("SHACL_dash:viewer", "SHACL_dash:editor"), expected, strict=True):
+                current = text(ws, row, cols[column])
+                if not current:
+                    _set(ws, row, cols[column], value, report, column, "derived from range")
+                elif current != value:
+                    report.issue(name, row, column, f"expected '{value}', found '{current}'")
 
 
 def _check_titles(wb: Workbook, model: dict[str, ModelClass], report: Report) -> None:
