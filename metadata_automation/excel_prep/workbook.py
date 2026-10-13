@@ -1,7 +1,9 @@
 """Workbook helpers shared by the preparer and the prefix check."""
 
 import re
+from copy import copy
 
+from openpyxl.utils import get_column_letter
 from openpyxl.workbook import Workbook
 from openpyxl.worksheet.worksheet import Worksheet
 
@@ -32,6 +34,17 @@ def ensure_columns(ws: Worksheet, columns: list[str]) -> tuple[dict[str, int], l
             cols[name] = col
             added.append(name)
     return cols, added
+
+
+def copy_column_format(ws: Worksheet, src_col: int, dst_col: int) -> None:
+    """Copy cell styles and width of ``src_col`` onto ``dst_col``, header row included."""
+    for row in range(1, ws.max_row + 1):
+        src = ws.cell(row=row, column=src_col)
+        if src.has_style:
+            ws.cell(row=row, column=dst_col)._style = copy(src._style)
+    src_dim = ws.column_dimensions[get_column_letter(src_col)]
+    if src_dim.width:
+        ws.column_dimensions[get_column_letter(dst_col)].width = src_dim.width
 
 
 def is_empty(value) -> bool:
