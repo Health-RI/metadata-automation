@@ -27,6 +27,11 @@ class Finding:
 
     cell: Cell
     message: str
+    property_uri: str | None = None
+
+    def __str__(self) -> str:
+        where = f"{self.cell} ({self.property_uri})" if self.property_uri else str(self.cell)
+        return f"{where}: {self.message}"
 
 
 @dataclass
@@ -60,7 +65,7 @@ def _format_findings(title: str, findings: list[Finding]) -> list[str]:
     lines = [f"{title} ({len(findings)}):"]
     if not findings:
         return lines + ["  none", ""]
-    lines += [f"  - {f.cell}: {f.message}" for f in findings]
+    lines += [f"  - {f}" for f in findings]
     return lines + [""]
 
 
