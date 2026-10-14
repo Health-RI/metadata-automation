@@ -18,7 +18,12 @@ from metadata_automation.sempyro.cleanup import remove_unwanted_classes
 from metadata_automation.sempyro.inheritance_inspector import format_report, inspect_file
 from metadata_automation.sempyro.utils import generate_from_linkml, load_yaml
 from metadata_automation.shaclplay.converter import SHACLPlayConverter
-from metadata_automation.shaclplay.utils import write_shaclplay_excel
+from metadata_automation.shaclplay.utils import (
+    VOCAB_COLUMN,
+    VOCAB_HYPERLINK_COLUMN,
+    read_column_hyperlinks,
+    write_shaclplay_excel,
+)
 
 
 @click.group()
@@ -190,6 +195,11 @@ def shaclplay(
                     exit(1)
 
                 click.echo(f"  Loaded {len(class_df)} properties")
+
+                # Hyperlink targets let vocab mapping match cells that show a label instead of a URL
+                class_df[VOCAB_HYPERLINK_COLUMN] = read_column_hyperlinks(
+                    excel_path, sheet_name, VOCAB_COLUMN, len(class_df)
+                )
 
                 # Extract class name from class_uri
                 # (e.g., "hri:Dataset" -> "Dataset")

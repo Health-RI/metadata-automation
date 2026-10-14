@@ -7,7 +7,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional, Tuple
 
+import openpyxl
 import pandas as pd
+
+VOCAB_COLUMN = "Controlled vocabulary (if applicable)"
+VOCAB_HYPERLINK_COLUMN = "Controlled vocabulary hyperlink"
 
 
 def slugify_property_label(label: str) -> str:
@@ -107,3 +111,25 @@ def write_shaclplay_excel(
         )
 
     print(f"Written SHACLPlay Excel to {output_path}")
+
+
+def read_column_hyperlinks(excel_path: Path, sheet_name: str, column_name: str, n_rows: int) -> list[Optional[str]]:
+    """
+    Read hyperlink targets of a column, aligned with the rows of pd.read_excel(sheet_name).
+
+    Args:
+        excel_path: Path to the Excel file
+        sheet_name: Name of the sheet
+        column_name: Header of the column to read hyperlinks from
+        n_rows: Number of data rows to return
+
+    Returns:
+        List of hyperlink targets (None where a cell has no hyperlink)
+    """
+    worksheet = openpyxl.load_workbook(excel_path)[sheet_name]
+    headers = [cell.value for cell in worksheet[1]]
+    if column_name not in headers:
+        return [None] * n_rows
+    column = worksheet.iter_rows(min_row=2, max_row=n_rows + 1, min_col=headers.index(column_name) + 1)
+    links = [row[0].hyperlink.target if row[0].hyperlink else None for row in column]
+    return links + [None] * (n_rows - len(links))

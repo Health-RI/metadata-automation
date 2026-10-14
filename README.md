@@ -140,7 +140,8 @@ for all other classes they are based on 'Property URI'.
 The converter includes a mapping system for controlled vocabularies in `metadata_automation/shaclplay/vocab_mappings.py`. Currently mapped:
 - `access-right` → `( eu:PUBLIC eu:RESTRICTED eu:NON_PUBLIC )`
 
-Additional vocabulary mappings can be added by extending the `VOCAB_MAPPINGS` dictionary.
+A cell matches a mapping via its Excel hyperlink, its full text, or any URL contained in the text
+(scheme and trailing slash are ignored). Additional vocabulary mappings can be added by extending the `VOCAB_MAPPINGS` dictionary.
 
 **Template:**\
 For the generation of SHACLPlay Excel files, an empty template file is needed. In this repository there is one in 
