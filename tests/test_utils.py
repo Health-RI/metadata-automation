@@ -19,12 +19,16 @@ from metadata_automation.sempyro.utils import (
 )
 from metadata_automation.shaclplay.converter import SHACLPlayConverter
 from metadata_automation.shaclplay.utils import (
+    VOCAB_COLUMN,
+    VOCAB_HYPERLINK_COLUMN,
     get_current_datetime_iso,
     parse_cardinality,
+    read_column_hyperlinks,
     slugify_property_label,
     write_shaclplay_excel,
 )
 from metadata_automation.shaclplay.vocab_mappings import (
+    find_vocab_mapping,
     get_vocab_mapping,
     has_vocab_mapping,
 )
@@ -276,6 +280,47 @@ def test_vocab_mappings():
     assert mapping["editor"] == "dash:EnumSelectEditor"
     assert has_vocab_mapping(url) is True
     assert has_vocab_mapping("https://example.com/unknown") is False
+    # Scheme and trailing slash are ignored
+    assert get_vocab_mapping("https://publications.europa.eu/resource/authority/access-right/") == mapping
+
+
+@pytest.mark.parametrize(
+    ("cell_text", "hyperlink"),
+    [
+        ("EU Vocabularies Distribution Status", "http://publications.europa.eu/resource/authority/distribution-status"),
+        ("Access rights: http://publications.europa.eu/resource/authority/access-right", None),
+        ("\nhttp://publications.europa.eu/resource/authority/access-right\nor\nhttps://example.com", None),
+    ],
+)
+def test_find_vocab_mapping(cell_text, hyperlink):
+    assert find_vocab_mapping(cell_text, hyperlink)["editor"] == "dash:EnumSelectEditor"
+
+
+def test_find_vocab_mapping_no_match():
+    assert find_vocab_mapping("GeoNames", None) is None
+    assert find_vocab_mapping(float("nan"), None) is None
+    assert find_vocab_mapping("https://example.com/unknown", "https://example.com/other") is None
+
+
+def test_read_column_hyperlinks(tmp_path: Path):
+    import openpyxl
+
+    path = tmp_path / "links.xlsx"
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = "Dataset"
+    sheet.append(["Property label", VOCAB_COLUMN])
+    sheet.append(["status", "Distribution Status"])
+    sheet.append(["title", "NA"])
+    sheet["B2"].hyperlink = "http://publications.europa.eu/resource/authority/distribution-status"
+    workbook.save(path)
+
+    assert read_column_hyperlinks(path, "Dataset", VOCAB_COLUMN, 3) == [
+        "http://publications.europa.eu/resource/authority/distribution-status",
+        None,
+        None,
+    ]
+    assert read_column_hyperlinks(path, "Dataset", "Missing column", 2) == [None, None]
 
 
 def test_shaclplay_converter_branches(template_file: Path, test_input_dir: Path):
@@ -334,6 +379,18 @@ def test_shaclplay_converter_branches(template_file: Path, test_input_dir: Path)
     )
     xsd_out = converter._convert_property_to_shaclplay(row_xsd, "TestClass", "hri:TestClass", "hri")
     assert xsd_out[8] == "sh:Literal"
+
+    row_linked = pd.Series(
+        {
+            **base_row,
+            "Range": "dct:RightsStatement (IRI)",
+            VOCAB_COLUMN: "Access rights vocabulary",
+            VOCAB_HYPERLINK_COLUMN: "http://publications.europa.eu/resource/authority/access-right",
+        }
+    )
+    linked_out = converter._convert_property_to_shaclplay(row_linked, "TestClass", "hri:TestClass", "hri")
+    assert "access-right/PUBLIC" in linked_out[17]
+    assert linked_out[23] == "dash:EnumSelectEditor"
     assert xsd_out[9] == "xsd:dateTime"
     assert xsd_out[15] == "[A-Za-z]+"
     assert xsd_out[17]

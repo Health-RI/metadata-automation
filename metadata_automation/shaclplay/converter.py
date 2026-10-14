@@ -11,10 +11,12 @@ import numpy as np
 import pandas as pd
 
 from .utils import (
+    VOCAB_COLUMN,
+    VOCAB_HYPERLINK_COLUMN,
     get_current_datetime_iso,
     parse_cardinality,
 )
-from .vocab_mappings import get_vocab_mapping
+from .vocab_mappings import find_vocab_mapping
 
 
 class SHACLPlayConverter:
@@ -368,14 +370,12 @@ class SHACLPlayConverter:
 
         # Column 17: sh:in (controlled vocabulary)
         # Older Excels misspell the column as "vocabluary".
-        vocab_url = property_row.get(
-            "Controlled vocabulary (if applicable)",
-            property_row.get("Controlled vocabluary (if applicable)", ""),
+        vocab_mapping = find_vocab_mapping(
+            property_row.get(VOCAB_COLUMN, property_row.get("Controlled vocabluary (if applicable)")),
+            property_row.get(VOCAB_HYPERLINK_COLUMN),
         )
-        if pd.notna(vocab_url) and vocab_url != "nan":
-            vocab_mapping = get_vocab_mapping(vocab_url)
-            if vocab_mapping:
-                new_row[17] = vocab_mapping["sh_in"]
+        if vocab_mapping:
+            new_row[17] = vocab_mapping["sh_in"]
 
         # Columns 18: sh:languageIn (leave empty)
 
@@ -397,15 +397,8 @@ class SHACLPlayConverter:
         # Column 23: dash:editor
         editor = property_row.get("SHACL_dash:editor", "")
         if pd.notna(editor) and editor != "nan":
-            # Check if we need to override to EnumSelectEditor for controlled vocabs
-            if pd.notna(vocab_url) and vocab_url != "nan":
-                vocab_mapping = get_vocab_mapping(vocab_url)
-                if vocab_mapping:
-                    new_row[23] = vocab_mapping["editor"]
-                else:
-                    new_row[23] = editor
-            else:
-                new_row[23] = editor
+            # Override to EnumSelectEditor for controlled vocabs
+            new_row[23] = vocab_mapping["editor"] if vocab_mapping else editor
 
         return new_row
 
