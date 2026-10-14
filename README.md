@@ -104,6 +104,7 @@ metadata-automation prepare-excel -i ./inputs/plain_model.xlsx -o ./outputs/prep
 - `-i, --input-excel`: Path to the plain metadata Excel file (required). It is never modified.
 - `-o, --output-excel`: Path for the prepared Excel (default: `./outputs/prepared/{input}_prepared.xlsx`)
 - `-n, --namespace`: Namespace prefix used to derive `class_URI` (default: `hri`)
+- `--init`: Only add the sheets, `classes` rows, columns and used prefixes, and run the checks. No cell values are derived or changed (`class_URI`, ranges, cardinality, `SHACL_sh:node`, DASH).
 
 #### Description
 
