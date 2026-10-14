@@ -7,12 +7,12 @@ and appropriate dash:editor settings.
 
 VOCAB_MAPPINGS = {
     "http://publications.europa.eu/resource/authority/access-right": {
-        "sh_in": "( eu:PUBLIC eu:RESTRICTED eu:NON_PUBLIC )",
+        "sh_in": "( http://publications.europa.eu/resource/authority/access-right/PUBLIC http://publications.europa.eu/resource/authority/access-right/RESTRICTED http://publications.europa.eu/resource/authority/access-right/NON_PUBLIC )",
         "editor": "dash:EnumSelectEditor",
         "example_property": "access rights",
     },
     "https://publications.europa.eu/resource/authority/distribution-status": {
-        "sh_in": "( status:COMPLETED status:DEVELOP status:WITHDRAWN status:DEPRECATED )",
+        "sh_in": "( https://publications.europa.eu/resource/authority/distribution-status/COMPLETED https://publications.europa.eu/resource/authority/distribution-status/DEVELOP https://publications.europa.eu/resource/authority/distribution-status/WITHDRAWN https://publications.europa.eu/resource/authority/distribution-status/DEPRECATED )",
         "editor": "dash:EnumSelectEditor",
         "example_property": "status",
     },
