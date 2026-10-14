@@ -264,7 +264,7 @@ def test_shaclplay_converter_branches(template_file: Path, test_input_dir: Path)
         "Cardinality": "1",
         "SHACL_sh:node": "hri:KindShape",
         "SHACL_pattern": "[A-Za-z]+",
-        "Controlled vocabluary (if applicable)": "http://publications.europa.eu/resource/authority/access-right",
+        "Controlled vocabulary (if applicable)": "http://publications.europa.eu/resource/authority/access-right",
         "SHACL_sh:uniqueLang": "true",
         "SHACL_default_value": "default",
         "SHACL_dash:viewer": "dash:TextFieldViewer",
