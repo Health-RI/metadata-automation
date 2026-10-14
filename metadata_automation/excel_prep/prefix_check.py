@@ -12,6 +12,7 @@ from metadata_automation.excel_prep.workbook import (
     data_rows,
     headers,
     property_rows,
+    property_uri,
     split_iri_suffix,
     text,
 )
@@ -81,7 +82,7 @@ def check_prefixes(wb: Workbook) -> list[Finding]:
         _duplicates(registered)
         + _aliases(registered)
         + _case_variants(registered, used)
-        + _unregistered(registered, used)
+        + _unregistered(wb, registered, used)
         + _malformed_values(wb, registered)
     )
 
@@ -129,7 +130,7 @@ def _case_variants(registered: list[tuple[int, str, str]], used: dict[str, list[
     ]
 
 
-def _unregistered(registered: list[tuple[int, str, str]], used: dict[str, list[Cell]]) -> list[Finding]:
+def _unregistered(wb: Workbook, registered: list[tuple[int, str, str]], used: dict[str, list[Cell]]) -> list[Finding]:
     namespaces = {}
     for _row, prefix, namespace in registered:
         namespaces.setdefault(prefix, namespace)
@@ -138,11 +139,16 @@ def _unregistered(registered: list[tuple[int, str, str]], used: dict[str, list[C
         if namespaces.get(prefix):
             continue
         cells = used[prefix]
-        where = "; ".join(str(c) for c in cells[:MAX_LOCATIONS])
+        where = "; ".join(_location(wb, c) for c in cells[:MAX_LOCATIONS])
         if len(cells) > MAX_LOCATIONS:
             where += f"; and {len(cells) - MAX_LOCATIONS} more"
         findings.append(Finding(Cell("prefixes"), f"'{prefix}' has no registered namespace, used in: {where}"))
     return findings
+
+
+def _location(wb: Workbook, cell: Cell) -> str:
+    uri = property_uri(wb, cell.sheet, cell.row)
+    return f"{cell} ({uri})" if uri else str(cell)
 
 
 def _malformed_values(wb: Workbook, registered: list[tuple[int, str, str]]) -> list[Finding]:

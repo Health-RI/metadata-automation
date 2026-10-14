@@ -26,6 +26,7 @@ from metadata_automation.excel_prep.workbook import (
     headers,
     parse_bool,
     property_rows,
+    property_uri,
     split_iri_suffix,
     text,
 )
@@ -341,17 +342,9 @@ def _prepare_prefixes_sheet(wb: Workbook, report: Report) -> None:
 
 def _add_property_uris(wb: Workbook, report: Report) -> None:
     """Name the property of each class sheet row in the changes and issues."""
-    sheets = set(class_sheet_names(wb))
 
     def annotate(findings: list[Finding]) -> list[Finding]:
-        result = []
-        for f in findings:
-            uri = None
-            if f.cell.sheet in sheets and f.cell.row:
-                ws = wb[f.cell.sheet]
-                uri = text(ws, f.cell.row, headers(ws).get("Property URI")) or None
-            result.append(replace(f, property_uri=uri))
-        return result
+        return [replace(f, property_uri=property_uri(wb, f.cell.sheet, f.cell.row)) for f in findings]
 
     report.changes = annotate(report.changes)
     report.issues = annotate(report.issues)
