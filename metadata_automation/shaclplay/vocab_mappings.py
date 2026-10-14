@@ -19,6 +19,11 @@ VOCAB_MAPPINGS = {
         "sh_in": "( <http://publications.europa.eu/resource/authority/distribution-status/COMPLETED> "
         + "<http://publications.europa.eu/resource/authority/distribution-status/DEVELOP> "
         + "<http://publications.europa.eu/resource/authority/distribution-status/WITHDRAWN> "
+        + "<http://publications.europa.eu/resource/authority/distribution-status/PLANNED> "
+        + "<http://publications.europa.eu/resource/authority/distribution-status/ARCHIVE> "
+        + "<http://publications.europa.eu/resource/authority/distribution-status/ONGOING> "
+        + "<http://publications.europa.eu/resource/authority/distribution-status/REQUIRED> "
+        + "<http://publications.europa.eu/resource/authority/distribution-status/OP_DATPRO> "
         + "<http://publications.europa.eu/resource/authority/distribution-status/DEPRECATED> )",
         "editor": "dash:EnumSelectEditor",
         "example_property": "status",
