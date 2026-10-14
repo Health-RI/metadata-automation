@@ -97,8 +97,12 @@ class ModelClass:
     independent: bool | None
 
 
-def prepare_workbook(src: Path, dst: Path, namespace: str = "hri") -> Report:
-    """Write a prepared copy of ``src`` to ``dst`` and return what was done and what is missing."""
+def prepare_workbook(src: Path, dst: Path, namespace: str = "hri", init: bool = False) -> Report:
+    """Write a prepared copy of ``src`` to ``dst`` and return what was done and what is missing.
+
+    With ``init``, only sheets, rows, columns and prefixes are added and the checks run;
+    no existing or derived cell values (class_URI, ranges, cardinality, sh:node, DASH) are set.
+    """
     src, dst = Path(src), Path(dst)
     if dst.resolve() == src.resolve():
         raise ValueError("Output path must differ from the input path; the source file is left untouched.")
@@ -107,16 +111,16 @@ def prepare_workbook(src: Path, dst: Path, namespace: str = "hri") -> Report:
     report = Report()
 
     _add_general_sheets(wb, report)
-    model = _prepare_classes_sheet(wb, namespace, report)
+    model = _prepare_classes_sheet(wb, None if init else namespace, report)
     # Without every target class known, a range cannot be told apart from an out-of-model one.
     untargeted = [n for n in class_sheet_names(wb) if n not in {c.sheet for c in model.values()}]
-    if untargeted:
+    if untargeted and not init:
         report.issue(
             "classes", None, "SHACL_target_ontology_name", "range rules skipped until filled in for every class"
         )
     for name in class_sheet_names(wb):
-        _prepare_class_sheet(wb[name], model if not untargeted else None, report)
-    if not untargeted:
+        _prepare_class_sheet(wb[name], None if untargeted or init else model, report)
+    if not untargeted and not init:
         _apply_dash_rules(wb, report)
     _check_titles(wb, model, report)
     _prepare_prefixes_sheet(wb, report)
@@ -143,8 +147,8 @@ def _add_general_sheets(wb: Workbook, report: Report) -> None:
         index += 1
 
 
-def _prepare_classes_sheet(wb: Workbook, namespace: str, report: Report) -> dict[str, ModelClass]:
-    """Add missing columns and rows, derive class_URI, and return the model classes by target name."""
+def _prepare_classes_sheet(wb: Workbook, namespace: str | None, report: Report) -> dict[str, ModelClass]:
+    """Add missing columns and rows, derive class_URI unless ``namespace`` is None, and return the model classes."""
     ws = wb["classes"]
     cols, added = ensure_columns(ws, CLASSES_COLUMNS)
     if added:
@@ -158,7 +162,7 @@ def _prepare_classes_sheet(wb: Workbook, namespace: str, report: Report) -> dict
         row = rows[name]
         target = text(ws, row, cols["SHACL_target_ontology_name"])
         class_uri = text(ws, row, cols["class_URI"])
-        if not class_uri and curie_prefix(target):
+        if namespace and not class_uri and curie_prefix(target):
             class_uri = f"{namespace}:{target.split(':', 1)[1]}"
             ws.cell(row=row, column=cols["class_URI"], value=class_uri)
             report.change("classes", row, "class_URI", f"set to '{class_uri}'")

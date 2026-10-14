@@ -666,7 +666,12 @@ def sempyro(
     default="hri",
     help="Namespace prefix used to derive class_URI values.",
 )
-def prepare_excel(input_excel: str, output_excel: str | None, namespace: str) -> None:
+@click.option(
+    "--init",
+    is_flag=True,
+    help="Only add sheets, columns and prefixes and run the checks; leave all cell values as they are.",
+)
+def prepare_excel(input_excel: str, output_excel: str | None, namespace: str, init: bool) -> None:
     """Prepare a plain metadata Excel for the shaclplay and sempyro commands.
 
     \b
@@ -677,7 +682,7 @@ def prepare_excel(input_excel: str, output_excel: str | None, namespace: str) ->
     input_path = Path(input_excel)
     output_path = Path(output_excel or f"./outputs/prepared/{input_path.stem}_prepared.xlsx")
     try:
-        report = prepare_workbook(input_path, output_path, namespace)
+        report = prepare_workbook(input_path, output_path, namespace, init=init)
     except Exception as e:
         click.echo(f"Error: {e}", err=True)
         exit(1)
