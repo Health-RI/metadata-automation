@@ -239,6 +239,45 @@ class TestSecondPass:
         assert not any("dct:title" in f.message for f in report.issues)
 
 
+class TestInit:
+    @pytest.fixture
+    def answered(self, plain_small, tmp_path):
+        """A first-pass output with the class questions answered, so every rule could apply."""
+        first = tmp_path / "first.xlsx"
+        prepare_workbook(plain_small, first)
+        answer_classes(first)
+        return first
+
+    def test_adds_structure_and_prefixes(self, plain_small, tmp_path):
+        out = tmp_path / "init.xlsx"
+        report = prepare_workbook(plain_small, out, init=True)
+        wb = load_workbook(out)
+        assert wb.sheetnames[:4] == ["Info", "prefixes", "classes", "Resource"]
+        for name in class_sheet_names(wb):
+            assert set(CLASS_SHEET_COLUMNS) <= set(headers(wb[name]))
+        assert any(c.cell.sheet == "prefixes" for c in report.changes)
+        assert report.prefix_issues
+
+    def test_leaves_cell_values_untouched(self, answered, tmp_path):
+        out = tmp_path / "init.xlsx"
+        report = prepare_workbook(answered, out, init=True)
+        before, after = load_workbook(answered), load_workbook(out)
+        for name in before.sheetnames:
+            assert [[c.value for c in r] for r in before[name].iter_rows()] == [
+                [c.value for c in r] for r in after[name].iter_rows()
+            ]
+        assert report.changes == []
+        assert not any("range rules skipped" in f.message for f in report.issues)
+
+    def test_still_runs_checks(self, answered, tmp_path):
+        wb = load_workbook(answered)
+        ws = wb["Catalog"]
+        ws.delete_rows(find_row(ws, "Property URI", "dct:title"))
+        wb.save(answered)
+        report = prepare_workbook(answered, tmp_path / "init.xlsx", init=True)
+        assert any(f.cell.sheet == "Catalog" and "dct:title" in f.message for f in report.issues)
+
+
 class TestIssues:
     def test_dependent_range_with_iri_is_reported(self, plain_small, tmp_path):
         first = tmp_path / "first.xlsx"
@@ -378,6 +417,14 @@ def test_cli_prints_report(runner, plain_small, tmp_path):
     assert result.exit_code == 0, result.output
     assert "Required cells to fill in" in result.output
     assert out.exists()
+
+
+def test_cli_init_flag(runner, plain_small, tmp_path):
+    out = tmp_path / "prepared.xlsx"
+    result = runner.invoke(prepare_excel, ["-i", str(plain_small), "-o", str(out), "--init"])
+    assert result.exit_code == 0, result.output
+    assert "Prefix check" in result.output
+    assert "derived from range" not in result.output
 
 
 def test_cli_rejects_same_output(runner, plain_small):
