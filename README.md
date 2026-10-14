@@ -132,6 +132,8 @@ It then prints a report with:
 - a prefix check: used prefixes without a namespace, duplicate or aliased prefixes, case variants, full IRIs that could be CURIEs, and values with no prefix or stray whitespace in `Property URI` and `Range`;
 - every sheet, column and row that still has to be filled in by hand, plus a summary of empty optional columns.
 
+Changes, issues and prefix findings on a class sheet row also show its `Property URI`, e.g. `Catalog / Cardinality / row 3 (dcat:dataset)`.
+
 **Workflow:**
 1. Run `prepare-excel` on the plain Excel.
 2. Fill in `SHACL_target_ontology_name` and `SHACL_independent_class` in the `classes` sheet.
