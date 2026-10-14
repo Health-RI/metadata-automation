@@ -386,7 +386,7 @@ class TestPrefixCheck:
             "'xsd' registered in rows 4, 5 with conflicting namespaces",
             "namespace http://purl.org/dc/terms/ registered under several prefixes: dct, dcterms",
             "prefix spelled in different cases: DCAT, dcat",
-            "'eli' has no registered namespace, used in: Thing / Range / row 2",
+            "'eli' has no registered namespace, used in: Thing / Range / row 2 (dcat:legislation)",
             "'dcat' has no registered namespace",
             "Thing / Range / row 3 | stray whitespace in 'rdfs:Resource  (IRI)'",
             "Thing / Property URI / row 3 | stray whitespace",

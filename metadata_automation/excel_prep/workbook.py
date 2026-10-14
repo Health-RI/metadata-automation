@@ -95,3 +95,11 @@ def parse_bool(value) -> bool | None:
     if lowered in ("false", "0", "no"):
         return False
     return None
+
+
+def property_uri(wb: Workbook, sheet: str, row: int | None) -> str | None:
+    """Property URI of a class sheet row, or None for other sheets and sheet-level locations."""
+    if not row or sheet not in class_sheet_names(wb):
+        return None
+    ws = wb[sheet]
+    return text(ws, row, headers(ws).get("Property URI")) or None
