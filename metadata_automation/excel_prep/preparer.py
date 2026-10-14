@@ -6,7 +6,7 @@ so running the preparation again on its own output only fills new gaps.
 """
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 from openpyxl import load_workbook
@@ -15,7 +15,7 @@ from openpyxl.worksheet.worksheet import Worksheet
 
 from metadata_automation.excel_prep.dash import DESCRIPTION_PROPERTY, expected_dash
 from metadata_automation.excel_prep.prefix_check import check_prefixes, namespace_map, used_prefixes
-from metadata_automation.excel_prep.report import Cell, Report
+from metadata_automation.excel_prep.report import Cell, Finding, Report
 from metadata_automation.excel_prep.workbook import (
     NON_CLASS_SHEETS,
     class_sheet_names,
@@ -125,6 +125,7 @@ def prepare_workbook(src: Path, dst: Path, namespace: str = "hri", init: bool = 
     _check_titles(wb, model, report)
     _prepare_prefixes_sheet(wb, report)
     report.prefix_issues = check_prefixes(wb)
+    _add_property_uris(wb, report)
     _collect_gaps(wb, report)
 
     dst.parent.mkdir(parents=True, exist_ok=True)
@@ -336,6 +337,25 @@ def _prepare_prefixes_sheet(wb: Workbook, report: Report) -> None:
             ws.cell(row=next_row, column=cols["prefix"], value=prefix)
             report.change("prefixes", next_row, "prefix", f"added '{prefix}' (namespace unknown)")
             next_row += 1
+
+
+def _add_property_uris(wb: Workbook, report: Report) -> None:
+    """Name the property of each class sheet row in the changes and issues."""
+    sheets = set(class_sheet_names(wb))
+
+    def annotate(findings: list[Finding]) -> list[Finding]:
+        result = []
+        for f in findings:
+            uri = None
+            if f.cell.sheet in sheets and f.cell.row:
+                ws = wb[f.cell.sheet]
+                uri = text(ws, f.cell.row, headers(ws).get("Property URI")) or None
+            result.append(replace(f, property_uri=uri))
+        return result
+
+    report.changes = annotate(report.changes)
+    report.issues = annotate(report.issues)
+    report.prefix_issues = annotate(report.prefix_issues)
 
 
 def _collect_gaps(wb: Workbook, report: Report) -> None:

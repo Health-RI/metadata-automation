@@ -188,6 +188,18 @@ class TestSecondPass:
         assert cell(dataset, row, "Cardinality") == "0..n"
         assert not cell(dataset, row, "SHACL_sh:node")
 
+    def test_changes_name_the_property(self, second_pass):
+        report, _, _ = second_pass
+        change = next(f for f in report.changes if f.cell.sheet == "Catalog" and f.cell.column == "Cardinality")
+        assert change.property_uri == "dcat:dataset"
+        assert "(dcat:dataset): '1..n' -> '0..n'" in report.format()
+        assert all(f.property_uri is None for f in report.changes if f.cell.sheet == "classes")
+
+    def test_gaps_do_not_name_the_property(self, second_pass):
+        report, _, _ = second_pass
+        required = report.format().split("Required cells to fill in")[1]
+        assert "dct:" not in required and "dcat:" not in required
+
     def test_dependent_class_range_gets_node_shape(self, second_pass):
         _, wb, _ = second_pass
         ws = wb["Catalog"]
@@ -289,7 +301,9 @@ class TestIssues:
         wb.save(first)
 
         report = prepare_workbook(first, tmp_path / "second.xlsx")
-        assert any(f.cell.sheet == "Catalog" and "dependent class" in f.message for f in report.issues)
+        issue = next(f for f in report.issues if f.cell.sheet == "Catalog" and "dependent class" in f.message)
+        assert issue.property_uri == "dct:publisher"
+        assert "Catalog / Range / row" in str(issue) and "(dct:publisher):" in str(issue)
 
     def test_differing_dash_value_is_reported_not_overwritten(self, plain_small, tmp_path):
         first = tmp_path / "first.xlsx"
