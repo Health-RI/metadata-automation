@@ -2,7 +2,7 @@
 
 import pytest
 
-from metadata_automation.excel_prep.ranges import relax_cardinality
+from metadata_automation.excel_prep.class_sheet import relax_cardinality
 from metadata_automation.excel_prep.report import compress_rows
 from metadata_automation.excel_prep.workbook import is_literal
 

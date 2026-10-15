@@ -14,11 +14,11 @@ from pathlib import Path
 
 from openpyxl import load_workbook
 
+from metadata_automation.excel_prep.class_sheet import prepare_class_sheet
 from metadata_automation.excel_prep.columns import FDP_SHEETS, GENERAL_SHEETS
 from metadata_automation.excel_prep.dash import apply_dash_rules
 from metadata_automation.excel_prep.gaps import add_property_uris, collect_gaps
 from metadata_automation.excel_prep.prefix_check import check_prefixes
-from metadata_automation.excel_prep.ranges import prepare_class_sheet
 from metadata_automation.excel_prep.report import Report
 from metadata_automation.excel_prep.structure import add_general_sheets, prepare_classes_sheet, prepare_prefixes_sheet
 from metadata_automation.excel_prep.titles import check_titles
@@ -41,6 +41,7 @@ def prepare_workbook(src: Path, dst: Path | None = None, namespace: str | None =
 
     add_general_sheets(wb, GENERAL_SHEETS if init else GENERAL_SHEETS + FDP_SHEETS, report)
     model = prepare_classes_sheet(wb, namespace, report)
+    # Without SHACL_target_ontology defined, the class will not be registered in 'model'
     # Without every target class known, a range cannot be told apart from an out-of-model one.
     untargeted = [n for n in class_sheet_names(wb) if n not in {c.sheet for c in model.values()}]
     if untargeted:
