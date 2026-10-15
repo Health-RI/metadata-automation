@@ -398,11 +398,7 @@ def test_shaclplay_converter_branches(template_file: Path, test_input_dir: Path)
     assert xsd_out[23] == "dash:EnumSelectEditor"
 
 
-@pytest.mark.parametrize(
-    "column",
-    ["Controlled vocabulary (if applicable)", "Controlled vocabluary (if applicable)"],
-)
-def test_shaclplay_converter_reads_vocab_column(template_file: Path, test_input_dir: Path, column: str):
+def test_shaclplay_converter_reads_vocab_column(template_file: Path, test_input_dir: Path):
     converter = SHACLPlayConverter(template_file, test_input_dir / "test_metadata.xlsx")
     row = pd.Series(
         {
@@ -410,7 +406,7 @@ def test_shaclplay_converter_reads_vocab_column(template_file: Path, test_input_
             "Property URI": "dct:accessRights",
             "Cardinality": "1",
             "Range": "dct:RightsStatement (IRI)",
-            column: "http://publications.europa.eu/resource/authority/access-right",
+            VOCAB_COLUMN: "http://publications.europa.eu/resource/authority/access-right",
         }
     )
 

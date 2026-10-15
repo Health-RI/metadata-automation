@@ -369,9 +369,8 @@ class SHACLPlayConverter:
         # Column 16: SHACL_sh:uniqueLang (leave empty for now)
 
         # Column 17: sh:in (controlled vocabulary)
-        # Older Excels misspell the column as "vocabluary".
         vocab_mapping = find_vocab_mapping(
-            property_row.get(VOCAB_COLUMN, property_row.get("Controlled vocabluary (if applicable)")),
+            property_row.get(VOCAB_COLUMN),
             property_row.get(VOCAB_HYPERLINK_COLUMN),
         )
         if vocab_mapping:
