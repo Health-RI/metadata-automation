@@ -1,4 +1,4 @@
-"""Range rules: nest dependent classes with sh:node, reference independent and external ones by IRI."""
+"""Prepare a class sheet: add the pipeline columns and apply the range rules (sh:node, (IRI), cardinality)."""
 
 import re
 
