@@ -741,6 +741,7 @@ source = { editable = "." }
 dependencies = [
     { name = "black" },
     { name = "click" },
+    { name = "curies" },
     { name = "linkml" },
     { name = "openpyxl" },
     { name = "pandas" },
@@ -759,6 +760,7 @@ dev = [
 requires-dist = [
     { name = "black", specifier = "==26.5.1" },
     { name = "click", specifier = ">=8.0.0" },
+    { name = "curies", specifier = "<0.15.2" },
     { name = "linkml", specifier = "==1.10.0" },
     { name = "openpyxl", specifier = ">=3.1.5" },
     { name = "pandas", specifier = "==2.3.3" },
