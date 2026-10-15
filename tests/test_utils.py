@@ -416,7 +416,7 @@ def test_shaclplay_converter_reads_vocab_column(template_file: Path, test_input_
 
     out = converter._convert_property_to_shaclplay(row, "TestClass", "hri:TestClass", "hri")
 
-    assert "eu:PUBLIC" in str(out[17])
+    assert "<http://publications.europa.eu/resource/authority/access-right/PUBLIC>" in str(out[17])
 
 
 def test_custom_pydantic_generator_branches(tmp_path: Path):
