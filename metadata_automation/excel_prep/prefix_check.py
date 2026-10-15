@@ -82,6 +82,14 @@ def expand(curie: str, namespaces: dict[str, str]) -> str | None:
     return None
 
 
+def same_term(value: str, curie: str, namespaces: dict[str, str]) -> bool:
+    """True when ``value`` is ``curie`` as written, or a CURIE that expands to the same IRI."""
+    if value == curie:
+        return True
+    iri = expand(curie, namespaces)
+    return iri is not None and expand(value, namespaces) == iri
+
+
 def check_prefixes(wb: Workbook) -> list[Finding]:
     """Report unregistered, duplicate, aliased, case-variant and malformed prefix usage."""
     registered = registered_prefixes(wb)
