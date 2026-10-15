@@ -1,0 +1,72 @@
+"""Problems that are reported instead of fixed."""
+
+from openpyxl import load_workbook
+from prep_helpers import CLASS_ANSWERS, answer_classes, cell, find_row, set_cell
+
+from metadata_automation.excel_prep.preparer import prepare_workbook
+from metadata_automation.excel_prep.report import Cell
+
+
+class TestIssues:
+    def test_dependent_range_with_iri_is_reported(self, plain_small, tmp_path):
+        first = tmp_path / "first.xlsx"
+        prepare_workbook(plain_small, first)
+        answer_classes(first)
+        wb = load_workbook(first)
+        ws = wb["Catalog"]
+        set_cell(ws, find_row(ws, "Property URI", "dct:publisher"), "Range", "foaf:Agent (IRI)")
+        wb.save(first)
+
+        report = prepare_workbook(first, tmp_path / "second.xlsx")
+        issue = next(f for f in report.issues if f.cell.sheet == "Catalog" and "dependent class" in f.message)
+        assert issue.property_uri == "dct:publisher"
+        assert "Catalog / Range / row" in str(issue) and "(dct:publisher):" in str(issue)
+
+    def test_differing_dash_value_is_reported_not_overwritten(self, plain_small, tmp_path):
+        first = tmp_path / "first.xlsx"
+        prepare_workbook(plain_small, first)
+        answer_classes(first)
+        wb = load_workbook(first)
+        ws = wb["Catalog"]
+        row = find_row(ws, "Property URI", "dct:publisher")
+        set_cell(ws, row, "SHACL_dash:viewer", "dash:URIViewer")
+        wb.save(first)
+
+        second = tmp_path / "second.xlsx"
+        report = prepare_workbook(first, second)
+        assert any(
+            f.cell == Cell("Catalog", row, "SHACL_dash:viewer")
+            and f.message == "expected 'dash:DetailsViewer', found 'dash:URIViewer'"
+            for f in report.issues
+        )
+        ws = load_workbook(second)["Catalog"]
+        assert cell(ws, row, "SHACL_dash:viewer") == "dash:URIViewer"
+        assert cell(ws, row, "SHACL_dash:editor") == "dash:BlankNodeEditor"
+
+    def test_no_dash_values_before_targets_are_known(self, plain_small, tmp_path):
+        out = tmp_path / "first.xlsx"
+        prepare_workbook(plain_small, out)
+        ws = load_workbook(out)["Catalog"]
+        assert not cell(ws, find_row(ws, "Property URI", "dct:title"), "SHACL_dash:viewer")
+
+    def test_independent_class_without_title_is_reported(self, plain_small, tmp_path):
+        first = tmp_path / "first.xlsx"
+        prepare_workbook(plain_small, first)
+        answer_classes(first, {**CLASS_ANSWERS, "Agent": ("foaf:Agent", True)})
+
+        report = prepare_workbook(first, tmp_path / "second.xlsx")
+        assert any(f.cell.sheet == "Agent" and "no dct:title" in f.message for f in report.issues)
+
+    def test_invalid_flag_and_unknown_sheet_are_reported(self, plain_small, tmp_path):
+        first = tmp_path / "first.xlsx"
+        prepare_workbook(plain_small, first)
+        wb = load_workbook(first)
+        ws = wb["classes"]
+        set_cell(ws, find_row(ws, "sheet_name", "Agent"), "SHACL_independent_class", "maybe")
+        ws.cell(row=ws.max_row + 1, column=1, value="Ghost")
+        wb.save(first)
+
+        report = prepare_workbook(first, tmp_path / "second.xlsx")
+        messages = [f.message for f in report.issues]
+        assert "expected TRUE or FALSE, got 'maybe'" in messages
+        assert "sheet 'Ghost' does not exist" in messages

@@ -7,6 +7,8 @@ from openpyxl.utils import get_column_letter
 from openpyxl.workbook import Workbook
 from openpyxl.worksheet.worksheet import Worksheet
 
+from metadata_automation.excel_prep.report import Report
+
 NON_CLASS_SHEETS = ("Info", "User Guide", "prefixes", "classes")
 IRI_SUFFIX = "(IRI)"
 
@@ -103,3 +105,11 @@ def property_uri(wb: Workbook, sheet: str, row: int | None) -> str | None:
         return None
     ws = wb[sheet]
     return text(ws, row, headers(ws).get("Property URI")) or None
+
+
+def set_value(ws: Worksheet, row: int, col: int, value: str, report: Report, column: str, reason: str) -> None:
+    """Write ``value`` and report the change with its ``reason``."""
+    old = text(ws, row, col)
+    ws.cell(row=row, column=col, value=value)
+    change = f"'{old}' -> '{value}'" if old else f"set to '{value}'"
+    report.change(ws.title, row, column, f"{change} ({reason})")

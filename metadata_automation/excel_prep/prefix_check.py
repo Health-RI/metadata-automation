@@ -74,6 +74,14 @@ def namespace_map(wb: Workbook) -> dict[str, str]:
     return namespaces
 
 
+def expand(curie: str, namespaces: dict[str, str]) -> str | None:
+    """Full IRI of a CURIE, or None when its prefix has no namespace."""
+    prefix = curie_prefix(curie)
+    if prefix and namespaces.get(prefix):
+        return namespaces[prefix] + curie.split(":", 1)[1]
+    return None
+
+
 def check_prefixes(wb: Workbook) -> list[Finding]:
     """Report unregistered, duplicate, aliased, case-variant and malformed prefix usage."""
     registered = registered_prefixes(wb)
