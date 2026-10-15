@@ -110,6 +110,7 @@ class TestSecondPass:
         "uri, viewer, editor",
         [
             ("dcat:dataset", "dash:URIViewer", "dash:URIEditor"),
+            ("dct:license", "dash:LabelViewer", "dash:URIEditor"),
             ("dct:publisher", "dash:DetailsViewer", "dash:BlankNodeEditor"),
             ("dct:modified", "dash:LiteralViewer", "dash:DateTimePickerEditor"),
             ("dct:description", "dash:LiteralViewer", "dash:TextAreaEditor"),
@@ -122,6 +123,12 @@ class TestSecondPass:
         row = find_row(ws, "Property URI", uri)
         assert cell(ws, row, "SHACL_dash:viewer") == viewer
         assert cell(ws, row, "SHACL_dash:editor") == editor
+
+    def test_generic_resource_gets_uri_viewer(self, second_pass):
+        _, wb, _ = second_pass
+        ws = wb["Distribution"]
+        row = find_row(ws, "Property URI", "dcat:accessURL")
+        assert cell(ws, row, "SHACL_dash:viewer") == "dash:URIViewer"
 
     def test_is_idempotent(self, second_pass, tmp_path):
         _, _, path = second_pass

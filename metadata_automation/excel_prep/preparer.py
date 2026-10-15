@@ -3,9 +3,9 @@
 Two modes:
 
 - init: update the source in place with the structure, prefixes, sh:node for
-  model ranges and DASH, and run the checks.
-- full: additionally apply the FDP rules (Resource sheet, (IRI) ranges,
-  relaxed cardinality, title check) and write a new workbook.
+  model ranges, (IRI) for other ranges and DASH, and run the checks.
+- full: additionally apply the FDP rules (Resource sheet, independent classes
+  by IRI with relaxed cardinality and URI DASH, title check) and write a new workbook.
 
 Values that cannot be derived are left empty and listed in the report.
 """
@@ -50,7 +50,7 @@ def prepare_workbook(src: Path, dst: Path | None = None, namespace: str | None =
     for name in class_sheet_names(wb):
         prepare_class_sheet(wb[name], None if untargeted else model, init, report)
     if not untargeted:
-        apply_dash_rules(wb, report)
+        apply_dash_rules(wb, set(model), report)
     if not init:
         check_titles(wb, model, report)
     prepare_prefixes_sheet(wb, report)

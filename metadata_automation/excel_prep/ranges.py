@@ -5,6 +5,7 @@ import re
 from openpyxl.worksheet.worksheet import Worksheet
 
 from metadata_automation.excel_prep.columns import CLASS_SHEET_COLUMNS
+from metadata_automation.excel_prep.dash import URI
 from metadata_automation.excel_prep.report import Report
 from metadata_automation.excel_prep.structure import ModelClass
 from metadata_automation.excel_prep.workbook import (
@@ -49,7 +50,7 @@ def _apply_range(
     init: bool,
     report: Report,
 ) -> None:
-    """Init only nests model classes and flags other ranges; the full run applies the FDP rules."""
+    """Init only nests model classes; the full run applies the FDP rules. Other non-literal ranges get (IRI)."""
     base, has_iri = split_iri_suffix(value)
     if base in model and init:
         if not has_iri:
@@ -57,10 +58,7 @@ def _apply_range(
     elif base in model:
         _apply_model_range(ws, row, cols, base, has_iri, model[base], report)
     elif not has_iri and curie_prefix(base) and curie_prefix(base) not in LITERAL_PREFIXES:
-        if init:
-            report.issue(ws.title, row, "Range", f"'{base}' is not a class of this model")
-        else:
-            set_value(ws, row, cols["Range"], f"{base} (IRI)", report, "Range", "range is not a class of this model")
+        set_value(ws, row, cols["Range"], f"{base} (IRI)", report, "Range", "range is not a class of this model")
 
 
 def _apply_model_range(
@@ -72,15 +70,16 @@ def _apply_model_range(
     cls: ModelClass,
     report: Report,
 ) -> None:
-    """Independent classes are referenced by IRI with optional cardinality; dependent ones are nested.
+    """Independent classes are referenced by IRI with optional cardinality and URI DASH; dependent ones are nested.
 
     A class without a valid SHACL_independent_class flag is treated as dependent.
     """
     if cls.independent:
+        reason = f"'{cls.sheet}' is an independent class"
         if not has_iri:
-            reason = f"'{cls.sheet}' is an independent class"
             set_value(ws, row, cols["Range"], f"{base} (IRI)", report, "Range", reason)
         _relax_cardinality(ws, row, cols, cls, report)
+        _reference_by_iri(ws, row, cols, report, reason)
         return
     if has_iri:
         report.issue(ws.title, row, "Range", f"'{cls.sheet}' is a dependent class but the range ends in (IRI)")
@@ -93,6 +92,16 @@ def _set_node(ws: Worksheet, row: int, cols: dict[str, int], cls: ModelClass, re
     expected = f"{cls.class_uri}Shape"
     if cls.class_uri and text(ws, row, cols["SHACL_sh:node"]) != expected:
         set_value(ws, row, cols["SHACL_sh:node"], expected, report, "SHACL_sh:node", reason)
+
+
+def _reference_by_iri(ws: Worksheet, row: int, cols: dict[str, int], report: Report, reason: str) -> None:
+    """Empty SHACL_sh:node and overwrite the DASH values with the URI viewer and editor."""
+    if old := text(ws, row, cols["SHACL_sh:node"]):
+        ws.cell(row=row, column=cols["SHACL_sh:node"]).value = None
+        report.change(ws.title, row, "SHACL_sh:node", f"cleared '{old}' ({reason})")
+    for column, value in zip(("SHACL_dash:viewer", "SHACL_dash:editor"), URI, strict=True):
+        if text(ws, row, cols[column]) != value:
+            set_value(ws, row, cols[column], value, report, column, reason)
 
 
 def _relax_cardinality(ws: Worksheet, row: int, cols: dict[str, int], cls: ModelClass, report: Report) -> None:
