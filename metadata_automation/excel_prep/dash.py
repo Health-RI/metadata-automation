@@ -7,6 +7,7 @@ from metadata_automation.excel_prep.report import Report
 from metadata_automation.excel_prep.workbook import (
     class_sheet_names,
     headers,
+    is_literal,
     property_rows,
     set_value,
     split_iri_suffix,
@@ -40,7 +41,7 @@ def expected_dash(range_: str, node: str, is_description: bool, model_classes: s
         return DETAILS
     if range_ == "xsd:dateTime":
         return DATE_TIME
-    if range_.startswith(("xsd:", "rdfs:Literal")):
+    if is_literal(range_):
         return TEXT_AREA if is_description else TEXT_FIELD
     return None
 

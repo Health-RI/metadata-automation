@@ -12,13 +12,12 @@ from metadata_automation.excel_prep.workbook import (
     copy_column_format,
     curie_prefix,
     ensure_columns,
+    is_literal,
     property_rows,
     set_value,
     split_iri_suffix,
     text,
 )
-
-LITERAL_PREFIXES = ("xsd", "rdfs")
 
 _CARDINALITY = re.compile(r"^(\d+)(?:\.\.(\d+|n|\*))?$")
 
@@ -57,7 +56,7 @@ def _apply_range(
             _set_node(ws, row, cols, model[base], report, "class of this model")
     elif base in model:
         _apply_model_range(ws, row, cols, base, has_iri, model[base], report)
-    elif not has_iri and curie_prefix(base) and curie_prefix(base) not in LITERAL_PREFIXES:
+    elif not has_iri and curie_prefix(base) and not is_literal(base):
         set_value(ws, row, cols["Range"], f"{base} (IRI)", report, "Range", "range is not a class of this model")
 
 

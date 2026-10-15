@@ -124,6 +124,22 @@ class TestSecondPass:
         assert cell(ws, row, "SHACL_dash:viewer") == viewer
         assert cell(ws, row, "SHACL_dash:editor") == editor
 
+    def test_rdfs_class_range_gets_iri(self, plain_small, tmp_path):
+        first = tmp_path / "first.xlsx"
+        prepare_workbook(plain_small, first)
+        answer_classes(first)
+        wb = load_workbook(first)
+        ws = wb["Distribution"]
+        row = find_row(ws, "Property URI", "dcat:accessURL")
+        set_cell(ws, row, "Range", "rdfs:Resource")
+        wb.save(first)
+
+        second = tmp_path / "second.xlsx"
+        prepare_workbook(first, second)
+        ws = load_workbook(second)["Distribution"]
+        assert cell(ws, row, "Range") == "rdfs:Resource (IRI)"
+        assert cell(ws, row, "SHACL_dash:viewer") == "dash:URIViewer"
+
     def test_generic_resource_gets_uri_viewer(self, second_pass):
         _, wb, _ = second_pass
         ws = wb["Distribution"]
