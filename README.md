@@ -117,7 +117,7 @@ Existing values are never overwritten, so the command can be re-run on its own o
 - Derives `class_URI` as `{namespace}:{local name of SHACL_target_ontology_name}`.
 - Applies the range rules once every class has a `SHACL_target_ontology_name`:
   - A range that is the target of a class with `SHACL_independent_class` `TRUE` (a class that exists on its own in the FDP) gets `(IRI)` appended and a non-required cardinality, e.g. `1..n` → `0..n`.
-  - A range that is the target of a class with `SHACL_independent_class` `FALSE` gets its shape in `SHACL_sh:node`, e.g. `hri:AgentShape`.
+  - A range that is the target of a class with `SHACL_independent_class` `FALSE` (or not set) gets its shape in `SHACL_sh:node`, e.g. `hri:AgentShape`; a differing value is overwritten.
   - Any other range outside the `xsd` and `rdfs` namespaces gets `(IRI)` appended.
 - Then derives `SHACL_dash:viewer` / `SHACL_dash:editor` (first matching rule). Empty cells are filled; a differing existing value is kept and reported.
   - Range ends in `(IRI)`: `dash:URIViewer` / `dash:URIEditor`
