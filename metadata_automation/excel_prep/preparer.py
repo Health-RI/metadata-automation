@@ -1,8 +1,13 @@
 """Turn a plain metadata Excel into one the shaclplay and sempyro commands accept.
 
-Everything is derived from the workbook itself. Values that cannot be derived
-are left empty and listed in the report. Existing values are never overwritten,
-so running the preparation again on its own output only fills new gaps.
+Two modes:
+
+- init: update the source in place with the structure, prefixes, sh:node for
+  model ranges and DASH, and run the checks.
+- full: additionally apply the FDP rules (Resource sheet, (IRI) ranges,
+  relaxed cardinality, title check) and write a new workbook.
+
+Values that cannot be derived are left empty and listed in the report.
 """
 
 import re
@@ -68,11 +73,16 @@ PREFIXES_COLUMNS = ["prefix", "namespace"]
 REQUIRED_CLASSES_COLUMNS = [
     "class_URI",
     "SHACL_target_ontology_name",
-    "SHACL_independent_class",
     "SeMPyRO_annotations_ontology",
     "SeMPyRO_annotations_IRI",
 ]
-OPTIONAL_CLASSES_COLUMNS = ["description", "SeMPyRO_inherits_from", "SeMPyRO_import_classes", "SeMPyRO_add_rdf_model"]
+OPTIONAL_CLASSES_COLUMNS = [
+    "description",
+    "SHACL_independent_class",
+    "SeMPyRO_inherits_from",
+    "SeMPyRO_import_classes",
+    "SeMPyRO_add_rdf_model",
+]
 REQUIRED_PROPERTY_COLUMNS = ["SeMPyRO_rdf_term", "SeMPyRO_rdf_type", "SeMPyRO_range"]
 OPTIONAL_PROPERTY_COLUMNS = [
     "SHACL_dash:viewer",
@@ -84,7 +94,8 @@ OPTIONAL_PROPERTY_COLUMNS = [
 
 LITERAL_PREFIXES = ("xsd", "rdfs")
 TITLE_PROPERTY = "dct:title"
-GENERAL_SHEETS = ["prefixes", "classes", "Resource"]
+GENERAL_SHEETS = ["prefixes", "classes"]
+FDP_SHEETS = ["Resource"]
 
 _CARDINALITY = re.compile(r"^(\d+)(?:\.\.(\d+|n|\*))?$")
 
@@ -98,32 +109,42 @@ class ModelClass:
     independent: bool | None
 
 
-def prepare_workbook(src: Path, dst: Path, namespace: str = "hri", init: bool = False) -> Report:
-    """Write a prepared copy of ``src`` to ``dst`` and return what was done and what is missing.
+def prepare_workbook(src: Path, dst: Path | None = None, namespace: str | None = None, init: bool = False) -> Report:
+    """Prepare ``src`` and return what was done and what is missing.
 
-    With ``init``, only sheets, rows, columns and prefixes are added and the checks run;
-    no existing or derived cell values (class_URI, ranges, cardinality, sh:node, DASH) are set.
+    An empty class_URI is derived from ``namespace`` when given, and otherwise left empty.
+
+    With ``init``, ``src`` is updated in place and ``dst`` must be None. Otherwise the FDP
+    rules are applied too and the result is written to ``dst``, which must differ from ``src``.
     """
-    src, dst = Path(src), Path(dst)
-    if dst.resolve() == src.resolve():
+    src = Path(src)
+    if init:
+        if dst is not None:
+            raise ValueError("--init updates the input in place; no output path is accepted.")
+        dst = src
+    elif dst is None:
+        raise ValueError("An output path is required.")
+    elif Path(dst).resolve() == src.resolve():
         raise ValueError("Output path must differ from the input path; the source file is left untouched.")
+    dst = Path(dst)
 
     wb = load_workbook(src)
     report = Report()
 
-    _add_general_sheets(wb, report)
-    model = _prepare_classes_sheet(wb, None if init else namespace, report)
+    _add_general_sheets(wb, GENERAL_SHEETS if init else GENERAL_SHEETS + FDP_SHEETS, report)
+    model = _prepare_classes_sheet(wb, namespace, report)
     # Without every target class known, a range cannot be told apart from an out-of-model one.
     untargeted = [n for n in class_sheet_names(wb) if n not in {c.sheet for c in model.values()}]
-    if untargeted and not init:
+    if untargeted:
         report.issue(
             "classes", None, "SHACL_target_ontology_name", "range rules skipped until filled in for every class"
         )
     for name in class_sheet_names(wb):
-        _prepare_class_sheet(wb[name], None if untargeted or init else model, report)
-    if not untargeted and not init:
+        _prepare_class_sheet(wb[name], None if untargeted else model, init, report)
+    if not untargeted:
         _apply_dash_rules(wb, report)
-    _check_titles(wb, model, report)
+    if not init:
+        _check_titles(wb, model, report)
     _prepare_prefixes_sheet(wb, report)
     report.prefix_issues = check_prefixes(wb)
     _add_property_uris(wb, report)
@@ -134,11 +155,11 @@ def prepare_workbook(src: Path, dst: Path, namespace: str = "hri", init: bool = 
     return report
 
 
-def _add_general_sheets(wb: Workbook, report: Report) -> None:
-    """Create missing prefixes, classes and Resource sheets after Info / User Guide."""
+def _add_general_sheets(wb: Workbook, names: list[str], report: Report) -> None:
+    """Create the missing ``names`` sheets after Info / User Guide."""
     index = max((wb.sheetnames.index(n) + 1 for n in ("Info", "User Guide") if n in wb.sheetnames), default=0)
     columns = {"prefixes": PREFIXES_COLUMNS, "classes": CLASSES_COLUMNS, "Resource": BASE_COLUMNS}
-    for name in GENERAL_SHEETS:
+    for name in names:
         if name in wb.sheetnames:
             index = wb.sheetnames.index(name) + 1
             continue
@@ -150,7 +171,7 @@ def _add_general_sheets(wb: Workbook, report: Report) -> None:
 
 
 def _prepare_classes_sheet(wb: Workbook, namespace: str | None, report: Report) -> dict[str, ModelClass]:
-    """Add missing columns and rows, derive class_URI unless ``namespace`` is None, and return the model classes."""
+    """Add missing columns and rows, derive class_URI when ``namespace`` is given, and return the model classes."""
     ws = wb["classes"]
     cols, added = ensure_columns(ws, CLASSES_COLUMNS)
     if added:
@@ -203,8 +224,8 @@ def _class_rows(ws: Worksheet, cols: dict[str, int], sheets: list[str], report: 
     return rows
 
 
-def _prepare_class_sheet(ws: Worksheet, model: dict[str, ModelClass] | None, report: Report) -> None:
-    """Add pipeline columns and, when ``model`` is given, apply the range rules."""
+def _prepare_class_sheet(ws: Worksheet, model: dict[str, ModelClass] | None, init: bool, report: Report) -> None:
+    """Add pipeline columns and, when ``model`` is given, apply the range rules (FDP ones unless ``init``)."""
     cols, added = ensure_columns(ws, CLASS_SHEET_COLUMNS)
     if added:
         for name in added:
@@ -217,13 +238,30 @@ def _prepare_class_sheet(ws: Worksheet, model: dict[str, ModelClass] | None, rep
         return
 
     for row in property_rows(ws, cols):
-        value = text(ws, row, cols["Range"])
-        if not value:
-            continue
-        base, has_iri = split_iri_suffix(value)
-        if base in model:
-            _apply_model_range(ws, row, cols, base, has_iri, model[base], report)
-        elif not has_iri and curie_prefix(base) and curie_prefix(base) not in LITERAL_PREFIXES:
+        if value := text(ws, row, cols["Range"]):
+            _apply_range(ws, row, cols, value, model, init, report)
+
+
+def _apply_range(
+    ws: Worksheet,
+    row: int,
+    cols: dict[str, int],
+    value: str,
+    model: dict[str, ModelClass],
+    init: bool,
+    report: Report,
+) -> None:
+    """Init only nests model classes and flags other ranges; the full run applies the FDP rules."""
+    base, has_iri = split_iri_suffix(value)
+    if base in model and init:
+        if not has_iri:
+            _set_node(ws, row, cols, model[base], report, "class of this model")
+    elif base in model:
+        _apply_model_range(ws, row, cols, base, has_iri, model[base], report)
+    elif not has_iri and curie_prefix(base) and curie_prefix(base) not in LITERAL_PREFIXES:
+        if init:
+            report.issue(ws.title, row, "Range", f"'{base}' is not a class of this model")
+        else:
             _set(ws, row, cols["Range"], f"{base} (IRI)", report, "Range", "range is not a class of this model")
 
 
@@ -247,8 +285,15 @@ def _apply_model_range(
         return
     if has_iri:
         report.issue(ws.title, row, "Range", f"'{cls.sheet}' is a dependent class but the range ends in (IRI)")
-    elif cls.class_uri and text(ws, row, cols["SHACL_sh:node"]) != f"{cls.class_uri}Shape":
-        _set(ws, row, cols["SHACL_sh:node"], f"{cls.class_uri}Shape", report, "SHACL_sh:node", "dependent class")
+    else:
+        _set_node(ws, row, cols, cls, report, "dependent class")
+
+
+def _set_node(ws: Worksheet, row: int, cols: dict[str, int], cls: ModelClass, report: Report, reason: str) -> None:
+    """Set SHACL_sh:node to the class shape, overwriting a value that differs."""
+    expected = f"{cls.class_uri}Shape"
+    if cls.class_uri and text(ws, row, cols["SHACL_sh:node"]) != expected:
+        _set(ws, row, cols["SHACL_sh:node"], expected, report, "SHACL_sh:node", reason)
 
 
 def _relax_cardinality(ws: Worksheet, row: int, cols: dict[str, int], cls: ModelClass, report: Report) -> None:

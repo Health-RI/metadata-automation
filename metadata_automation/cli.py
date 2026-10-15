@@ -650,44 +650,47 @@ def sempyro(
     "--input-excel",
     type=click.Path(exists=True, dir_okay=False),
     required=True,
-    help="Path to the plain metadata Excel file. It is not modified.",
+    help="Path to the plain metadata Excel file. Only modified with --init.",
 )
 @click.option(
     "-o",
     "--output-excel",
     type=click.Path(dir_okay=False),
     default=None,
-    help="Path for the prepared Excel (default: ./outputs/prepared/<input>_prepared.xlsx).",
+    help="Path for the prepared Excel (default: ./outputs/prepared/<input>_prepared.xlsx). Not used with --init.",
 )
 @click.option(
     "-n",
     "--namespace",
     type=str,
-    default="hri",
-    help="Namespace prefix used to derive class_URI values.",
+    default=None,
+    help="Namespace prefix used to derive empty class_URI values. Without it, class_URI is left empty.",
 )
 @click.option(
     "--init",
     is_flag=True,
-    help="Only add sheets, columns and prefixes and run the checks; leave all cell values as they are.",
+    help="Update the input in place: add sheets, columns, prefixes, sh:node and DASH values, and run the checks.",
 )
-def prepare_excel(input_excel: str, output_excel: str | None, namespace: str, init: bool) -> None:
+def prepare_excel(input_excel: str, output_excel: str | None, namespace: str | None, init: bool) -> None:
     """Prepare a plain metadata Excel for the shaclplay and sempyro commands.
 
     \b
-    Adds the prefixes, classes and Resource sheets and the SHACL_* and
-    SeMPyRO_* columns, applies the range rules, checks prefix consistency,
-    and prints the cells that still have to be filled in by hand.
+    Adds the prefixes and classes sheets and the SHACL_* and SeMPyRO_*
+    columns, sets sh:node and DASH values, checks prefix consistency, and
+    prints the cells that still have to be filled in by hand. Without --init,
+    also applies the FDP rules and writes a new Excel.
     """
     input_path = Path(input_excel)
-    output_path = Path(output_excel or f"./outputs/prepared/{input_path.stem}_prepared.xlsx")
+    output_path = Path(output_excel) if output_excel else None
+    if output_path is None and not init:
+        output_path = Path(f"./outputs/prepared/{input_path.stem}_prepared.xlsx")
     try:
         report = prepare_workbook(input_path, output_path, namespace, init=init)
     except Exception as e:
         click.echo(f"Error: {e}", err=True)
         exit(1)
     click.echo(report.format())
-    click.echo(f"Prepared Excel written to {output_path}")
+    click.echo(f"Prepared Excel written to {output_path or input_path}")
 
 
 @main.command()

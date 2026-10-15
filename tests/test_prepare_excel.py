@@ -1,6 +1,7 @@
 """Tests for the prepare-excel command and the Excel preparation logic."""
 
 import hashlib
+import shutil
 
 import pytest
 from openpyxl import Workbook, load_workbook
@@ -66,14 +67,16 @@ def set_cell(ws, row, column, value):
     ws.cell(row=row, column=headers(ws)[column], value=value)
 
 
-def answer_classes(path, answers=CLASS_ANSWERS):
-    """Fill in SHACL_target_ontology_name and SHACL_independent_class, as the modeler would."""
+def answer_classes(path, answers=CLASS_ANSWERS, class_uris=True):
+    """Fill in the target, independent flag and (optionally) class_URI, as the modeler would."""
     wb = load_workbook(path)
     ws = wb["classes"]
     for name, (target, independent) in answers.items():
         row = find_row(ws, "sheet_name", name)
         set_cell(ws, row, "SHACL_target_ontology_name", target)
         set_cell(ws, row, "SHACL_independent_class", independent)
+        if class_uris:
+            set_cell(ws, row, "class_URI", f"hri:{target.split(':')[1]}")
     wb.save(path)
 
 
@@ -164,7 +167,9 @@ class TestFirstPass:
     def test_report_lists_gaps(self, prepared):
         report, _ = prepared
         gaps = {(g.sheet, g.column, g.row) for g in report.gaps}
-        assert ("classes", "SHACL_independent_class", 2) in gaps
+        assert ("classes", "class_URI", 2) in gaps
+        assert ("classes", "SHACL_independent_class", 2) not in gaps
+        assert ("classes", "SHACL_independent_class", 2) in {(g.sheet, g.column, g.row) for g in report.optional_gaps}
         assert ("classes", "SeMPyRO_annotations_IRI", 6) in gaps
         assert ("Dataset", "SeMPyRO_range", 3) in gaps
         assert ("prefixes", "namespace", 2) in gaps
@@ -172,10 +177,25 @@ class TestFirstPass:
 
 
 class TestSecondPass:
-    def test_class_uri_derived_from_target(self, second_pass):
-        _, wb, _ = second_pass
-        ws = wb["classes"]
-        assert cell(ws, find_row(ws, "sheet_name", "Catalog"), "class_URI") == "hri:Catalog"
+    def test_class_uri_derived_from_namespace(self, plain_small, tmp_path):
+        first = tmp_path / "first.xlsx"
+        prepare_workbook(plain_small, first)
+        answer_classes(first, class_uris=False)
+        second = tmp_path / "second.xlsx"
+        prepare_workbook(first, second, namespace="ex")
+        ws = load_workbook(second)["classes"]
+        assert cell(ws, find_row(ws, "sheet_name", "Catalog"), "class_URI") == "ex:Catalog"
+
+    def test_class_uri_is_not_derived(self, plain_small, tmp_path):
+        first = tmp_path / "first.xlsx"
+        prepare_workbook(plain_small, first)
+        answer_classes(first, class_uris=False)
+        second = tmp_path / "second.xlsx"
+        report = prepare_workbook(first, second)
+        ws = load_workbook(second)["classes"]
+        row = find_row(ws, "sheet_name", "Catalog")
+        assert not cell(ws, row, "class_URI")
+        assert Cell("classes", row, "class_URI") in report.gaps
 
     def test_independent_class_range_gets_iri_and_relaxed_cardinality(self, second_pass):
         _, wb, _ = second_pass
@@ -283,41 +303,62 @@ class TestSecondPass:
 
 class TestInit:
     @pytest.fixture
-    def answered(self, plain_small, tmp_path):
-        """A first-pass output with the class questions answered, so every rule could apply."""
-        first = tmp_path / "first.xlsx"
-        prepare_workbook(plain_small, first)
-        answer_classes(first)
-        return first
+    def plain_copy(self, plain_small, tmp_path):
+        path = tmp_path / "plain.xlsx"
+        shutil.copy(plain_small, path)
+        return path
 
-    def test_adds_structure_and_prefixes(self, plain_small, tmp_path):
-        out = tmp_path / "init.xlsx"
-        report = prepare_workbook(plain_small, out, init=True)
-        wb = load_workbook(out)
-        assert wb.sheetnames[:4] == ["Info", "prefixes", "classes", "Resource"]
+    @pytest.fixture
+    def answered(self, plain_copy):
+        """An init output with the class questions answered, so every rule could apply."""
+        prepare_workbook(plain_copy, init=True)
+        answer_classes(plain_copy, {k: v for k, v in CLASS_ANSWERS.items() if k != "Resource"})
+        return plain_copy
+
+    def test_updates_in_place_without_fdp_sheets(self, plain_copy):
+        before = sha(plain_copy)
+        report = prepare_workbook(plain_copy, init=True)
+        assert sha(plain_copy) != before
+        wb = load_workbook(plain_copy)
+        assert wb.sheetnames[:3] == ["Info", "prefixes", "classes"]
+        assert "Resource" not in wb.sheetnames
         for name in class_sheet_names(wb):
             assert set(CLASS_SHEET_COLUMNS) <= set(headers(wb[name]))
         assert any(c.cell.sheet == "prefixes" for c in report.changes)
         assert report.prefix_issues
 
-    def test_leaves_cell_values_untouched(self, answered, tmp_path):
-        out = tmp_path / "init.xlsx"
-        report = prepare_workbook(answered, out, init=True)
-        before, after = load_workbook(answered), load_workbook(out)
-        for name in before.sheetnames:
-            assert [[c.value for c in r] for r in before[name].iter_rows()] == [
-                [c.value for c in r] for r in after[name].iter_rows()
-            ]
-        assert report.changes == []
-        assert not any("range rules skipped" in f.message for f in report.issues)
+    def test_rejects_output_path(self, plain_copy, tmp_path):
+        with pytest.raises(ValueError, match="in place"):
+            prepare_workbook(plain_copy, tmp_path / "out.xlsx", init=True)
 
-    def test_still_runs_checks(self, answered, tmp_path):
+    def test_model_range_gets_node_shape_only(self, answered):
+        report = prepare_workbook(answered, init=True)
+        ws = load_workbook(answered)["Catalog"]
+        row = find_row(ws, "Property URI", "dcat:dataset")
+        assert cell(ws, row, "Range") == "dcat:Dataset"
+        assert cell(ws, row, "Cardinality") == "1..n"
+        assert cell(ws, row, "SHACL_sh:node") == "hri:DatasetShape"
+        assert cell(ws, row, "SHACL_dash:viewer") == "dash:DetailsViewer"
+        assert not any(f.cell.column in ("Range", "Cardinality") for f in report.changes)
+
+    def test_out_of_model_range_is_flagged_not_changed(self, answered):
+        report = prepare_workbook(answered, init=True)
+        ws = load_workbook(answered)["Catalog"]
+        row = find_row(ws, "Property URI", "dct:license")
+        assert cell(ws, row, "Range") == "dct:LicenseDocument"
+        assert any(
+            f.cell == Cell("Catalog", row, "Range")
+            and f.message == "'dct:LicenseDocument' is not a class of this model"
+            for f in report.issues
+        )
+
+    def test_no_title_check(self, answered):
         wb = load_workbook(answered)
         ws = wb["Catalog"]
         ws.delete_rows(find_row(ws, "Property URI", "dct:title"))
         wb.save(answered)
-        report = prepare_workbook(answered, tmp_path / "init.xlsx", init=True)
-        assert any(f.cell.sheet == "Catalog" and "dct:title" in f.message for f in report.issues)
+        report = prepare_workbook(answered, init=True)
+        assert not any("dct:title" in f.message for f in report.issues)
 
 
 class TestIssues:
@@ -464,11 +505,19 @@ def test_cli_prints_report(runner, plain_small, tmp_path):
 
 
 def test_cli_init_flag(runner, plain_small, tmp_path):
-    out = tmp_path / "prepared.xlsx"
-    result = runner.invoke(prepare_excel, ["-i", str(plain_small), "-o", str(out), "--init"])
+    path = tmp_path / "plain.xlsx"
+    shutil.copy(plain_small, path)
+    result = runner.invoke(prepare_excel, ["-i", str(path), "--init"])
     assert result.exit_code == 0, result.output
     assert "Prefix check" in result.output
-    assert "derived from range" not in result.output
+    assert f"Prepared Excel written to {path}" in result.output
+    assert "prefixes" in load_workbook(path).sheetnames
+
+
+def test_cli_init_rejects_output(runner, plain_small, tmp_path):
+    result = runner.invoke(prepare_excel, ["-i", str(plain_small), "-o", str(tmp_path / "out.xlsx"), "--init"])
+    assert result.exit_code == 1
+    assert "in place" in result.output
 
 
 def test_cli_rejects_same_output(runner, plain_small):
