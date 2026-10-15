@@ -117,7 +117,7 @@ General steps (always):
 - Adds every prefix used in the workbook to `prefixes`; unknown namespaces are left empty.
 - Once every class has a `SHACL_target_ontology_name`:
   - A range that is a class of the model and not suffixed `(IRI)` gets its shape in `SHACL_sh:node`, e.g. `hri:AgentShape`; a differing value is overwritten.
-  - Any other range outside the `xsd` and `rdfs` namespaces gets `(IRI)` appended.
+  - Any other range that is not a literal (`rdfs:Literal` or an `xsd` datatype) gets `(IRI)` appended.
   - `SHACL_dash:viewer` / `SHACL_dash:editor` are derived (first matching rule). Empty cells are filled; a differing existing value is kept and reported.
     - Range ends in `(IRI)` and is a model class or `rdfs:Resource`: `dash:URIViewer` / `dash:URIEditor`
     - Any other range ending in `(IRI)` (an outside vocabulary): `dash:LabelViewer` / `dash:URIEditor`

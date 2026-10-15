@@ -85,6 +85,12 @@ def curie_prefix(value: str) -> str | None:
     return match.group(1) if match else None
 
 
+def is_literal(value: str) -> bool:
+    """Only rdfs:Literal and the xsd datatypes are literal ranges."""
+    value = value.strip()
+    return value == "rdfs:Literal" or curie_prefix(value) == "xsd"
+
+
 def parse_bool(value) -> bool | None:
     """Excel booleans and their text forms; None when empty or unrecognised."""
     if isinstance(value, bool):
