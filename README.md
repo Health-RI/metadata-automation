@@ -117,9 +117,10 @@ General steps (always):
 - Adds every prefix used in the workbook to `prefixes`; unknown namespaces are left empty.
 - Once every class has a `SHACL_target_ontology_name`:
   - A range that is a class of the model and not suffixed `(IRI)` gets its shape in `SHACL_sh:node`, e.g. `hri:AgentShape`; a differing value is overwritten.
-  - Any other range outside the `xsd` and `rdfs` namespaces is reported.
+  - Any other range outside the `xsd` and `rdfs` namespaces gets `(IRI)` appended.
   - `SHACL_dash:viewer` / `SHACL_dash:editor` are derived (first matching rule). Empty cells are filled; a differing existing value is kept and reported.
-    - Range ends in `(IRI)`: `dash:URIViewer` / `dash:URIEditor`
+    - Range ends in `(IRI)` and is a model class or `rdfs:Resource`: `dash:URIViewer` / `dash:URIEditor`
+    - Any other range ending in `(IRI)` (an outside vocabulary): `dash:LabelViewer` / `dash:URIEditor`
     - `SHACL_sh:node` filled: `dash:DetailsViewer` / `dash:BlankNodeEditor`
     - `xsd:dateTime`: `dash:LiteralViewer` / `dash:DateTimePickerEditor`
     - `dct:description` with a literal range: `dash:LiteralViewer` / `dash:TextAreaEditor`
@@ -128,14 +129,13 @@ General steps (always):
 FDP steps (without `--init`; the result is written to a new file):
 - Adds the `Resource` sheet if missing.
 - The range rules replace the general ones:
-  - A range that is the target of a class with `SHACL_independent_class` `TRUE` (a class that exists on its own in the FDP) gets `(IRI)` appended and a non-required cardinality, e.g. `1..n` → `0..n`.
+  - A range that is the target of a class with `SHACL_independent_class` `TRUE` (a class that exists on its own in the FDP) gets `(IRI)` appended, a non-required cardinality, e.g. `1..n` → `0..n`, an empty `SHACL_sh:node`, and `dash:URIViewer` / `dash:URIEditor` (overwriting other values).
   - A range that is the target of a class with `SHACL_independent_class` `FALSE` (or not set) gets its shape in `SHACL_sh:node`; a differing value is overwritten. A range ending in `(IRI)` is reported.
-  - Any other range outside the `xsd` and `rdfs` namespaces gets `(IRI)` appended.
 - Reports an independent class without a `dct:title` property.
 
 It then prints a report with:
 - the changes made;
-- issues, e.g. a range outside the model (`--init`) or a dependent class referenced as `(IRI)`;
+- issues, e.g. a dependent class referenced as `(IRI)` or a differing DASH value;
 - a prefix check: used prefixes without a namespace, duplicate or aliased prefixes, case variants, full IRIs that could be CURIEs, and values with no prefix or stray whitespace in `Property URI` and `Range`;
 - every sheet, column and row that still has to be filled in by hand, plus a summary of empty optional columns (including `SHACL_independent_class`).
 
