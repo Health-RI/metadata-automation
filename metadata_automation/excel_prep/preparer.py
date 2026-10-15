@@ -236,9 +236,10 @@ def _apply_model_range(
     cls: ModelClass,
     report: Report,
 ) -> None:
-    """Independent classes are referenced by IRI with optional cardinality; dependent ones are nested."""
-    if cls.independent is None:
-        return
+    """Independent classes are referenced by IRI with optional cardinality; dependent ones are nested.
+
+    A class without a valid SHACL_independent_class flag is treated as dependent.
+    """
     if cls.independent:
         if not has_iri:
             _set(ws, row, cols["Range"], f"{base} (IRI)", report, "Range", f"'{cls.sheet}' is an independent class")
@@ -246,7 +247,7 @@ def _apply_model_range(
         return
     if has_iri:
         report.issue(ws.title, row, "Range", f"'{cls.sheet}' is a dependent class but the range ends in (IRI)")
-    elif cls.class_uri and not text(ws, row, cols["SHACL_sh:node"]):
+    elif cls.class_uri and text(ws, row, cols["SHACL_sh:node"]) != f"{cls.class_uri}Shape":
         _set(ws, row, cols["SHACL_sh:node"], f"{cls.class_uri}Shape", report, "SHACL_sh:node", "dependent class")
 
 

@@ -208,6 +208,36 @@ class TestSecondPass:
         assert cell(ws, row, "Cardinality") == "1"
         assert cell(ws, row, "SHACL_sh:node") == "hri:AgentShape"
 
+    def test_differing_node_shape_is_corrected(self, plain_small, tmp_path):
+        first = tmp_path / "first.xlsx"
+        prepare_workbook(plain_small, first)
+        answer_classes(first)
+        wb = load_workbook(first)
+        ws = wb["Catalog"]
+        row = find_row(ws, "Property URI", "dct:publisher")
+        set_cell(ws, row, "SHACL_sh:node", "old:AgentShape")
+        wb.save(first)
+
+        second = tmp_path / "second.xlsx"
+        report = prepare_workbook(first, second)
+        assert any(
+            f.cell == Cell("Catalog", row, "SHACL_sh:node")
+            and f.message == "'old:AgentShape' -> 'hri:AgentShape' (dependent class)"
+            for f in report.changes
+        )
+        assert cell(load_workbook(second)["Catalog"], row, "SHACL_sh:node") == "hri:AgentShape"
+
+    def test_unset_independent_flag_means_dependent(self, plain_small, tmp_path):
+        first = tmp_path / "first.xlsx"
+        prepare_workbook(plain_small, first)
+        answer_classes(first, {**CLASS_ANSWERS, "Agent": ("foaf:Agent", None)})
+        second = tmp_path / "second.xlsx"
+        prepare_workbook(first, second)
+        ws = load_workbook(second)["Catalog"]
+        row = find_row(ws, "Property URI", "dct:publisher")
+        assert cell(ws, row, "Range") == "foaf:Agent"
+        assert cell(ws, row, "SHACL_sh:node") == "hri:AgentShape"
+
     @pytest.mark.parametrize(
         "sheet, uri, expected",
         [
