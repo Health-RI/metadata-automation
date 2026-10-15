@@ -7,6 +7,8 @@ requires-python = ">=3.10,<3.14"
 dependencies = [
     "black==26.5.1",
     "click>=8.0.0",
+    # curies 0.15.2+ uses a TypeVar default that pydantic 2.10 (pinned by sempyro) cannot handle.
+    "curies<0.15.2",
     "linkml==1.10.0",
     "pandas==2.3.3",
     "ruff>=0.14.11",
