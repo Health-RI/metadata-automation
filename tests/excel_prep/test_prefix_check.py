@@ -3,7 +3,7 @@
 import pytest
 from openpyxl import Workbook
 
-from metadata_automation.excel_prep.prefix_check import check_prefixes
+from metadata_automation.excel_prep.prefix_check import check_prefixes, same_term
 
 
 class TestPrefixCheck:
@@ -47,3 +47,16 @@ class TestPrefixCheck:
     )
     def test_finds(self, findings, expected):
         assert any(expected in f for f in findings), findings
+
+
+@pytest.mark.parametrize(
+    "value, namespaces, expected",
+    [
+        ("dct:title", {}, True),
+        ("dcterms:title", {"dct": "http://purl.org/dc/terms/", "dcterms": "http://purl.org/dc/terms/"}, True),
+        ("dcterms:title", {"dcterms": "http://purl.org/dc/terms/"}, False),
+        ("dct:description", {"dct": "http://purl.org/dc/terms/"}, False),
+    ],
+)
+def test_same_term(value, namespaces, expected):
+    assert same_term(value, "dct:title", namespaces) is expected

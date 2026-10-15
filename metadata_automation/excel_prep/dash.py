@@ -2,7 +2,7 @@
 
 from openpyxl.workbook import Workbook
 
-from metadata_automation.excel_prep.prefix_check import expand, namespace_map
+from metadata_automation.excel_prep.prefix_check import namespace_map, same_term
 from metadata_automation.excel_prep.report import Report
 from metadata_automation.excel_prep.workbook import (
     class_sheet_names,
@@ -49,15 +49,11 @@ def expected_dash(range_: str, node: str, is_description: bool, model_classes: s
 def apply_dash_rules(wb: Workbook, model_classes: set[str], report: Report) -> None:
     """Fill empty viewer/editor cells with the expected value; report existing values that differ."""
     namespaces = namespace_map(wb)
-    description_iri = expand(DESCRIPTION_PROPERTY, namespaces)
     for name in class_sheet_names(wb):
         ws = wb[name]
         cols = headers(ws)
         for row in property_rows(ws, cols):
-            uri = text(ws, row, cols.get("Property URI"))
-            is_description = uri == DESCRIPTION_PROPERTY or bool(
-                description_iri and expand(uri, namespaces) == description_iri
-            )
+            is_description = same_term(text(ws, row, cols.get("Property URI")), DESCRIPTION_PROPERTY, namespaces)
             expected = expected_dash(
                 text(ws, row, cols.get("Range")),
                 text(ws, row, cols["SHACL_sh:node"]),
