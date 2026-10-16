@@ -110,7 +110,7 @@ class TestSecondPass:
         "uri, viewer, editor",
         [
             ("dcat:dataset", "dash:URIViewer", "dash:URIEditor"),
-            ("dct:license", "dash:LabelViewer", "dash:URIEditor"),
+            ("dct:license", "dash:URIViewer", "dash:URIEditor"),
             ("dct:publisher", "dash:DetailsViewer", "dash:BlankNodeEditor"),
             ("dct:modified", "dash:LiteralViewer", "dash:DateTimePickerEditor"),
             ("dct:description", "dash:LiteralViewer", "dash:TextAreaEditor"),
