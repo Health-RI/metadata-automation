@@ -119,8 +119,8 @@ General steps (always):
   - A range that is a class of the model and not suffixed `(IRI)` gets its shape in `SHACL_sh:node`, e.g. `hri:AgentShape`; a differing value is overwritten.
   - Any other range that is not a literal (`rdfs:Literal` or an `xsd` datatype) gets `(IRI)` appended.
   - `SHACL_dash:viewer` / `SHACL_dash:editor` are derived (first matching rule). Empty cells are filled; a differing existing value is kept and reported.
-    - Range ends in `(IRI)` and is a model class or `rdfs:Resource`: `dash:URIViewer` / `dash:URIEditor`
-    - Any other range ending in `(IRI)` (an outside vocabulary): `dash:LabelViewer` / `dash:URIEditor`
+    - Range ends in `(IRI)`, is an outside class (not a model class or `rdfs:Resource`) and has a `Controlled vocabulary (if applicable)` value (not empty or `NA`): `dash:LabelViewer` / `dash:URIEditor`
+    - Any other range ending in `(IRI)`: `dash:URIViewer` / `dash:URIEditor`
     - `SHACL_sh:node` filled: `dash:DetailsViewer` / `dash:BlankNodeEditor`
     - `xsd:dateTime`: `dash:LiteralViewer` / `dash:DateTimePickerEditor`
     - `dct:description` with a literal range: `dash:LiteralViewer` / `dash:TextAreaEditor`
