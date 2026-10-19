@@ -272,7 +272,7 @@ metadata-automation fdp-properties -i ./inputs/Health-RI_v2.1.0.xlsx --schema-ve
 Builds a [FairDataPointSchemaTool](https://github.com/Health-RI/FairDataPointSchemaTool) Properties.yaml. Derived from the Excel:
 
 - `schemasToPublish`: classes with `SHACL_independent_class` `TRUE` in the `classes` sheet, named after their `class_URI` (`hri:DatasetSeries` → `Dataset Series`). Parents listed in the base `parentChild` come first.
-- `schemas`: per schema its own SHACL file plus the files of all classes it reaches through `SHACL_sh:node`. File names follow the `shacl-from-shaclplay` output (`{namespace}-{sheet_name}.ttl`).
+- `schemas`: per schema its own SHACL file plus the files of all classes it reaches through `SHACL_sh:node`, skipping independent classes (separate schemas). File names follow the `shacl-from-shaclplay` output (`{namespace}-{sheet_name}.ttl`).
 - `resources`: every property with a name in the `FDP_resources` column of a class sheet becomes a child resource. The sheet's class is `parentResource`, the expanded `Property URI` is `parentRelationIri` and the `Range` class is `schema`. Both classes must be independent.
 
 Everything else (`parentChild`, `inputDir`, directories) comes from the base file. Point `inputDir` to where the SHACL files are hosted.

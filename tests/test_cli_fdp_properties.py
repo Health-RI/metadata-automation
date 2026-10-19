@@ -39,7 +39,8 @@ def sheets():
             {
                 "Property URI": ["dct:creator", "dcat:inSeries", "dct:publisher"],
                 "Range": ["foaf:Agent", "dcat:DatasetSeries (IRI)", "foaf:Agent"],
-                "SHACL_sh:node": ["hri:AgentShape", None, "hri:AgentShape"],
+                # sh:node to the independent DatasetSeries must not pull in its file.
+                "SHACL_sh:node": ["hri:AgentShape", "hri:DatasetSeriesShape", "hri:AgentShape"],
                 "FDP_resources": [None, "Dataset Series", None],
             }
         ),

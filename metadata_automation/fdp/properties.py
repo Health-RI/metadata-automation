@@ -88,14 +88,19 @@ def _node_refs(sheet: pd.DataFrame, sheet_by_class: dict[str, str]) -> list[str]
 
 
 def build_schemas(model: Model, schema_names: list[str], namespace: str | None = None) -> dict[str, list[str]]:
-    """Map each FDP schema name to its SHACL file and the files it depends on."""
+    """Map each FDP schema name to its SHACL file and the files it depends on.
+
+    sh:node refs to independent classes are skipped: those are separate schemas, referenced by IRI in the FDP.
+    """
     sheet_by_schema = {schema: sheet for sheet, schema in model.schema_by_sheet.items()}
+    independent = {sheet_by_schema[name] for name in schema_names}
     prefixes = {row.sheet_name: namespace or str(row.class_URI).split(":")[0] for row in model.classes.itertuples()}
     schemas = {}
     for name in schema_names:
         order = [sheet_by_schema[name]]
         for sheet_name in order:
-            order.extend(ref for ref in _node_refs(model.sheet(sheet_name), model.sheet_by_class) if ref not in order)
+            refs = _node_refs(model.sheet(sheet_name), model.sheet_by_class)
+            order.extend(ref for ref in refs if ref not in order and ref not in independent)
         schemas[name] = [f"{prefixes[s]}-{s.lower()}.ttl" for s in order]
     return schemas
 
