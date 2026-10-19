@@ -224,14 +224,14 @@ SHACLPlay Excel files are generated in the specified output directory.
 ### `shacl_from_shaclplay`: Converting SHACLPlay Excel to SHACL Turtle files
 
 ```bash
-metadata-automation shacl-from-shaclplay -i ./outputs/shaclplay/default -o ./outputs/shacl_shapes
+metadata-automation shacl-from-shaclplay -i ./outputs/shaclplay/default -o ./outputs/shacl_shapes -e ./inputs/Health-RI_v2.1.0.xlsx
 ```
 
 #### Command Options
 
 - `-i, --input-path`: Path to directory containing SHACLPlay Excel files (required)
 - `-o, --output-path`: Output directory for SHACL Turtle files (default: `./outputs/shacl_shapes`)
-- `-p, --properties`: FairDataPointSchemaTool Properties.yaml; if given, also writes FDP and validation shapes
+- `-e, --input-excel`: Metadata model Excel the SHACLPlay files were generated from; defines the FDP schemas (required)
 
 #### Description
 
@@ -248,18 +248,20 @@ The command processes all SHACLPlay Excel files from the input directory. These 
 
 **Namespace detection:**\
 The namespace is auto-detected from each Excel file's NodeShapes sheet and used to construct output file paths:
-`{output-path}/{namespace}/{namespace}-{classname}.ttl`
+`{output-path}/{namespace}/PiecesShape/{namespace}-{classname}.ttl`
+
+**Model Excel:**\
+The FDP schemas are the classes with `SHACL_independent_class` `TRUE`, as in `fdp-properties`.
 
 #### Outputs
 
-The resulting SHACLs are written to `{output-path}/{namespace}/{namespace}-{classname}.ttl`.
+Per namespace, the command writes the same output as FairDataPointSchemaTool's `template` command:
 
-**FairDataPoint shapes (`-p, --properties`):**\
-With a FairDataPointSchemaTool Properties.yaml (see `fdp-properties`), the command also does what that tool's `template` command does:
-- merges the files of each schema into `{output-path}/FairDataPointShape/{Schema}.ttl` (spaces removed from the name);
-- merges all files used by any schema into `{output-path}/ValidationShape/HRI-Datamodel-shapes.ttl`.
-
-The directory names follow `fairDataPointDir` and `validationDir` in the Properties.yaml.
+| Folder | Content |
+|---|---|
+| `{output-path}/{namespace}/PiecesShape/` | One SHACL per class: `{namespace}-{classname}.ttl` |
+| `{output-path}/{namespace}/FairDataPointShape/` | One SHACL per FDP schema (`{Schema}.ttl`, spaces removed), merged with the classes it reaches through `SHACL_sh:node` (independent classes skipped) |
+| `{output-path}/{namespace}/ValidationShape/` | `HRI-Datamodel-shapes.ttl`: all SHACLs used by the FDP schemas, merged |
 
 ### `fdp-properties`: Generating a FairDataPointSchemaTool Properties.yaml
 
