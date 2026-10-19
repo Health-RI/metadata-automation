@@ -15,6 +15,7 @@ import pandas as pd
 
 from metadata_automation.excel_prep.columns import VOCAB_COLUMN
 from metadata_automation.excel_prep.preparer import prepare_workbook
+from metadata_automation.fdp.properties import generate_properties
 from metadata_automation.linkml.creator import LinkMLCreator
 from metadata_automation.sempyro.cleanup import remove_unwanted_classes
 from metadata_automation.sempyro.inheritance_inspector import format_report, inspect_file
@@ -704,6 +705,57 @@ def prepare_excel(
         exit(1)
     click.echo(report.format())
     click.echo(f"Prepared Excel written to {output_path or input_path}")
+
+
+@main.command()
+@click.option(
+    "-i",
+    "--input-excel",
+    type=click.Path(exists=True, dir_okay=False),
+    required=True,
+    help="Path to the metadata model Excel file.",
+)
+@click.option(
+    "-b",
+    "--base-properties",
+    type=click.Path(exists=True, dir_okay=False),
+    default=str(Path(__file__).parent.parent / "inputs/fdp/Properties-base.yaml"),
+    help="Properties.yaml providing everything except `schemas` (default: inputs/fdp/Properties-base.yaml).",
+)
+@click.option(
+    "-o",
+    "--output-path",
+    type=click.Path(dir_okay=False),
+    default="./outputs/fdp/Properties.yaml",
+    help="Path for the generated Properties.yaml.",
+)
+@click.option(
+    "--namespace",
+    type=str,
+    default=None,
+    help="Prefix of the SHACL file names (default: the class_URI prefix). Match the shaclplay --namespace.",
+)
+@click.option("--schema-version", type=str, default=None, help="Override schemaVersion from the base file.")
+def fdp_properties(
+    input_excel: str, base_properties: str, output_path: str, namespace: str | None, schema_version: str | None
+) -> None:
+    """Generate a FairDataPointSchemaTool Properties.yaml.
+
+    \b
+    Each schema in schemasToPublish gets its own SHACL file plus the files of
+    all classes it reaches through SHACL_sh:node. Other settings are copied
+    from the base Properties.yaml.
+    """
+    try:
+        properties = generate_properties(
+            Path(input_excel), Path(base_properties), Path(output_path), namespace, schema_version
+        )
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        exit(1)
+    for name, files in properties["schemas"].items():
+        click.echo(f"{name}: {', '.join(files)}")
+    click.echo(f"Properties written to {output_path}")
 
 
 @main.command()

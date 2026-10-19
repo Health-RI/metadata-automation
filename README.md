@@ -253,6 +253,26 @@ The namespace is auto-detected from each Excel file's NodeShapes sheet and used 
 
 The resulting SHACLs are written to `{output-path}/{namespace}/{namespace}-{classname}.ttl`.
 
+### `fdp-properties`: Generating a FairDataPointSchemaTool Properties.yaml
+
+```bash
+metadata-automation fdp-properties -i ./inputs/Health-RI_v2.1.0.xlsx --schema-version 2.1.0
+```
+
+#### Command Options
+
+- `-i, --input-excel`: Path to the metadata model Excel file (required)
+- `-b, --base-properties`: Properties.yaml supplying everything except `schemas` (default: `./inputs/fdp/Properties-base.yaml`)
+- `-o, --output-path`: Output file (default: `./outputs/fdp/Properties.yaml`)
+- `--namespace`: Prefix of the SHACL file names (default: the `class_URI` prefix); use the same value as for `shaclplay`
+- `--schema-version`: Override `schemaVersion` from the base file
+
+#### Description
+
+Builds the `schemas` section of a [FairDataPointSchemaTool](https://github.com/Health-RI/FairDataPointSchemaTool) Properties.yaml.
+Each schema in `schemasToPublish` is matched to a class via its `class_URI` (`hri:DatasetSeries` → `Dataset Series`) and gets its own SHACL file plus the files of all classes it reaches through `SHACL_sh:node`.
+File names follow the `shacl-from-shaclplay` output (`{namespace}-{sheet_name}.ttl`). Point `inputDir` in the base file to where those files are hosted.
+
 ### `sempyro`: Generating SeMPyRo Classes
 
 ```bash
