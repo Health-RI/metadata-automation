@@ -4,6 +4,9 @@ import re
 from pathlib import Path
 
 import pytest
+import yaml
+from rdflib import Graph
+from rdflib.compare import isomorphic
 
 from metadata_automation.cli import shacl_from_shaclplay
 
@@ -134,3 +137,41 @@ class TestShaclFromShaclplayCLI:
         # Files should be named as {namespace}/{namespace}-{classname}.ttl
         expected_file = output_dir / "hri" / "hri-testclass.ttl"
         assert expected_file.exists()
+
+
+class TestFdpShapes:
+    """Tests for merging SHACL pieces into FDP and validation shapes (--properties)."""
+
+    @pytest.fixture
+    def properties_file(self, tmp_path):
+        path = tmp_path / "Properties.yaml"
+        path.write_text(
+            yaml.safe_dump({"schemas": {"Class A": ["hri-classa.ttl", "hri-classb.ttl"], "ClassB": ["hri-classb.ttl"]}})
+        )
+        return path
+
+    def _run(self, runner, test_expected_dir, output_dir, properties_file):
+        return runner.invoke(
+            shacl_from_shaclplay,
+            ["-i", str(test_expected_dir / "multi"), "-o", str(output_dir), "-p", str(properties_file)],
+        )
+
+    def test_merges_pieces_per_schema(self, runner, test_expected_dir, properties_file, tmp_path):
+        output_dir = tmp_path / "output"
+        result = self._run(runner, test_expected_dir, output_dir, properties_file)
+
+        assert result.exit_code == 0, result.output
+        pieces = [Graph().parse(output_dir / "hri" / f) for f in ("hri-classa.ttl", "hri-classb.ttl")]
+        merged = Graph().parse(output_dir / "FairDataPointShape" / "ClassA.ttl")
+        assert isomorphic(merged, pieces[0] + pieces[1])
+        assert isomorphic(Graph().parse(output_dir / "FairDataPointShape" / "ClassB.ttl"), pieces[1])
+        validation = Graph().parse(output_dir / "ValidationShape" / "HRI-Datamodel-shapes.ttl")
+        assert isomorphic(validation, pieces[0] + pieces[1])
+
+    def test_missing_piece_fails(self, runner, test_expected_dir, tmp_path):
+        properties_file = tmp_path / "Properties.yaml"
+        properties_file.write_text(yaml.safe_dump({"schemas": {"Other": ["hri-other.ttl"]}}))
+        result = self._run(runner, test_expected_dir, tmp_path / "output", properties_file)
+
+        assert result.exit_code == 1
+        assert "hri-other.ttl" in result.output
