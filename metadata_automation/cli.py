@@ -15,7 +15,7 @@ import pandas as pd
 
 from metadata_automation.excel_prep.preparer import prepare_workbook
 from metadata_automation.fdp.properties import generate_properties
-from metadata_automation.fdp.shapes import merge_fdp_shapes
+from metadata_automation.fdp.shapes import PIECES_DIR, merge_fdp_shapes
 from metadata_automation.linkml.creator import LinkMLCreator
 from metadata_automation.sempyro.cleanup import remove_unwanted_classes
 from metadata_automation.sempyro.inheritance_inspector import format_report, inspect_file
@@ -274,23 +274,25 @@ def shaclplay(
     help="Output directory for SHACL Turtle files.",
 )
 @click.option(
-    "-p",
-    "--properties",
+    "-e",
+    "--input-excel",
     type=click.Path(exists=True, dir_okay=False),
-    default=None,
-    help="FairDataPointSchemaTool Properties.yaml. If given, also writes FDP and validation shapes.",
+    required=True,
+    help="Metadata model Excel the SHACLPlay files were generated from; defines the FDP schemas.",
 )
 def shacl_from_shaclplay(
     input_path: str,
     output_path: str,
-    properties: str | None,
+    input_excel: str,
 ) -> None:
     """Generate SHACL Turtle files from SHACLPlay Excel files.
 
+    \b
     Converts SHACLPlay Excel files to SHACL Turtle format using the xls2rdf
-    tool. Requires Java to be installed and available in PATH. With
-    --properties, also merges the files per schema into FairDataPoint shapes
-    and all used files into one validation shapes file.
+    tool. Requires Java to be installed and available in PATH. Writes per namespace:
+      PiecesShape/         one file per class
+      FairDataPointShape/  one file per independent class, merged with the classes it uses
+      ValidationShape/     all files used by the FDP schemas, merged
     """
     try:
         shaclplay_dir = Path(input_path)
@@ -321,7 +323,7 @@ def shacl_from_shaclplay(
         click.echo()
 
         # Process each file
-        pieces = {}
+        pieces: dict[str, dict[str, Path]] = {}
         for excel_file in excel_files:
             try:
                 # Extract namespace from the Excel file
@@ -358,7 +360,7 @@ def shacl_from_shaclplay(
                     )
                     exit(1)
 
-                output_file_dir = output_dir / ns
+                output_file_dir = output_dir / ns / PIECES_DIR
                 class_name = excel_file.stem.replace("SHACL-", "")
                 output_file = output_file_dir / f"{ns}-{class_name}.ttl"
 
@@ -386,7 +388,7 @@ def shacl_from_shaclplay(
                 result = subprocess.run(cmd, capture_output=True, text=True, check=True)
 
                 click.echo(f"  ✓ Successfully generated {output_file}")
-                pieces[output_file.name] = output_file
+                pieces.setdefault(ns, {})[output_file.name] = output_file
 
                 # Print any stdout/stderr for debugging
                 if result.stdout:
@@ -415,14 +417,14 @@ def shacl_from_shaclplay(
                 traceback.print_exc()
                 exit(1)
 
-        if properties:
-            for path in merge_fdp_shapes(Path(properties), pieces, output_dir):
+        for ns, ns_pieces in pieces.items():
+            for path in merge_fdp_shapes(Path(input_excel), ns, ns_pieces, output_dir / ns):
                 click.echo(f"  ✓ Merged {path}")
-            click.echo()
+        click.echo()
 
         click.echo("=" * 80)
         click.echo("Conversion complete!")
-        click.echo(f"SHACL Turtle files written to {output_file_dir}")
+        click.echo(f"SHACL Turtle files written to {output_dir}")
         click.echo("=" * 80)
 
     except Exception as e:
