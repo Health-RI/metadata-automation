@@ -247,16 +247,20 @@ metadata-automation fdp-properties -i ./inputs/Health-RI_v2.1.0.xlsx --schema-ve
 #### Command Options
 
 - `-i, --input-excel`: Path to the metadata model Excel file (required)
-- `-b, --base-properties`: Properties.yaml supplying everything except `schemas` (default: `./inputs/fdp/Properties-base.yaml`)
+- `-b, --base-properties`: Properties.yaml supplying the non-derived settings (default: `./inputs/fdp/Properties-base.yaml`)
 - `-o, --output-path`: Output file (default: `./outputs/fdp/Properties.yaml`)
 - `--namespace`: Prefix of the SHACL file names (default: the `class_URI` prefix); use the same value as for `shaclplay`
 - `--schema-version`: Override `schemaVersion` from the base file
 
 #### Description
 
-Builds the `schemas` section of a [FairDataPointSchemaTool](https://github.com/Health-RI/FairDataPointSchemaTool) Properties.yaml.
-Each schema in `schemasToPublish` is matched to a class via its `class_URI` (`hri:DatasetSeries` → `Dataset Series`) and gets its own SHACL file plus the files of all classes it reaches through `SHACL_sh:node`.
-File names follow the `shacl-from-shaclplay` output (`{namespace}-{sheet_name}.ttl`). Point `inputDir` in the base file to where those files are hosted.
+Builds a [FairDataPointSchemaTool](https://github.com/Health-RI/FairDataPointSchemaTool) Properties.yaml. Derived from the Excel:
+
+- `schemasToPublish`: classes with `SHACL_independent_class` `TRUE` in the `classes` sheet, named after their `class_URI` (`hri:DatasetSeries` → `Dataset Series`). Parents listed in the base `parentChild` come first.
+- `schemas`: per schema its own SHACL file plus the files of all classes it reaches through `SHACL_sh:node`. File names follow the `shacl-from-shaclplay` output (`{namespace}-{sheet_name}.ttl`).
+- `resources`: every property with a name in the `FDP_resources` column of a class sheet becomes a child resource. The sheet's class is `parentResource`, the expanded `Property URI` is `parentRelationIri` and the `Range` class is `schema`. Both classes must be independent.
+
+Everything else (`parentChild`, `inputDir`, directories) comes from the base file. Point `inputDir` to where the SHACL files are hosted.
 
 ### `sempyro`: Generating SeMPyRo Classes
 

@@ -717,7 +717,7 @@ def prepare_excel(input_excel: str, output_excel: str | None, namespace: str | N
     "--base-properties",
     type=click.Path(exists=True, dir_okay=False),
     default=str(Path(__file__).parent.parent / "inputs/fdp/Properties-base.yaml"),
-    help="Properties.yaml providing everything except `schemas` (default: inputs/fdp/Properties-base.yaml).",
+    help="Properties.yaml providing the non-derived settings (default: inputs/fdp/Properties-base.yaml).",
 )
 @click.option(
     "-o",
@@ -739,9 +739,10 @@ def fdp_properties(
     """Generate a FairDataPointSchemaTool Properties.yaml.
 
     \b
-    Each schema in schemasToPublish gets its own SHACL file plus the files of
-    all classes it reaches through SHACL_sh:node. Other settings are copied
-    from the base Properties.yaml.
+    schemasToPublish: classes with SHACL_independent_class TRUE.
+    schemas: per schema its SHACL file plus all classes reached through SHACL_sh:node.
+    resources: properties with an FDP_resources name.
+    Other settings are copied from the base Properties.yaml.
     """
     try:
         properties = generate_properties(
