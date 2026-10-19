@@ -39,7 +39,8 @@ class Model:
     """Classes, sheets and prefixes of the metadata model Excel."""
 
     def __init__(self, excel_path: Path):
-        self.sheets = pd.read_excel(excel_path, sheet_name=None)
+        # object dtype keeps TRUE/FALSE as booleans in columns with blanks.
+        self.sheets = pd.read_excel(excel_path, sheet_name=None, dtype=object)
         self.classes = self.sheets["classes"].dropna(subset=["sheet_name", "class_URI"])
         self.namespaces = {
             row.prefix: row.namespace for row in self.sheets["prefixes"].dropna().itertuples() if row.prefix
@@ -58,13 +59,6 @@ class Model:
         return self.sheets.get(name, pd.DataFrame())
 
 
-def _is_true(value) -> bool:
-    """TRUE flag; pandas reads a boolean column with blanks as floats (1.0/0.0/NaN)."""
-    if isinstance(value, float) and not pd.isna(value):
-        return value == 1
-    return bool(parse_bool(value))
-
-
 def independent_schemas(model: Model, parents: list[str]) -> list[str]:
     """Schema names of independent classes, with ``parents`` first (the FDP needs parents published first)."""
     if INDEPENDENT_COLUMN not in model.classes.columns:
@@ -72,7 +66,7 @@ def independent_schemas(model: Model, parents: list[str]) -> list[str]:
     names = [
         model.schema_by_sheet[row.sheet_name]
         for row in model.classes.itertuples()
-        if _is_true(getattr(row, INDEPENDENT_COLUMN))
+        if parse_bool(getattr(row, INDEPENDENT_COLUMN))
     ]
     if not names:
         raise ValueError(f"No class has {INDEPENDENT_COLUMN} TRUE")
