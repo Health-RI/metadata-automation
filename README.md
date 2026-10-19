@@ -261,6 +261,7 @@ metadata-automation fdp-properties -i ./inputs/Health-RI_v2.1.0.xlsx --schema-ve
 - `-o, --output-path`: Output file (default: `./outputs/fdp/Properties.yaml`)
 - `--namespace`: Prefix of the SHACL file names (default: the `class_URI` prefix); use the same value as for `shaclplay`
 - `--schema-version`: Override `schemaVersion` from the base file
+- `--input-dir`: Override `inputDir`, the location of the `PiecesShape` files
 
 #### Description
 
@@ -271,6 +272,13 @@ Builds a [FairDataPointSchemaTool](https://github.com/Health-RI/FairDataPointSch
 - `resources`: every property with a name in the `FDP_resources` column of a class sheet becomes a child resource. The sheet's class is `parentResource`, the expanded `Property URI` is `parentRelationIri` and the `Range` class is `schema`. Both classes must be independent.
 
 Everything else (`parentChild`, `inputDir`, directories) comes from the base file. Point `inputDir` to where the SHACL files are hosted.
+
+### GitHub Actions
+
+Both workflows are started manually (Actions → Run workflow) with the name of an Excel file in [`Documents/` on the `testing` branch](https://github.com/Health-RI/health-ri-metadata/tree/testing/Documents) of health-ri-metadata and a version number.
+
+- **Metadata pipeline** (`metadata-pipeline.yml`): runs `prepare-excel` with and without `--init`, `shaclplay` on the FDP Excel and `shacl-from-shaclplay`. The prepared Excels, SHACLPlay files and SHACL shapes are uploaded as workflow artifacts; nothing is pushed.
+- **Push SHACLs to FDP** (`fdp-push.yml`): prepares the FDP Excel, generates a Properties.yaml (uploaded as artifact) with `inputDir` pointing to the `PiecesShape` folder on the `testing` branch, and runs the [FairDataPointSchemaTool Docker image](https://hub.docker.com/r/healthri/fdp-schema-update-tool) to update the schemas and resources. Needs the repository secrets `FDP_HOST`, `FDP_USER` and `FDP_PASSWORD`.
 
 ### `sempyro`: Generating SeMPyRo Classes
 

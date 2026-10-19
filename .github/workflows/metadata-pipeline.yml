@@ -1,0 +1,83 @@
+name: Metadata pipeline
+
+on:
+  workflow_dispatch:
+    inputs:
+      filename:
+        description: Excel file in Documents/ on the testing branch of Health-RI/health-ri-metadata
+        required: true
+        default: Health-RI_v2.1.0.xlsx
+      version:
+        description: Model version, used in the artifact names (e.g. 2.1.0)
+        required: true
+
+env:
+  FILENAME: ${{ inputs.filename }}
+  VERSION: ${{ inputs.version }}
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Check out health-ri-metadata (testing)
+        uses: actions/checkout@v6
+        with:
+          repository: Health-RI/health-ri-metadata
+          ref: testing
+          path: source
+          sparse-checkout: Documents
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Install package
+        run: python -m pip install .
+
+      - name: Prepare Excel (--init)
+        run: |
+          mkdir -p work/init
+          cp "source/Documents/$FILENAME" work/init/
+          metadata-automation prepare-excel -i "work/init/$FILENAME" --init
+
+      - name: Prepare Excel for FDP
+        run: metadata-automation prepare-excel -i "source/Documents/$FILENAME" -o work/prepared/fdp.xlsx
+
+      - name: Generate SHACLPlay files
+        run: metadata-automation shaclplay -i work/prepared/fdp.xlsx -o work/shaclplay
+
+      - name: Generate SHACL shapes
+        run: metadata-automation shacl-from-shaclplay -i work/shaclplay -o work/shacl_shapes -e work/prepared/fdp.xlsx
+
+      - name: Name the FDP Excel after the input
+        run: mv work/prepared/fdp.xlsx "work/prepared/${FILENAME%.xlsx}-for-FDP.xlsx"
+
+      - name: Upload prepared Excel files
+        uses: actions/upload-artifact@v4
+        with:
+          name: excel-${{ inputs.version }}
+          path: |
+            work/init
+            work/prepared
+
+      - name: Upload SHACLPlay files
+        uses: actions/upload-artifact@v4
+        with:
+          name: shaclplay-${{ inputs.version }}
+          path: work/shaclplay
+
+      - name: Upload SHACL shapes
+        uses: actions/upload-artifact@v4
+        with:
+          name: shacl-shapes-${{ inputs.version }}
+          path: work/shacl_shapes
