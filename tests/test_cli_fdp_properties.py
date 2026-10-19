@@ -1,29 +1,27 @@
-from pathlib import Path
-
 import pandas as pd
 import pytest
 import yaml
 
 from metadata_automation.cli import fdp_properties
 
-
-@pytest.fixture
-def model_excel(tmp_path):
-    """Workbook where Dataset -> Agent -> Kind via sh:node, plus an unreferenced class."""
-    path = tmp_path / "model.xlsx"
-    sheets = {
-        "classes": pd.DataFrame(
-            {
-                "sheet_name": ["Dataset", "DatasetSeries", "Agent", "Kind", "Unused"],
-                "class_URI": ["hri:Dataset", "hri:DatasetSeries", "hri:Agent", "hri:Kind", "hri:Unused"],
-            }
-        ),
-        "Dataset": pd.DataFrame({"SHACL_sh:node": ["hri:AgentShape", None, "hri:AgentShape"]}),
-        "DatasetSeries": pd.DataFrame({"SHACL_sh:node": [None]}),
-        "Agent": pd.DataFrame({"SHACL_sh:node": ["hrishapes:KindShape"]}),
-        "Kind": pd.DataFrame({"Property URI": ["vcard:fn"]}),
-        "Unused": pd.DataFrame({"SHACL_sh:node": [None]}),
+CLASSES = pd.DataFrame(
+    {
+        "sheet_name": ["Resource", "Dataset", "DatasetSeries", "Agent", "Kind", "Unused"],
+        "class_URI": ["hri:Resource", "hri:Dataset", "hri:DatasetSeries", "hri:Agent", "hri:Kind", "hri:Unused"],
+        "SHACL_target_ontology_name": [
+            "dcat:Resource",
+            "dcat:Dataset",
+            "dcat:DatasetSeries",
+            "foaf:Agent",
+            "vcard:Kind",
+            "ex:Unused",
+        ],
+        "SHACL_independent_class": [True, True, True, False, None, False],
     }
+)
+
+
+def _write(path, sheets):
     with pd.ExcelWriter(path) as writer:
         for name, df in sheets.items():
             df.to_excel(writer, sheet_name=name, index=False)
@@ -31,34 +29,75 @@ def model_excel(tmp_path):
 
 
 @pytest.fixture
+def sheets():
+    """Dataset -> Agent -> Kind via sh:node; Dataset links to DatasetSeries as an FDP resource."""
+    return {
+        "prefixes": pd.DataFrame({"prefix": ["dcat"], "namespace": ["http://www.w3.org/ns/dcat#"]}),
+        "classes": CLASSES,
+        "Resource": pd.DataFrame({"Property URI": ["dct:title"]}),
+        "Dataset": pd.DataFrame(
+            {
+                "Property URI": ["dct:creator", "dcat:inSeries", "dct:publisher"],
+                "Range": ["foaf:Agent", "dcat:DatasetSeries (IRI)", "foaf:Agent"],
+                "SHACL_sh:node": ["hri:AgentShape", None, "hri:AgentShape"],
+                "FDP_resources": [None, "Dataset Series", None],
+            }
+        ),
+        "DatasetSeries": pd.DataFrame({"SHACL_sh:node": [None]}),
+        "Agent": pd.DataFrame({"SHACL_sh:node": ["hrishapes:KindShape"]}),
+        "Kind": pd.DataFrame({"Property URI": ["vcard:fn"]}),
+        "Unused": pd.DataFrame({"SHACL_sh:node": [None]}),
+    }
+
+
+@pytest.fixture
 def base_yaml(tmp_path):
     path = tmp_path / "base.yaml"
-    path.write_text(
-        yaml.safe_dump({"schemas": {}, "schemasToPublish": ["Dataset", "Dataset Series"], "schemaVersion": "1.0.0"})
-    )
+    path.write_text(yaml.safe_dump({"schemas": {}, "parentChild": {"Resource": ["Dataset"]}, "schemaVersion": "1.0.0"}))
     return path
 
 
-def _run(runner, model_excel, base_yaml, output, *args):
-    return runner.invoke(fdp_properties, ["-i", str(model_excel), "-b", str(base_yaml), "-o", str(output), *args])
+def _run(runner, excel, base_yaml, output, *args):
+    return runner.invoke(fdp_properties, ["-i", str(excel), "-b", str(base_yaml), "-o", str(output), *args])
 
 
-def test_schemas_follow_sh_node_transitively(runner, model_excel, base_yaml, tmp_path):
+def test_generates_derived_sections(runner, sheets, base_yaml, tmp_path):
     output = tmp_path / "Properties.yaml"
-    result = _run(runner, model_excel, base_yaml, output)
+    result = _run(runner, _write(tmp_path / "model.xlsx", sheets), base_yaml, output)
 
     assert result.exit_code == 0, result.output
     properties = yaml.safe_load(output.read_text())
+    assert properties["schemasToPublish"] == ["Resource", "Dataset", "Dataset Series"]
     assert properties["schemas"] == {
+        "Resource": ["hri-resource.ttl"],
         "Dataset": ["hri-dataset.ttl", "hri-agent.ttl", "hri-kind.ttl"],
         "Dataset Series": ["hri-datasetseries.ttl"],
     }
+    assert properties["resources"] == {
+        "Dataset Series": {
+            "parentResource": "Dataset",
+            "parentRelationIri": "http://www.w3.org/ns/dcat#inSeries",
+            "schema": "Dataset Series",
+        }
+    }
+    assert properties["parentChild"] == {"Resource": ["Dataset"]}
     assert properties["schemaVersion"] == "1.0.0"
 
 
-def test_namespace_and_version_override(runner, model_excel, base_yaml, tmp_path):
+def test_parents_are_published_first(runner, sheets, tmp_path):
+    base = tmp_path / "base.yaml"
+    base.write_text(yaml.safe_dump({"parentChild": {"Dataset Series": ["Dataset"]}}))
     output = tmp_path / "Properties.yaml"
-    result = _run(runner, model_excel, base_yaml, output, "--namespace", "ns", "--schema-version", "2.1.0")
+    result = _run(runner, _write(tmp_path / "model.xlsx", sheets), base, output)
+
+    assert result.exit_code == 0, result.output
+    assert yaml.safe_load(output.read_text())["schemasToPublish"][0] == "Dataset Series"
+
+
+def test_namespace_and_version_override(runner, sheets, base_yaml, tmp_path):
+    output = tmp_path / "Properties.yaml"
+    excel = _write(tmp_path / "model.xlsx", sheets)
+    result = _run(runner, excel, base_yaml, output, "--namespace", "ns", "--schema-version", "2.1.0")
 
     assert result.exit_code == 0, result.output
     properties = yaml.safe_load(output.read_text())
@@ -66,21 +105,17 @@ def test_namespace_and_version_override(runner, model_excel, base_yaml, tmp_path
     assert properties["schemaVersion"] == "2.1.0"
 
 
-def test_unknown_schema_fails(runner, model_excel, tmp_path):
-    base = tmp_path / "base.yaml"
-    base.write_text(yaml.safe_dump({"schemasToPublish": ["Catalog"]}))
-    result = _run(runner, model_excel, base, tmp_path / "out.yaml")
+def test_missing_independent_column_fails(runner, sheets, base_yaml, tmp_path):
+    sheets["classes"] = CLASSES.drop(columns="SHACL_independent_class")
+    result = _run(runner, _write(tmp_path / "model.xlsx", sheets), base_yaml, tmp_path / "out.yaml")
 
     assert result.exit_code == 1
-    assert "Catalog" in result.output
+    assert "SHACL_independent_class" in result.output
 
 
-def test_default_base_matches_health_ri_model(runner, tmp_path):
-    excel = Path(__file__).resolve().parent.parent / "inputs" / "HealthRI_v2.0.2.xlsx"
-    output = tmp_path / "Properties.yaml"
-    result = runner.invoke(fdp_properties, ["-i", str(excel), "-o", str(output)])
+def test_resource_to_dependent_class_fails(runner, sheets, base_yaml, tmp_path):
+    sheets["Dataset"].loc[0, "FDP_resources"] = "Creator"
+    result = _run(runner, _write(tmp_path / "model.xlsx", sheets), base_yaml, tmp_path / "out.yaml")
 
-    assert result.exit_code == 0, result.output
-    schemas = yaml.safe_load(output.read_text())["schemas"]
-    assert list(schemas) == ["Resource", "Catalog", "Dataset", "Dataset Series", "Distribution", "Data Service"]
-    assert schemas["Catalog"][0] == "hri-catalogue.ttl"
+    assert result.exit_code == 1
+    assert "'Agent' is not an independent class" in result.output
