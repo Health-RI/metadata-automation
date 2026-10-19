@@ -746,6 +746,7 @@ dependencies = [
     { name = "openpyxl" },
     { name = "pandas" },
     { name = "pyyaml" },
+    { name = "rdflib" },
     { name = "ruff" },
     { name = "sempyro" },
 ]
@@ -766,6 +767,7 @@ requires-dist = [
     { name = "openpyxl", specifier = ">=3.1.5" },
     { name = "pandas", specifier = "==2.3.3" },
     { name = "pyyaml", specifier = ">=6.0" },
+    { name = "rdflib", specifier = ">=7.0" },
     { name = "ruff", specifier = ">=0.14.11" },
     { name = "sempyro", specifier = "==2.2.0" },
 ]

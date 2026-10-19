@@ -216,6 +216,7 @@ metadata-automation shacl-from-shaclplay -i ./outputs/shaclplay/default -o ./out
 
 - `-i, --input-path`: Path to directory containing SHACLPlay Excel files (required)
 - `-o, --output-path`: Output directory for SHACL Turtle files (default: `./outputs/shacl_shapes`)
+- `-p, --properties`: FairDataPointSchemaTool Properties.yaml; if given, also writes FDP and validation shapes
 
 #### Description
 
@@ -237,6 +238,13 @@ The namespace is auto-detected from each Excel file's NodeShapes sheet and used 
 #### Outputs
 
 The resulting SHACLs are written to `{output-path}/{namespace}/{namespace}-{classname}.ttl`.
+
+**FairDataPoint shapes (`-p, --properties`):**\
+With a FairDataPointSchemaTool Properties.yaml (see `fdp-properties`), the command also does what that tool's `template` command does:
+- merges the files of each schema into `{output-path}/FairDataPointShape/{Schema}.ttl` (spaces removed from the name);
+- merges all files used by any schema into `{output-path}/ValidationShape/HRI-Datamodel-shapes.ttl`.
+
+The directory names follow `fairDataPointDir` and `validationDir` in the Properties.yaml.
 
 ### `fdp-properties`: Generating a FairDataPointSchemaTool Properties.yaml
 
