@@ -1,0 +1,36 @@
+---
+# Base for `metadata-automation fdp-properties`. The `schemas` section is generated from the Excel.
+schemas: {}
+# Some schemas are extending the Resource schema.
+parentChild:
+  Resource:
+    - "Dataset"
+    - "Catalog"
+    - "Data Service"
+#the resources for the FDP, note we are using Parent relation instead of Childeren (as the FDP does)
+resources:
+  Sample Distribution:
+    parentResource: "Dataset"
+    parentRelationIri: "http://www.w3.org/ns/adms#sample"
+    schema: "Distribution"
+  Dataset Series:
+    parentResource: "Dataset"
+    parentRelationIri: "http://www.w3.org/ns/dcat#inSeries"
+    schema: "Dataset Series"
+  Analytics Distribution:
+    parentResource: "Dataset"
+    parentRelationIri: "http://healthdataportal.eu/ns/health#analytics"
+    schema: "Distribution"
+schemasToPublish:
+  - "Resource"
+  - "Catalog"
+  - "Dataset"
+  - "Dataset Series"
+  - "Distribution"
+  - "Data Service"
+schemaVersion: "2.0.0"
+#Location of the shapes files used for uploading to FDP.
+inputDir: "https://raw.githubusercontent.com/Health-RI/health-ri-metadata/master/Formalisation(shacl)/Core/PiecesShape/"
+piecesDir: "PiecesShape"
+fairDataPointDir: "FairDataPointShape"
+validationDir: "ValidationShape"
