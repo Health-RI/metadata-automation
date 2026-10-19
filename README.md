@@ -233,20 +233,20 @@ The command processes all SHACLPlay Excel files from the input directory. These 
 
 **Namespace detection:**\
 The namespace is auto-detected from each Excel file's NodeShapes sheet and used to construct output file paths:
-`{output-path}/{namespace}/PiecesShape/{namespace}-{classname}.ttl`
+`{output-path}/PiecesShape/{namespace}-{classname}.ttl`
 
 **Model Excel:**\
-The FDP schemas are the classes with `SHACL_independent_class` `TRUE`, as in `fdp-properties`.
+The FDP schemas are the classes with `SHACL_independent_class` `TRUE`, as in `fdp-properties`. Without that column (or no `TRUE` values) the FDP shapes are skipped.
 
 #### Outputs
 
-Per namespace, the command writes the same output as FairDataPointSchemaTool's `template` command:
+The command writes the same output as FairDataPointSchemaTool's `template` command:
 
 | Folder | Content |
 |---|---|
-| `{output-path}/{namespace}/PiecesShape/` | One SHACL per class: `{namespace}-{classname}.ttl` |
-| `{output-path}/{namespace}/FairDataPointShape/` | One SHACL per FDP schema (`{Schema}.ttl`, spaces removed), merged with the classes it reaches through `SHACL_sh:node` (independent classes skipped) |
-| `{output-path}/{namespace}/ValidationShape/` | `HRI-Datamodel-shapes.ttl`: all SHACLs used by the FDP schemas, merged |
+| `{output-path}/PiecesShape/` | One SHACL per class: `{namespace}-{classname}.ttl` |
+| `{output-path}/FairDataPointShape/` | One SHACL per FDP schema (`{Schema}.ttl`, spaces removed), merged with the classes it reaches through `SHACL_sh:node` (independent classes skipped) |
+| `{output-path}/ValidationShape/` | The SHACLs used by the FDP schemas (all SHACLs without FDP schemas), merged into `{namespace}-shapes.ttl`, or `Validation-shapes.ttl` when the classes have different namespaces |
 
 ### `fdp-properties`: Generating a FairDataPointSchemaTool Properties.yaml
 

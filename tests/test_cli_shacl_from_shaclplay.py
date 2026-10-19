@@ -9,6 +9,7 @@ from rdflib import Graph
 from rdflib.compare import isomorphic
 
 from metadata_automation.cli import shacl_from_shaclplay
+from metadata_automation.fdp.shapes import validation_filename
 
 
 def normalize_turtle(content: str) -> str:
@@ -88,7 +89,7 @@ class TestShaclFromShaclplayCLI:
 
         assert result.exit_code == 0
 
-        output_file = output_dir / "hri" / "PiecesShape" / "hri-testclass.ttl"
+        output_file = output_dir / "PiecesShape" / "hri-testclass.ttl"
         expected_file = test_expected_dir / "default" / "hri" / "hri-testclass.ttl"
 
         assert output_file.exists()
@@ -138,8 +139,8 @@ class TestShaclFromShaclplayCLI:
 
         assert result.exit_code == 0
 
-        output_classa = output_dir / "hri" / "PiecesShape" / "hri-classa.ttl"
-        output_classb = output_dir / "hri" / "PiecesShape" / "hri-classb.ttl"
+        output_classa = output_dir / "PiecesShape" / "hri-classa.ttl"
+        output_classb = output_dir / "PiecesShape" / "hri-classb.ttl"
         expected_classa = test_expected_dir / "multi" / "hri" / "hri-classa.ttl"
         expected_classb = test_expected_dir / "multi" / "hri" / "hri-classb.ttl"
 
@@ -172,8 +173,8 @@ class TestShaclFromShaclplayCLI:
 
         assert result.exit_code == 0
 
-        # Files should be named as {namespace}/PiecesShape/{namespace}-{classname}.ttl
-        expected_file = output_dir / "hri" / "PiecesShape" / "hri-testclass.ttl"
+        # Files should be named as PiecesShape/{namespace}-{classname}.ttl
+        expected_file = output_dir / "PiecesShape" / "hri-testclass.ttl"
         assert expected_file.exists()
 
 
@@ -193,11 +194,10 @@ class TestFdpShapes:
         result = self._run(runner, test_expected_dir, output_dir, excel)
 
         assert result.exit_code == 0, result.output
-        ns_dir = output_dir / "hri"
-        pieces = [Graph().parse(ns_dir / "PiecesShape" / f) for f in ("hri-classa.ttl", "hri-classb.ttl")]
-        assert [p.name for p in (ns_dir / "FairDataPointShape").iterdir()] == ["ClassA.ttl"]
-        assert isomorphic(Graph().parse(ns_dir / "FairDataPointShape" / "ClassA.ttl"), pieces[0] + pieces[1])
-        validation = Graph().parse(ns_dir / "ValidationShape" / "HRI-Datamodel-shapes.ttl")
+        pieces = [Graph().parse(output_dir / "PiecesShape" / f) for f in ("hri-classa.ttl", "hri-classb.ttl")]
+        assert [p.name for p in (output_dir / "FairDataPointShape").iterdir()] == ["ClassA.ttl"]
+        assert isomorphic(Graph().parse(output_dir / "FairDataPointShape" / "ClassA.ttl"), pieces[0] + pieces[1])
+        validation = Graph().parse(output_dir / "ValidationShape" / "hri-shapes.ttl")
         assert isomorphic(validation, pieces[0] + pieces[1])
 
     def test_missing_piece_fails(self, runner, test_expected_dir, tmp_path):
@@ -205,4 +205,20 @@ class TestFdpShapes:
         result = self._run(runner, test_expected_dir, tmp_path / "output", excel)
 
         assert result.exit_code == 1
-        assert "hri-other.ttl" in result.output
+        assert "other" in result.output
+
+    def test_without_independent_classes_only_validation(self, runner, test_expected_dir, tmp_path):
+        excel = write_model_excel(tmp_path / "model.xlsx", {"ClassA": None, "ClassB": None})
+        output_dir = tmp_path / "output"
+        result = self._run(runner, test_expected_dir, output_dir, excel)
+
+        assert result.exit_code == 0, result.output
+        assert not (output_dir / "FairDataPointShape").exists()
+        pieces = [Graph().parse(output_dir / "PiecesShape" / f) for f in ("hri-classa.ttl", "hri-classb.ttl")]
+        validation = Graph().parse(output_dir / "ValidationShape" / "hri-shapes.ttl")
+        assert isomorphic(validation, pieces[0] + pieces[1])
+
+
+@pytest.mark.parametrize("namespaces,expected", [({"hri"}, "hri-shapes.ttl"), ({"hri", "ex"}, "Validation-shapes.ttl")])
+def test_validation_filename(namespaces, expected):
+    assert validation_filename(namespaces) == expected

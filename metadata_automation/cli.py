@@ -289,10 +289,13 @@ def shacl_from_shaclplay(
 
     \b
     Converts SHACLPlay Excel files to SHACL Turtle format using the xls2rdf
-    tool. Requires Java to be installed and available in PATH. Writes per namespace:
-      PiecesShape/         one file per class
+    tool. Requires Java to be installed and available in PATH. Writes:
+      PiecesShape/         {namespace}-{class}.ttl, one file per class
       FairDataPointShape/  one file per independent class, merged with the classes it uses
-      ValidationShape/     all files used by the FDP schemas, merged
+                           (skipped without SHACL_independent_class)
+      ValidationShape/     the files used by the FDP schemas (all files without FDP schemas),
+                           merged into {namespace}-shapes.ttl, or Validation-shapes.ttl
+                           when the classes have different namespaces
     """
     try:
         shaclplay_dir = Path(input_path)
@@ -323,7 +326,9 @@ def shacl_from_shaclplay(
         click.echo()
 
         # Process each file
-        pieces: dict[str, dict[str, Path]] = {}
+        output_file_dir = output_dir / PIECES_DIR
+        pieces: dict[str, Path] = {}
+        namespaces: set[str] = set()
         for excel_file in excel_files:
             try:
                 # Extract namespace from the Excel file
@@ -360,7 +365,6 @@ def shacl_from_shaclplay(
                     )
                     exit(1)
 
-                output_file_dir = output_dir / ns / PIECES_DIR
                 class_name = excel_file.stem.replace("SHACL-", "")
                 output_file = output_file_dir / f"{ns}-{class_name}.ttl"
 
@@ -388,7 +392,8 @@ def shacl_from_shaclplay(
                 result = subprocess.run(cmd, capture_output=True, text=True, check=True)
 
                 click.echo(f"  ✓ Successfully generated {output_file}")
-                pieces.setdefault(ns, {})[output_file.name] = output_file
+                pieces[class_name] = output_file
+                namespaces.add(ns)
 
                 # Print any stdout/stderr for debugging
                 if result.stdout:
@@ -417,9 +422,8 @@ def shacl_from_shaclplay(
                 traceback.print_exc()
                 exit(1)
 
-        for ns, ns_pieces in pieces.items():
-            for path in merge_fdp_shapes(Path(input_excel), ns, ns_pieces, output_dir / ns):
-                click.echo(f"  ✓ Merged {path}")
+        for path in merge_fdp_shapes(Path(input_excel), pieces, namespaces, output_dir):
+            click.echo(f"  ✓ Merged {path}")
         click.echo()
 
         click.echo("=" * 80)
