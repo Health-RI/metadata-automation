@@ -132,6 +132,7 @@ In the Excel file, besides the general columns, information is needed in the fol
   - `SHACL_dash:viewer` and `SHACL_dash:editor`: Entries for `dash:viewer` and `dash:editor` for UI customization in SHACLPlay.
   - `SHACL_pattern`: Regular expressions pattern that the property value should adhere to.
   - `SHACL_default_value`: Default value for the property.
+  - `SHACL_sh:uniqueLang`: Indicates if the value of the property should be unique per language. An empty cell is interpreted as `FALSE`.
 
 To allow for a drop-in replacement of the current Health-RI SHACLs, properties for hri:Dataset are based on the 'Property label',
 for all other classes they are based on 'Property URI'.
@@ -218,6 +219,8 @@ In the Excel file, besides the general columns, information is needed in the fol
   - `SeMPyRO_annotations_IRI`: IRI to the class. This can be a URL or link to a Python variable. 
 - Sheet per class:
   - `SeMPyRO_range`: Comma separated list of the types in the range of this property. 
+  - `SeMPyRO_rdf_term`: Term URI represented in the RDF file that is serialized based on the SeMPyRO class.
+  - `SeMPyRO_rdf_type`: Type represented in the RDF file that is serialized based on the SeMPyRO class.
 
 Any namespace objects and Enums are not created in this automation pipeline. If you want to use them, they should 
 be defined separately and imported using the imports, explained below.
