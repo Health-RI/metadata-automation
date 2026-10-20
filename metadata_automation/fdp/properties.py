@@ -98,15 +98,21 @@ def build_schemas(model: Model, schema_names: list[str], namespace: str | None =
 
     sh:node refs to independent classes are skipped: those are separate schemas, referenced by IRI in the FDP.
     """
+    # Inverse of schema_by_sheet, e.g. {"Catalog": "Catalogue"}.
     sheet_by_schema = {schema: sheet for sheet, schema in model.schema_by_sheet.items()}
+    # Sheets of independent classes; these are never inlined as dependencies.
     independent = {sheet_by_schema[name] for name in schema_names}
+    # Sheet -> file prefix, e.g. {"Dataset": "hri"}; --namespace overrides the class prefix.
     prefixes = {row.sheet_name: namespace or str(row.class_URI).split(":")[0] for row in model.classes.itertuples()}
     schemas = {}
     for name in schema_names:
+        # Start with the schema's own sheet; the loop appends to it, walking sh:node refs breadth-first.
         order = [sheet_by_schema[name]]
         for sheet_name in order:
             refs = _node_refs(model.sheet(sheet_name), model.sheet_by_class)
+            # Add unseen, non-independent dependencies.
             order.extend(ref for ref in refs if ref not in order and ref not in independent)
+        # Sheet names to SHACL files, e.g. "Dataset": ["hri-dataset.ttl", "hri-agent.ttl"].
         schemas[name] = [f"{prefixes[s]}-{s.lower()}.ttl" for s in order]
     return schemas
 
@@ -114,22 +120,29 @@ def build_schemas(model: Model, schema_names: list[str], namespace: str | None =
 def build_resources(model: Model, schema_names: list[str]) -> dict[str, dict[str, str]]:
     """FDP child resources from properties with an ``FDP_resources`` name."""
     resources = {}
+    # Each class sheet is a potential parent resource.
     for sheet_name, parent in model.schema_by_sheet.items():
         sheet = model.sheet(sheet_name)
         if RESOURCES_COLUMN not in sheet.columns:
             continue
+        # Only properties with an FDP_resources name define a child resource.
         for _, values in sheet.dropna(subset=[RESOURCES_COLUMN]).iterrows():
             name = str(values[RESOURCES_COLUMN]).strip()
             prop = str(values["Property URI"]).strip()
+            # Location prefix for error messages, e.g. "Catalogue / dcat:dataset".
             where = f"{sheet_name} / {prop}"
+            # Child schema from the property range, e.g. "dcat:Dataset (IRI)" -> "Dataset".
             child = model.schema_by_range.get(str(values["Range"]).replace("(IRI)", "").strip())
             if child is None:
                 raise ValueError(f"{where}: range {values['Range']!r} is not a class of this model")
+            # Parent and child must both be published schemas.
             for schema in (parent, child):
                 if schema not in schema_names:
                     raise ValueError(f"{where}: '{schema}' is not an independent class")
+            # Resource names must be unique across the model.
             if name in resources:
                 raise ValueError(f"{where}: resource '{name}' is defined twice")
+            # e.g. "Dataset": {parentResource: Catalog, parentRelationIri: dcat:dataset expanded, schema: Dataset}.
             resources[name] = {
                 "parentResource": parent,
                 "parentRelationIri": expand(prop, model.namespaces) or prop,
