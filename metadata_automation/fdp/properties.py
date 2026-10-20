@@ -39,14 +39,20 @@ class Model:
     """Classes, sheets and prefixes of the metadata model Excel."""
 
     def __init__(self, excel_path: Path):
+        # All sheets by name, e.g. {"classes": DataFrame, "Dataset": DataFrame}; source for every lookup below.
         # object dtype keeps TRUE/FALSE as booleans in columns with blanks.
         self.sheets = pd.read_excel(excel_path, sheet_name=None, dtype=object)
+        # Rows of the classes sheet with a sheet and URI, e.g. (Dataset, hri:Dataset); one row per model class.
         self.classes = self.sheets["classes"].dropna(subset=["sheet_name", "class_URI"])
+        # Prefix -> namespace, e.g. {"dcat": "https://www.w3.org/ns/dcat#"}; expands CURIEs to full IRIs.
         self.namespaces = {
             row.prefix: row.namespace for row in self.sheets["prefixes"].dropna().itertuples() if row.prefix
         }
+        # Class local name -> sheet, e.g. {"Catalog": "Catalogue"}; resolves sh:node refs to sheets.
         self.sheet_by_class = {_local_name(row.class_URI): row.sheet_name for row in self.classes.itertuples()}
+        # Sheet -> FDP schema name, e.g. {"Catalogue": "Catalog"}; names schemas and resource parents.
         self.schema_by_sheet = {row.sheet_name: schema_name(row.class_URI) for row in self.classes.itertuples()}
+        # Range -> FDP schema name, e.g. {"hri:Dataset": "Dataset", "dcat:Dataset": "Dataset"}; finds resource children.
         # Ranges use either the target ontology class or the model class.
         self.schema_by_range = {
             str(row.class_URI).strip(): schema_name(row.class_URI) for row in self.classes.itertuples()
