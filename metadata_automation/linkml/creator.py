@@ -143,7 +143,8 @@ class LinkMLCreator:
             if (row.get("SeMPyRO_import_classes") and row.get("SeMPyRO_import_classes") != "nan")
             else []
         )
-        add_rdf_model = row.get("SeMPyRO_add_rdf_model")
+        # A class without a defined inheritance inherits from RDFModel
+        add_rdf_model = not (inherits_from and str(inherits_from) != "nan")
 
         ontology = class_uri.split(":")[0]
         ontology_class = class_uri.split(":")[1]
@@ -154,11 +155,7 @@ class LinkMLCreator:
         self.linkml_data[linkml_id]["data"]["imports"].append("../sempyro_types")
 
         # Add RDF model import if needed
-        if add_rdf_model and str(add_rdf_model).lower() in [
-            "true",
-            "1",
-            "yes",
-        ]:
+        if add_rdf_model:
             self.linkml_data[linkml_id]["data"]["imports"].append("../rdf_model")
 
         annotations = {
@@ -221,16 +218,11 @@ class LinkMLCreator:
         for item in import_classes:
             stub_class_name = self._ontology_name_to_class_name(item)
             class_stubs[stub_class_name] = {"class_uri": item}
-        if inherits_from and str(inherits_from) != "nan":
+        if add_rdf_model:
+            class_dict["is_a"] = "RDFModel"
+        else:
             class_dict["is_a"] = self._ontology_name_to_class_name(inherits_from)
             class_stubs[self._ontology_name_to_class_name(inherits_from)] = {"class_uri": inherits_from}
-        # Add RDFModel inheritance if SeMPyRO_add_rdf_model is true
-        elif add_rdf_model and str(add_rdf_model).lower() in [
-            "true",
-            "1",
-            "yes",
-        ]:
-            class_dict["is_a"] = "RDFModel"
 
         # Combine main class with stubs
         all_classes = {self._create_class_id(ontology, ontology_class): class_dict}
