@@ -298,6 +298,30 @@ Overlapping properties: 12 of 47 direct fields are also defined in an ancestor c
 
 When using `--output-file`, the same report is also written to the specified file.
 
+## GitHub Action
+
+The repository doubles as a composite GitHub Action that generates the SHACL Turtle files from the source Excel file
+(`shaclplay` followed by `shacl-from-shaclplay`) and writes them flat to a directory as `{namespace}-{class}.ttl`.
+It does not commit anything; callers decide whether to compare or commit the result.
+
+```yaml
+- uses: Health-RI/metadata-automation@v1.0.0
+  with:
+    excel-path: Documents/Health-RI_v2.1.0-for-FDP.xlsx
+    output-path: Formalisation(shacl)/Core/PiecesShape
+    namespace: hrishapes
+```
+
+`namespace` is optional and overrides the namespace given in the Excel file (like `-n` on the CLI); when omitted the
+namespace from the Excel file is used. Existing `{namespace}-*.ttl` files in `output-path` are replaced, so shapes removed from the Excel file also disappear.
+Always reference an exact release (e.g. `@v1.0.0`) so the generated output stays reproducible.
+
+### Releasing
+
+Releases follow [semantic versioning](https://semver.org/). Bump `version` in `pyproject.toml` (and the
+`metadata-automation` entry in `uv.lock`), merge, then push a matching tag, e.g. `git tag v1.0.1 && git push origin v1.0.1`.
+The `Release` workflow checks that the tag equals the package version and creates the GitHub release.
+
 ## Testing
 
 The repository includes comprehensive integration and unit tests for all CLI commands and utility modules. Tests use pre-generated input files in `tests/test_input/` and compare outputs against expected results in `tests/test_expected/` to ensure regression testing.

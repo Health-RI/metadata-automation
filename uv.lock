@@ -745,11 +745,12 @@ wheels = [
 
 [[package]]
 name = "metadata-automation"
-version = "0.1.0"
+version = "1.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "black" },
     { name = "click" },
+    { name = "curies" },
     { name = "linkml" },
     { name = "pandas" },
     { name = "ruff" },
@@ -767,6 +768,7 @@ dev = [
 requires-dist = [
     { name = "black", specifier = "==26.3.1" },
     { name = "click", specifier = ">=8.0.0" },
+    { name = "curies", specifier = "<0.15.2" },
     { name = "linkml", specifier = "==1.10.0" },
     { name = "pandas", specifier = "==2.3.3" },
     { name = "ruff", specifier = ">=0.14.11" },
