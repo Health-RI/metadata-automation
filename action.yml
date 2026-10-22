@@ -1,0 +1,46 @@
+name: Generate SHACLs from Excel
+description: >-
+  Generates the SHACL Turtle files for the Health-RI metadata model from its source Excel file.
+  The files are written flat to the output path as `{namespace}-{class}.ttl`. Any existing
+  `{namespace}-*.ttl` files in the output path are replaced; nothing is committed.
+
+inputs:
+  excel-path:
+    description: Path to the source metadata Excel file, relative to the workspace.
+    required: true
+  output-path:
+    description: Directory the SHACL Turtle files are written to, relative to the workspace.
+    required: true
+  namespace:
+    description: Namespace prefix used for the shapes, e.g. `hrishapes`.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Java
+      uses: actions/setup-java@v5
+      with:
+        distribution: temurin
+        java-version: "17"
+
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v6
+
+    - name: Generate SHACLs
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        EXCEL_PATH: ${{ inputs.excel-path }}
+        OUTPUT_PATH: ${{ inputs.output-path }}
+        NAMESPACE: ${{ inputs.namespace }}
+      run: |
+        set -euo pipefail
+        tmp="$(mktemp -d)"
+        run() { uv run --python 3.13 --frozen --project "$ACTION_PATH" metadata-automation "$@"; }
+        run shaclplay -i "$EXCEL_PATH" -o "$tmp/shaclplay" -n "$NAMESPACE"
+        run shacl-from-shaclplay -i "$tmp/shaclplay" -o "$tmp/shacl"
+        mkdir -p "$OUTPUT_PATH"
+        rm -f "$OUTPUT_PATH/$NAMESPACE"-*.ttl
+        cp "$tmp/shacl/$NAMESPACE"/*.ttl "$OUTPUT_PATH/"
+        echo "Generated $(ls "$tmp/shacl/$NAMESPACE"/*.ttl | wc -l) SHACL files in $OUTPUT_PATH"
