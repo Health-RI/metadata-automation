@@ -312,7 +312,8 @@ It does not commit anything; callers decide whether to compare or commit the res
     namespace: hrishapes
 ```
 
-Existing `{namespace}-*.ttl` files in `output-path` are replaced, so shapes removed from the Excel file also disappear.
+`namespace` is optional and overrides the namespace given in the Excel file (like `-n` on the CLI); when omitted the
+namespace from the Excel file is used. Existing `{namespace}-*.ttl` files in `output-path` are replaced, so shapes removed from the Excel file also disappear.
 Always reference an exact release (e.g. `@v1.0.0`) so the generated output stays reproducible.
 
 ### Releasing

@@ -12,8 +12,11 @@ inputs:
     description: Directory the SHACL Turtle files are written to, relative to the workspace.
     required: true
   namespace:
-    description: Namespace prefix used for the shapes, e.g. `hrishapes`.
-    required: true
+    description: >-
+      Namespace prefix that overrides the namespace given in the Excel file, e.g. `hrishapes`.
+      If omitted, the namespace from the Excel file is used.
+    required: false
+    default: ""
 
 runs:
   using: composite
@@ -38,9 +41,14 @@ runs:
         set -euo pipefail
         tmp="$(mktemp -d)"
         run() { uv run --python 3.13 --frozen --project "$ACTION_PATH" metadata-automation "$@"; }
-        run shaclplay -i "$EXCEL_PATH" -o "$tmp/shaclplay" -n "$NAMESPACE"
+        ns_args=()
+        if [ -n "$NAMESPACE" ]; then ns_args=(-n "$NAMESPACE"); fi
+        run shaclplay -i "$EXCEL_PATH" -o "$tmp/shaclplay" "${ns_args[@]}"
         run shacl-from-shaclplay -i "$tmp/shaclplay" -o "$tmp/shacl"
         mkdir -p "$OUTPUT_PATH"
-        rm -f "$OUTPUT_PATH/$NAMESPACE"-*.ttl
-        cp "$tmp/shacl/$NAMESPACE"/*.ttl "$OUTPUT_PATH/"
-        echo "Generated $(ls "$tmp/shacl/$NAMESPACE"/*.ttl | wc -l) SHACL files in $OUTPUT_PATH"
+        for dir in "$tmp/shacl"/*/; do
+          ns="$(basename "$dir")"
+          rm -f "$OUTPUT_PATH/$ns"-*.ttl
+          cp "$dir"*.ttl "$OUTPUT_PATH/"
+          echo "Generated $(ls "$dir"*.ttl | wc -l) SHACL files for namespace '$ns' in $OUTPUT_PATH"
+        done
