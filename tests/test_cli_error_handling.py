@@ -9,6 +9,8 @@ import pandas as pd
 import metadata_automation.cli as cli_module
 from metadata_automation.cli import main
 
+MODEL_EXCEL = Path(__file__).parent / "test_input" / "test_metadata.xlsx"
+
 
 class TestSHACLPlayErrors:
     """Test error handling in shaclplay command."""
@@ -283,6 +285,8 @@ class TestSHACLFromSHACLPlayErrors:
                     str(tmp_path),
                     "-o",
                     str(tmp_path / "output"),
+                    "-e",
+                    str(MODEL_EXCEL),
                 ],
             )
 
@@ -299,6 +303,8 @@ class TestSHACLFromSHACLPlayErrors:
                 str(tmp_path),
                 "-o",
                 str(tmp_path / "output"),
+                "-e",
+                str(MODEL_EXCEL),
             ],
         )
 
@@ -320,6 +326,8 @@ class TestSHACLFromSHACLPlayErrors:
                 str(tmp_path),
                 "-o",
                 str(tmp_path / "output"),
+                "-e",
+                str(MODEL_EXCEL),
             ],
         )
 
@@ -351,6 +359,8 @@ class TestSHACLFromSHACLPlayErrors:
                     str(tmp_path),
                     "-o",
                     str(tmp_path / "output"),
+                    "-e",
+                    str(MODEL_EXCEL),
                 ],
             )
 

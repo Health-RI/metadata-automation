@@ -66,16 +66,17 @@ class Model:
 
 
 def independent_schemas(model: Model, parents: list[str]) -> list[str]:
-    """Schema names of independent classes, with ``parents`` first (the FDP needs parents published first)."""
+    """Schema names of independent classes, with ``parents`` first (the FDP needs parents published first).
+
+    Empty when the classes sheet has no ``SHACL_independent_class`` column or no class is TRUE.
+    """
     if INDEPENDENT_COLUMN not in model.classes.columns:
-        raise ValueError(f"Column '{INDEPENDENT_COLUMN}' not found in the classes sheet")
+        return []
     names = [
         model.schema_by_sheet[row.sheet_name]
         for row in model.classes.itertuples()
         if parse_bool(getattr(row, INDEPENDENT_COLUMN))
     ]
-    if not names:
-        raise ValueError(f"No class has {INDEPENDENT_COLUMN} TRUE")
     return sorted(names, key=lambda name: name not in parents)
 
 
@@ -93,8 +94,8 @@ def _node_refs(sheet: pd.DataFrame, sheet_by_class: dict[str, str]) -> list[str]
     return refs
 
 
-def build_schemas(model: Model, schema_names: list[str], namespace: str | None = None) -> dict[str, list[str]]:
-    """Map each FDP schema name to its SHACL file and the files it depends on.
+def schema_sheets(model: Model, schema_names: list[str]) -> dict[str, list[str]]:
+    """Map each FDP schema name to its class sheet and the sheets it reaches through ``SHACL_sh:node``.
 
     sh:node refs to independent classes are skipped: those are separate schemas, referenced by IRI in the FDP.
     """
@@ -102,8 +103,6 @@ def build_schemas(model: Model, schema_names: list[str], namespace: str | None =
     sheet_by_schema = {schema: sheet for sheet, schema in model.schema_by_sheet.items()}
     # Sheets of independent classes; these are never inlined as dependencies.
     independent = {sheet_by_schema[name] for name in schema_names}
-    # Sheet -> file prefix, e.g. {"Dataset": "hri"}; --namespace overrides the class prefix.
-    prefixes = {row.sheet_name: namespace or str(row.class_URI).split(":")[0] for row in model.classes.itertuples()}
     schemas = {}
     for name in schema_names:
         # Start with the schema's own sheet; the loop appends to it, walking sh:node refs breadth-first.
@@ -112,9 +111,20 @@ def build_schemas(model: Model, schema_names: list[str], namespace: str | None =
             refs = _node_refs(model.sheet(sheet_name), model.sheet_by_class)
             # Add unseen, non-independent dependencies.
             order.extend(ref for ref in refs if ref not in order and ref not in independent)
-        # Sheet names to SHACL files, e.g. "Dataset": ["hri-dataset.ttl", "hri-agent.ttl"].
-        schemas[name] = [f"{prefixes[s]}-{s.lower()}.ttl" for s in order]
+        # e.g. "Dataset": ["Dataset", "Agent"].
+        schemas[name] = order
     return schemas
+
+
+def build_schemas(model: Model, schema_names: list[str], namespace: str | None = None) -> dict[str, list[str]]:
+    """Map each FDP schema name to its SHACL file and the files it depends on."""
+    # Sheet -> file prefix, e.g. {"Dataset": "hri"}; --namespace overrides the class prefix.
+    prefixes = {row.sheet_name: namespace or str(row.class_URI).split(":")[0] for row in model.classes.itertuples()}
+    # Sheet names to SHACL files, e.g. "Dataset": ["hri-dataset.ttl", "hri-agent.ttl"].
+    return {
+        name: [f"{prefixes[s]}-{s.lower()}.ttl" for s in sheets]
+        for name, sheets in schema_sheets(model, schema_names).items()
+    }
 
 
 def build_resources(model: Model, schema_names: list[str]) -> dict[str, dict[str, str]]:
@@ -163,6 +173,8 @@ def generate_properties(
     model = Model(excel_path)
 
     schema_names = independent_schemas(model, list(properties.get("parentChild") or {}))
+    if not schema_names:
+        raise ValueError(f"No class has {INDEPENDENT_COLUMN} TRUE in the classes sheet")
     properties["schemas"] = build_schemas(model, schema_names, namespace)
     properties["resources"] = build_resources(model, schema_names)
     properties["schemasToPublish"] = schema_names

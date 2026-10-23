@@ -1,2 +1,2 @@
 metadata-automation shaclplay -i ./inputs/HealthRI_v2.0.2.xlsx -o ./outputs/shaclplay -n hri
-metadata-automation shacl-from-shaclplay -i ./outputs/shaclplay -o ./outputs/shacl_shapes
+metadata-automation shacl-from-shaclplay -i ./outputs/shaclplay -o ./outputs/shacl_shapes -e ./inputs/HealthRI_v2.0.2.xlsx
