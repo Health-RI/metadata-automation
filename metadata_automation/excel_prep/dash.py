@@ -23,19 +23,29 @@ TEXT_FIELD = ("dash:LiteralViewer", "dash:TextFieldEditor")
 
 DESCRIPTION_PROPERTY = "dct:description"
 GENERIC_RESOURCE = "rdfs:Resource"
+VOCAB_COLUMN = "Controlled vocabulary (if applicable)"
+NO_VOCAB = {"na", "n/a", "none", "nan", "-"}
 
 
-def expected_dash(range_: str, node: str, is_description: bool, model_classes: set[str]) -> tuple[str, str] | None:
+def has_vocab(value: str) -> bool:
+    """A controlled vocabulary cell is meaningful unless empty or a placeholder such as NA."""
+    return bool(value) and value.lower() not in NO_VOCAB
+
+
+def expected_dash(
+    range_: str, node: str, is_description: bool, model_classes: set[str], vocab: bool = False
+) -> tuple[str, str] | None:
     """Return ``(viewer, editor)`` for a prepared range, or None when no rule applies.
 
     Rules, in order: a range ending in (IRI) is a URI, shown by its label when it is
-    an outside vocabulary class (not a model class or rdfs:Resource); a range with a
+    an outside class (not a model class or rdfs:Resource) with a controlled vocabulary; a range with a
     node shape links to another class of the model; xsd:dateTime gets a date picker;
     dct:description gets a text area; any other literal gets a text field.
     """
     base, has_iri = split_iri_suffix(range_)
     if has_iri:
-        return URI if base in model_classes or base == GENERIC_RESOURCE else LABEL
+        outside = base not in model_classes and base != GENERIC_RESOURCE
+        return LABEL if outside and vocab else URI
     range_ = base
     if node:
         return DETAILS
@@ -59,6 +69,7 @@ def apply_dash_rules(wb: Workbook, model_classes: set[str], report: Report) -> N
                 text(ws, row, cols["SHACL_sh:node"]),
                 is_description,
                 model_classes,
+                has_vocab(text(ws, row, cols.get(VOCAB_COLUMN))),
             )
             if expected is None:
                 continue

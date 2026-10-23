@@ -4,7 +4,7 @@ import shutil
 
 import pytest
 from openpyxl import load_workbook
-from prep_helpers import CLASS_ANSWERS, answer_classes, cell, find_row, sha
+from prep_helpers import CLASS_ANSWERS, answer_classes, cell, find_row, set_cell, sha
 
 from metadata_automation.excel_prep.columns import CLASS_SHEET_COLUMNS
 from metadata_automation.excel_prep.preparer import prepare_workbook
@@ -53,18 +53,29 @@ class TestInit:
         untouched = {Cell("Catalog", row, "Range"), Cell("Catalog", row, "Cardinality")}
         assert not any(f.cell in untouched for f in report.changes)
 
-    def test_out_of_model_range_gets_iri_and_label_viewer(self, answered):
+    def test_out_of_model_range_gets_iri_and_uri_viewer(self, answered):
         report = prepare_workbook(answered, init=True)
         ws = load_workbook(answered)["Catalog"]
         row = find_row(ws, "Property URI", "dct:license")
         assert cell(ws, row, "Range") == "dct:LicenseDocument (IRI)"
-        assert cell(ws, row, "SHACL_dash:viewer") == "dash:LabelViewer"
+        assert cell(ws, row, "SHACL_dash:viewer") == "dash:URIViewer"
         assert cell(ws, row, "SHACL_dash:editor") == "dash:URIEditor"
         assert any(
             f.cell == Cell("Catalog", row, "Range")
             and f.message == "'dct:LicenseDocument' -> 'dct:LicenseDocument (IRI)' (range is not a class of this model)"
             for f in report.changes
         )
+
+    def test_out_of_model_range_with_vocab_gets_label_viewer(self, answered):
+        wb = load_workbook(answered)
+        ws = wb["Catalog"]
+        row = find_row(ws, "Property URI", "dct:license")
+        set_cell(ws, row, "Controlled vocabulary (if applicable)", "http://example.org/licenses")
+        wb.save(answered)
+        prepare_workbook(answered, init=True)
+        ws = load_workbook(answered)["Catalog"]
+        assert cell(ws, row, "SHACL_dash:viewer") == "dash:LabelViewer"
+        assert cell(ws, row, "SHACL_dash:editor") == "dash:URIEditor"
 
     def test_full_run_references_independent_class_by_iri(self, answered, tmp_path):
         prepare_workbook(answered, init=True)
