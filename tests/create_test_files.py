@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import pandas as pd
+from openpyxl import load_workbook
 
 # Create test_input directory
 test_input_dir = Path(__file__).parent / "test_input"
@@ -41,7 +42,7 @@ testclass_df = pd.DataFrame(
         "Property label": ["title", "description"],
         "Definition": ["The title", "The description"],
         "Property URI": ["dct:title", "dct:description"],
-        "Controlled vocabluary (if applicable)": ["", ""],
+        "Controlled vocabulary (if applicable)": ["", ""],
         "Usage note": ["Provide a unique title", "Provide a brief description"],
         "Range": ["rdfs:Literal", "rdfs:Literal"],
         "Cardinality": ["1..n", "1..n"],
@@ -96,7 +97,7 @@ multi_props_df = pd.DataFrame(
         "Property label": ["title"],
         "Definition": ["The title"],
         "Property URI": ["dct:title"],
-        "Controlled vocabluary (if applicable)": [""],
+        "Controlled vocabulary (if applicable)": [""],
         "Usage note": [""],
         "Range": ["rdfs:Literal"],
         "Cardinality": ["1"],
@@ -160,5 +161,74 @@ with open(imports_yaml_path, "w") as f:
     f.write(imports_yaml_content)
 
 print(f"✓ Created {imports_yaml_path}")
+
+
+# 6. Create plain_metadata.xlsx - an enriched model Excel with the pipeline additions stripped
+def strip_pipeline_additions(src: Path, dst: Path) -> None:
+    """Drop the prefixes, classes and Resource sheets and all SHACL_*/SeMPyRO_* columns."""
+    wb = load_workbook(src)
+    for name in ("prefixes", "classes", "Resource"):
+        if name in wb.sheetnames:
+            del wb[name]
+    for ws in wb.worksheets:
+        pipeline_cols = [
+            c.column for c in ws[1] if isinstance(c.value, str) and c.value.startswith(("SHACL_", "SeMPyRO_"))
+        ]
+        for col in reversed(pipeline_cols):
+            ws.delete_cols(col)
+    wb.save(dst)
+
+
+enriched_path = Path(__file__).parent.parent / "inputs" / "Health-RI_v2.1.0.xlsx"
+plain_path = test_input_dir / "plain_metadata.xlsx"
+if enriched_path.exists():
+    strip_pipeline_additions(enriched_path, plain_path)
+    print(f"✓ Created {plain_path}")
+else:
+    print(f"! Skipped {plain_path}: {enriched_path} not found")
+
+# 7. Create plain_small.xlsx - small plain model Excel for end-to-end preparation tests
+plain_small_path = test_input_dir / "plain_small.xlsx"
+plain_columns = [
+    "Property label",
+    "Definition",
+    "Property URI",
+    "Controlled vocabulary (if applicable)",
+    "Usage note",
+    "Range",
+    "Cardinality",
+]
+plain_sheets = {
+    "Catalog": [
+        ("title", "Catalog title", "dct:title", "", "", "rdfs:Literal", "1..n"),
+        ("dataset", "Datasets in the catalog", "dcat:dataset", "", "", "dcat:Dataset", "1..n"),
+        ("publisher", "Publisher", "dct:publisher", "", "", "foaf:Agent", "1"),
+        ("license", "License", "dct:license", "", "", "dct:LicenseDocument", "0..1"),
+        ("modification date", "Last modified", "dct:modified", "", "", "xsd:dateTime", "0..1"),
+        ("description", "Catalog description", "dct:description", "", "", "rdfs:Literal", "0..n"),
+    ],
+    "Dataset": [
+        ("title", "Dataset title", "dct:title", "", "", "rdfs:Literal", "1..n"),
+        ("distribution", "Distributions", "dcat:distribution", "", "", "dcat:Distribution", "1..n"),
+        ("creator", "Creator", "dct:creator", "", "", "foaf:Agent", "1..n"),
+        ("theme", "Theme", "dcat:theme", "", "", "skos:Concept (IRI)", "1..n"),
+        ("release date", "Issued", "dct:issued", "", "", "xsd:dateTime", "0..1"),
+    ],
+    "Agent": [
+        ("name", "Agent name", "foaf:name", "", "", "rdfs:Literal", "1..n"),
+        ("type", "Agent type", "dct:type", "", "", "skos:Concept", "0..1"),
+    ],
+    "Distribution": [
+        ("title", "Distribution title", "dct:title", "", "", "rdfs:Literal", "0..n"),
+        ("access URL", "Access URL", "dcat:accessURL", "", "", "rdfs:Resource (IRI)", "1..n"),
+    ],
+}
+
+with pd.ExcelWriter(plain_small_path, engine="openpyxl") as writer:
+    pd.DataFrame({"Info": ["Plain test model"]}).to_excel(writer, sheet_name="Info", index=False)
+    for sheet, rows in plain_sheets.items():
+        pd.DataFrame(rows, columns=plain_columns).to_excel(writer, sheet_name=sheet, index=False)
+
+print(f"✓ Created {plain_small_path}")
 
 print("\n✓ All test input files created successfully!")

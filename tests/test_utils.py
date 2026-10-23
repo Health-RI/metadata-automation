@@ -159,7 +159,7 @@ def test_linkml_creator_slot_name_fallback_without_prefixed_uri(tmp_path: Path):
     assert creator._create_slot_name("Access Rights", "https://example.com/accessRights") == "access_rights"
 
 
-@pytest.mark.parametrize("cardinality", ["1", "1..1"])
+@pytest.mark.parametrize("cardinality", ["1", "1..1", " 1 "])
 def test_linkml_creator_exactly_one_is_required(tmp_path: Path, cardinality: str):
     creator = LinkMLCreator(tmp_path)
     creator.prefixes = {"hri": "http://example.com/"}
@@ -197,6 +197,42 @@ def test_linkml_creator_exactly_one_is_required(tmp_path: Path, cardinality: str
     slot_data = creator.linkml_data["http://example.com/TestClass"]["data"]["slots"]["dct_title"]
     assert slot_data["required"] is True
     assert slot_data["multivalued"] is False
+
+
+def test_linkml_creator_ignores_cardinality_whitespace(tmp_path: Path):
+    creator = LinkMLCreator(tmp_path)
+    creator.prefixes = {"hri": "http://example.com/"}
+    creator.filtered_sheets = {
+        "TestSheet": pd.DataFrame(
+            [
+                {
+                    "Property label": "keyword",
+                    "Definition": "Keyword",
+                    "Property URI": "dcat:keyword",
+                    "SeMPyRO_rdf_term": "DCAT.keyword",
+                    "SeMPyRO_rdf_type": "rdfs_literal",
+                    "Cardinality": "0..n ",
+                    "SeMPyRO_range": "str",
+                }
+            ]
+        )
+    }
+    row = pd.Series(
+        {
+            "sheet_name": "TestSheet",
+            "class_URI": "hri:TestClass",
+            "description": "Test class",
+            "SeMPyRO_annotations_ontology": "http://example.com/ontology",
+            "SeMPyRO_annotations_IRI": "http://example.com/TestClass",
+        }
+    )
+
+    creator.build_base_class(row)
+    creator.build_sempyro_class(row)
+
+    slot_data = creator.linkml_data["http://example.com/TestClass"]["data"]["slots"]["dcat_keyword"]
+    assert slot_data["required"] is False
+    assert slot_data["multivalued"] is True
 
 
 def test_slugify_property_label():
@@ -264,7 +300,7 @@ def test_shaclplay_converter_branches(template_file: Path, test_input_dir: Path)
         "Cardinality": "1",
         "SHACL_sh:node": "hri:KindShape",
         "SHACL_pattern": "[A-Za-z]+",
-        "Controlled vocabluary (if applicable)": "http://publications.europa.eu/resource/authority/access-right",
+        "Controlled vocabulary (if applicable)": "http://publications.europa.eu/resource/authority/access-right",
         "SHACL_sh:uniqueLang": "true",
         "SHACL_default_value": "default",
         "SHACL_dash:viewer": "dash:TextFieldViewer",
@@ -303,6 +339,27 @@ def test_shaclplay_converter_branches(template_file: Path, test_input_dir: Path)
     assert xsd_out[17]
     assert xsd_out[22] == "dash:TextFieldViewer"
     assert xsd_out[23] == "dash:EnumSelectEditor"
+
+
+@pytest.mark.parametrize(
+    "column",
+    ["Controlled vocabulary (if applicable)", "Controlled vocabluary (if applicable)"],
+)
+def test_shaclplay_converter_reads_vocab_column(template_file: Path, test_input_dir: Path, column: str):
+    converter = SHACLPlayConverter(template_file, test_input_dir / "test_metadata.xlsx")
+    row = pd.Series(
+        {
+            "Property label": "access rights",
+            "Property URI": "dct:accessRights",
+            "Cardinality": "1",
+            "Range": "dct:RightsStatement (IRI)",
+            column: "http://publications.europa.eu/resource/authority/access-right",
+        }
+    )
+
+    out = converter._convert_property_to_shaclplay(row, "TestClass", "hri:TestClass", "hri")
+
+    assert "eu:PUBLIC" in str(out[17])
 
 
 def test_custom_pydantic_generator_branches(tmp_path: Path):
