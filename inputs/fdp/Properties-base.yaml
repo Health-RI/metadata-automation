@@ -1,0 +1,18 @@
+---
+# Base for `metadata-automation fdp-properties`. Generated sections are left empty here.
+schemas: {}
+# Some schemas are extending the Resource schema.
+parentChild:
+  Resource:
+    - "Dataset"
+    - "Catalog"
+    - "Data Service"
+# Generated from the Excel: SHACL_independent_class (schemasToPublish) and FDP_resources (resources).
+resources: {}
+schemasToPublish: []
+schemaVersion: "2.0.0"
+#Location of the shapes files used for uploading to FDP.
+inputDir: "https://raw.githubusercontent.com/Health-RI/health-ri-metadata/master/Formalisation(shacl)/Core/PiecesShape/"
+piecesDir: "PiecesShape"
+fairDataPointDir: "FairDataPointShape"
+validationDir: "ValidationShape"

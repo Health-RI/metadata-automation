@@ -12,6 +12,7 @@ dependencies = [
     "linkml==1.10.0",
     "openpyxl>=3.1.5",
     "pandas==2.3.3",
+    "pyyaml>=6.0",
     "ruff>=0.14.11",
     "sempyro==2.2.0",
 ]
