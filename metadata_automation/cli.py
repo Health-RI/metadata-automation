@@ -757,8 +757,14 @@ def prepare_excel(input_excel: str, output_excel: str | None, namespace: str | N
     help="Prefix of the SHACL file names (default: the class_URI prefix). Match the shaclplay --namespace.",
 )
 @click.option("--schema-version", type=str, default=None, help="Override schemaVersion from the base file.")
+@click.option("--input-dir", type=str, default=None, help="Override inputDir (location of the PiecesShape files).")
 def fdp_properties(
-    input_excel: str, base_properties: str, output_path: str, namespace: str | None, schema_version: str | None
+    input_excel: str,
+    base_properties: str,
+    output_path: str,
+    namespace: str | None,
+    schema_version: str | None,
+    input_dir: str | None,
 ) -> None:
     """Generate a FairDataPointSchemaTool Properties.yaml.
 
@@ -770,7 +776,7 @@ def fdp_properties(
     """
     try:
         properties = generate_properties(
-            Path(input_excel), Path(base_properties), Path(output_path), namespace, schema_version
+            Path(input_excel), Path(base_properties), Path(output_path), namespace, schema_version, input_dir
         )
     except Exception as e:
         click.echo(f"Error: {e}", err=True)

@@ -95,15 +95,17 @@ def test_parents_are_published_first(runner, sheets, tmp_path):
     assert yaml.safe_load(output.read_text())["schemasToPublish"][0] == "Dataset Series"
 
 
-def test_namespace_and_version_override(runner, sheets, base_yaml, tmp_path):
+def test_overrides(runner, sheets, base_yaml, tmp_path):
     output = tmp_path / "Properties.yaml"
     excel = _write(tmp_path / "model.xlsx", sheets)
-    result = _run(runner, excel, base_yaml, output, "--namespace", "ns", "--schema-version", "2.1.0")
+    args = ["--namespace", "ns", "--schema-version", "2.1.0", "--input-dir", "https://example.org/PiecesShape/"]
+    result = _run(runner, excel, base_yaml, output, *args)
 
     assert result.exit_code == 0, result.output
     properties = yaml.safe_load(output.read_text())
     assert properties["schemas"]["Dataset Series"] == ["ns-datasetseries.ttl"]
     assert properties["schemaVersion"] == "2.1.0"
+    assert properties["inputDir"] == "https://example.org/PiecesShape/"
 
 
 def test_missing_independent_column_fails(runner, sheets, base_yaml, tmp_path):

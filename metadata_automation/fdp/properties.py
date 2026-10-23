@@ -167,6 +167,7 @@ def generate_properties(
     output_path: Path,
     namespace: str | None = None,
     schema_version: str | None = None,
+    input_dir: str | None = None,
 ) -> dict:
     """Write a Properties.yaml with the derived sections from the Excel and the rest from the base file."""
     properties = yaml.safe_load(base_path.read_text()) or {}
@@ -180,6 +181,8 @@ def generate_properties(
     properties["schemasToPublish"] = schema_names
     if schema_version:
         properties["schemaVersion"] = schema_version
+    if input_dir:
+        properties["inputDir"] = input_dir
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text("---\n" + yaml.safe_dump(properties, sort_keys=False, allow_unicode=True))

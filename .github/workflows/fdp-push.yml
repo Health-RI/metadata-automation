@@ -1,0 +1,68 @@
+name: Push SHACLs to FDP
+
+on:
+  workflow_dispatch:
+    inputs:
+      filename:
+        description: Excel file in Documents/ on the testing branch of Health-RI/health-ri-metadata
+        required: true
+        default: Health-RI_v2.1.0.xlsx
+      version:
+        description: Schema version published to the FDP (e.g. 2.1.0)
+        required: true
+
+# One push to the FDP at a time.
+concurrency: fdp-push
+
+env:
+  FILENAME: ${{ inputs.filename }}
+  VERSION: ${{ inputs.version }}
+  # FairDataPointSchemaTool reads the SHACL pieces from here.
+  PIECES_URL: https://raw.githubusercontent.com/Health-RI/health-ri-metadata/refs/heads/testing/Formalisation(shacl)/Core/PiecesShape/
+  FDP_TOOL_IMAGE: healthri/fdp-schema-update-tool:1.0.6
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Check out health-ri-metadata (testing)
+        uses: actions/checkout@v6
+        with:
+          repository: Health-RI/health-ri-metadata
+          ref: testing
+          path: source
+          sparse-checkout: Documents
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install package
+        run: python -m pip install .
+
+      - name: Prepare Excel for FDP
+        run: metadata-automation prepare-excel -i "source/Documents/$FILENAME" -o work/fdp.xlsx
+
+      - name: Generate Properties.yaml
+        run: >-
+          metadata-automation fdp-properties -i work/fdp.xlsx -o work/Properties.yaml
+          --schema-version "$VERSION" --input-dir "$PIECES_URL"
+
+      - name: Upload Properties.yaml
+        uses: actions/upload-artifact@v4
+        with:
+          name: fdp-properties-${{ inputs.version }}
+          path: work/Properties.yaml
+
+      - name: Push schemas and resources to the FDP
+        env:
+          FDP_HOST: ${{ secrets.FDP_HOST }}
+          FDP_USER: ${{ secrets.FDP_USER }}
+          FDP_PASSWORD: ${{ secrets.FDP_PASSWORD }}
+        run: >-
+          docker run --rm -v "$PWD/work/Properties.yaml:/opt/app/Properties.yaml:ro" "$FDP_TOOL_IMAGE"
+          -h "$FDP_HOST" -u "$FDP_USER" -p "$FDP_PASSWORD"
