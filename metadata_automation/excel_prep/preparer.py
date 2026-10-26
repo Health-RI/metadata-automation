@@ -9,8 +9,8 @@ Two modes:
 
 Values that cannot be derived are left empty and listed in the report.
 
-openpyxl drops drawings (text boxes, shapes, images) on save. They are reported,
-and in init mode the source is first copied to a ``.bak`` file.
+openpyxl drops drawings (text boxes, shapes, images) on save; they are copied back
+from the source afterwards. In init mode the source is first copied to a ``.bak`` file.
 """
 
 import os
@@ -23,7 +23,7 @@ from openpyxl import load_workbook
 from metadata_automation.excel_prep.class_sheet import prepare_class_sheet
 from metadata_automation.excel_prep.columns import FDP_SHEETS, GENERAL_SHEETS
 from metadata_automation.excel_prep.dash import apply_dash_rules
-from metadata_automation.excel_prep.drawings import drawing_sheets
+from metadata_automation.excel_prep.drawings import drawing_sheets, restore_drawings
 from metadata_automation.excel_prep.gaps import add_property_uris, collect_gaps
 from metadata_automation.excel_prep.prefix_check import check_prefixes
 from metadata_automation.excel_prep.report import Report
@@ -49,8 +49,10 @@ def prepare_workbook(
     wb = load_workbook(src, rich_text=True)
     report = Report()
 
-    if drawings := drawing_sheets(src):
-        _report_drawings(src, drawings, init, report)
+    if init and drawing_sheets(src):
+        backup = src.with_name(src.name + ".bak")
+        shutil.copy2(src, backup)
+        report.change(src.name, None, None, f"copied to {backup.name} before the in-place update, as it has drawings")
 
     add_general_sheets(wb, GENERAL_SHEETS if init else GENERAL_SHEETS + FDP_SHEETS, report)
     model, untargeted = prepare_classes_sheet(wb, namespace, report)
@@ -73,7 +75,7 @@ def prepare_workbook(
     add_property_uris(wb, report)
     collect_gaps(wb, report)
 
-    _save(wb, dst)
+    _save(wb, src, dst, report)
     return report
 
 
@@ -94,25 +96,15 @@ def _output_path(src: Path, dst: Path | None, init: bool, overwrite: bool) -> Pa
     return dst
 
 
-def _report_drawings(src: Path, sheets: list[str], init: bool, report: Report) -> None:
-    """Report drawings that are lost on save; in init mode, back up the source first."""
-    if init:
-        backup = src.with_name(src.name + ".bak")
-        shutil.copy2(src, backup)
-        lost = f"are removed from the input; the original is kept as {backup.name}"
-    else:
-        lost = "are not copied to the output"
-    for sheet in sheets:
-        report.issue(sheet, None, None, f"drawings (text boxes, shapes, images) {lost}")
-
-
-def _save(wb, dst: Path) -> None:
-    """Save through a temporary file, so a failed save leaves ``dst`` intact."""
+def _save(wb, src: Path, dst: Path, report: Report) -> None:
+    """Save with the drawings of ``src`` through a temporary file, so a failed save leaves ``dst`` intact."""
     dst.parent.mkdir(parents=True, exist_ok=True)
     fd, tmp = tempfile.mkstemp(suffix=dst.suffix, dir=dst.parent)
     os.close(fd)
     try:
         wb.save(tmp)
+        for sheet in restore_drawings(src, Path(tmp)):
+            report.issue(sheet, None, None, "drawings (text boxes, shapes, images) could not be kept")
         os.replace(tmp, dst)
     finally:
         if os.path.exists(tmp):
