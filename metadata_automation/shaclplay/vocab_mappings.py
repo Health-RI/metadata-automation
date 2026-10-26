@@ -34,6 +34,7 @@ VOCAB_MAPPINGS = {
 
 
 URL_PATTERN = re.compile(r"https?://[^\s<>\"']+")
+TRAILING_PUNCTUATION = ".,;:)]}"
 
 
 def _normalize_url(url: str) -> str:
@@ -54,6 +55,8 @@ def get_vocab_mapping(vocab_url: str) -> dict:
     Returns:
         Dictionary with 'sh_in' and 'editor' keys, or None if not found
     """
+    if not isinstance(vocab_url, str):
+        return None
     return _NORMALIZED_MAPPINGS.get(_normalize_url(vocab_url))
 
 
@@ -74,7 +77,8 @@ def find_vocab_mapping(cell_text, hyperlink=None) -> dict:
     candidates = []
     for source in (hyperlink, cell_text):
         if isinstance(source, str):
-            candidates += [source, *URL_PATTERN.findall(source)]
+            urls = [url.rstrip(TRAILING_PUNCTUATION) for url in URL_PATTERN.findall(source)]
+            candidates += [source, *urls]
     for candidate in candidates:
         mapping = get_vocab_mapping(candidate)
         if mapping:
