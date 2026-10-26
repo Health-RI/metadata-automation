@@ -49,7 +49,10 @@ def _apply_range(
     init: bool,
     report: Report,
 ) -> None:
-    """Init only nests model classes; the full run applies the FDP rules. Other non-literal ranges get (IRI)."""
+    """Init only nests model classes; the full run applies the FDP rules.
+
+    Other non-literal CURIE ranges get (IRI). Values without a prefix and full IRIs are left to the prefix check.
+    """
     base, has_iri = split_iri_suffix(value)
     if base in model and init:
         if not has_iri:

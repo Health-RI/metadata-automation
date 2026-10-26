@@ -120,8 +120,8 @@ General steps (always):
 - Adds the `prefixes` and `classes` sheets if missing, a `classes` row per class sheet, and all `SHACL_*` and `SeMPyRO_*` columns.
 - Adds every prefix used in the workbook to `prefixes`; unknown namespaces are left empty.
 - Once every class has a `SHACL_target_ontology_name`:
-  - A range that is a class of the model and not suffixed `(IRI)` gets its shape in `SHACL_sh:node`, e.g. `hri:AgentShape`; a differing value is overwritten.
-  - Any other range that is not a literal (`rdfs:Literal` or an `xsd` datatype) gets `(IRI)` appended.
+  - A range that is a class of the model and not suffixed `(IRI)` gets its shape (`{class_URI}Shape`) in `SHACL_sh:node`, e.g. `hri:AgentShape`; a differing value is overwritten. This needs the class's `class_URI` (filled in, or derived with `-n`); without it `SHACL_sh:node` stays empty and no DASH values are set for the range.
+  - Any other range that is a prefixed name (CURIE) and not a literal (`rdfs:Literal` or an `xsd` datatype) gets `(IRI)` appended. Values without a prefix and full IRIs are left as they are; the prefix check reports values without a prefix and full IRIs that could be a CURIE.
   - `SHACL_dash:viewer` / `SHACL_dash:editor` are derived (first matching rule). Empty cells are filled; a differing existing value is kept and reported.
     - Range ends in `(IRI)` and is a model class or `rdfs:Resource`: `dash:URIViewer` / `dash:URIEditor`
     - Any other range ending in `(IRI)` (an outside vocabulary): `dash:LabelViewer` / `dash:URIEditor`
@@ -134,7 +134,7 @@ FDP steps (without `--init`; the result is written to a new file):
 - Adds the `Resource` sheet if missing.
 - The range rules replace the general ones:
   - A range that is the target of a class with `SHACL_independent_class` `TRUE` (a class that exists on its own in the FDP) gets `(IRI)` appended, a non-required cardinality, e.g. `1..n` → `0..n`, an empty `SHACL_sh:node`, and `dash:URIViewer` / `dash:URIEditor` (overwriting other values).
-  - A range that is the target of a class with `SHACL_independent_class` `FALSE` (or not set) gets its shape in `SHACL_sh:node`; a differing value is overwritten. A range ending in `(IRI)` is reported.
+  - A range that is the target of a class with `SHACL_independent_class` `FALSE` (or not set) gets its shape in `SHACL_sh:node` when that class has a `class_URI`; a differing value is overwritten. A range ending in `(IRI)` is reported.
 - Reports an independent class without a `dct:title` property.
 
 It then prints a report with:
