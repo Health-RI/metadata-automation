@@ -2,6 +2,21 @@
 
 After openpyxl saves, each sheet's drawing and the parts it refers to are copied
 from the source package into the output and linked to the sheet of the same name.
+
+Background: an .xlsx is a zip of XML "parts". Parts point at each other through
+relationship files: ``dir/_rels/name.xml.rels`` lists the targets of ``dir/name.xml``
+by id (``rId1``, ...). The chain for a sheet with a text box and a picture is:
+
+    xl/workbook.xml          <sheet name="classes" r:id="rId3"/>
+      -> xl/worksheets/sheet3.xml          <drawing r:id="rId1"/>
+           -> xl/drawings/drawing1.xml     the shapes and their positions
+                -> xl/media/image1.png     a picture used in the drawing
+
+``[Content_Types].xml`` must declare the type of every part, or Excel refuses the file.
+
+Restoring a drawing therefore means: copy the drawing part and everything it points
+at (recursively), add a relationship from the output sheet to it, add ``<drawing>``
+to the sheet XML, and declare the content types of the copied parts.
 """
 
 import posixpath
@@ -31,11 +46,15 @@ def drawing_sheets(path: Path) -> list[str]:
 
 def restore_drawings(src: Path, dst: Path) -> list[str]:
     """Copy the drawings of ``src`` into ``dst`` by sheet name. Returns the sheets whose drawings could not be kept."""
+    # Both packages are held in memory as {part name: bytes}; ``out`` is edited and rewritten.
     files = _read(src)
     out = _read(dst)
     # Excel sheet names are unique regardless of case; the preparer may fix their case.
     out_sheets = {name.lower(): part for name, part in _sheet_parts(out).items()}
+    # Source part to its name in ``out``, so a part shared by several drawings (e.g. one
+    # image) is copied once.
     copied: dict[str, str] = {}
+    # Content type of each copied part, added to [Content_Types].xml at the end.
     overrides: dict[str, str] = {}
     lost = []
     for name, part in _sheet_parts(files).items():
@@ -43,10 +62,15 @@ def restore_drawings(src: Path, dst: Path) -> list[str]:
         if not drawing:
             continue
         out_part = out_sheets.get(name.lower())
+        # Skip a sheet that is gone from the output, or whose output already has a drawing:
+        # openpyxl keeps charts, and a sheet has room for only one drawing. Only report it
+        # when the source drawing holds shapes that are now lost (not just charts).
         if out_part is None or _HAS_DRAWING.search(out[out_part]):
             if _SHAPES.search(files[drawing]):
                 lost.append(name)
             continue
+        # 1. Copy the drawing and the parts it refers to, 2. point the sheet's .rels at it,
+        # 3. reference that relationship from the sheet XML.
         new = _copy_part(files, out, drawing, copied, overrides)
         rel_id = _add_relation(out, out_part, _DRAWING_TYPE, _relative(out_part, new))
         out[out_part] = _insert_drawing(out[out_part], rel_id)
@@ -69,6 +93,7 @@ def _write(path: Path, files: dict[str, bytes]) -> None:
 
 def _sheet_parts(files: dict[str, bytes]) -> dict[str, str]:
     """Sheet name to its worksheet part."""
+    # workbook.xml gives each sheet's name and relationship id; its .rels maps the id to a file.
     targets = _relations(files, "xl/workbook.xml")
     parts = {}
     for sheet in ElementTree.fromstring(files["xl/workbook.xml"]).iter(f"{_MAIN}sheet"):
@@ -79,6 +104,7 @@ def _sheet_parts(files: dict[str, bytes]) -> dict[str, str]:
 
 
 def _drawing_target(files: dict[str, bytes], part: str) -> str | None:
+    """The drawing part a sheet refers to, if any."""
     return next((_resolve(part, t) for t, kind, _ in _relations(files, part).values() if kind == _DRAWING_TYPE), None)
 
 
@@ -95,16 +121,19 @@ def _relations(files: dict[str, bytes], part: str) -> dict[str, tuple[str, str, 
 
 
 def _rels_path(part: str) -> str:
+    """Relationship file of ``part``: ``a/b.xml`` -> ``a/_rels/b.xml.rels``."""
     return posixpath.join(posixpath.dirname(part), "_rels", posixpath.basename(part) + ".rels")
 
 
 def _resolve(base: str, target: str) -> str:
+    """Part name of a relationship target, which is relative to ``base``'s folder or absolute."""
     if target.startswith("/"):
         return target.lstrip("/")
     return posixpath.normpath(posixpath.join(posixpath.dirname(base), target))
 
 
 def _relative(base: str, part: str) -> str:
+    """Inverse of ``_resolve``: ``part`` as a target relative to ``base``'s folder."""
     return posixpath.relpath(part, posixpath.dirname(base))
 
 
@@ -114,15 +143,19 @@ def _copy_part(
     """Copy ``part`` and every internal part it refers to, renaming on a clash. Returns the new name."""
     if part in copied:
         return copied[part]
+    # openpyxl may have written its own part under the same name (e.g. drawing1.xml for a chart).
     new = _free_name(out, part)
     copied[part] = new
     out[new] = files[part]
     overrides[new] = _content_type(files, part)
+    # Copy what this part refers to as well, and rewrite its .rels to the new names.
+    # Relationship ids are kept, so the part's own XML needs no change.
     rels = _rels_path(part)
     if rels in files:
         ElementTree.register_namespace("", _PKG_REL_NS)
         root = ElementTree.fromstring(files[rels])
         for rel in root.iter(f"{{{_PKG_REL_NS}}}Relationship"):
+            # External targets (e.g. hyperlinks) are URLs, not parts in the zip.
             if rel.get("TargetMode") != "External":
                 target = _copy_part(files, out, _resolve(part, rel.get("Target")), copied, overrides)
                 rel.set("Target", _relative(new, target))
@@ -131,6 +164,7 @@ def _copy_part(
 
 
 def _free_name(out: dict[str, bytes], part: str) -> str:
+    """``part``, or ``stem_N.ext`` with the lowest N not yet in ``out``."""
     if part not in out:
         return part
     stem, ext = posixpath.splitext(part)
@@ -141,6 +175,7 @@ def _free_name(out: dict[str, bytes], part: str) -> str:
 
 
 def _content_type(files: dict[str, bytes], part: str) -> str:
+    """Content type of ``part``: its Override by part name, else the Default for its extension."""
     root = ElementTree.fromstring(files[_CONTENT_TYPES])
     for override in root.iter(f"{{{_CT_NS}}}Override"):
         if override.get("PartName").lstrip("/") == part:
@@ -153,6 +188,7 @@ def _content_type(files: dict[str, bytes], part: str) -> str:
 
 
 def _add_overrides(content_types: bytes, overrides: dict[str, str]) -> bytes:
+    """Declare the content type of each copied part by name, so it holds whatever the Defaults say."""
     ElementTree.register_namespace("", _CT_NS)
     root = ElementTree.fromstring(content_types)
     for part, content_type in overrides.items():
@@ -168,6 +204,7 @@ def _add_relation(out: dict[str, bytes], part: str, kind: str, target: str) -> s
         root = ElementTree.fromstring(out[rels])
     else:
         root = ElementTree.Element(f"{{{_PKG_REL_NS}}}Relationships")
+    # Pick the lowest rIdN not in use.
     ids = {r.get("Id") for r in root.iter(f"{{{_PKG_REL_NS}}}Relationship")}
     rel_id = next(f"rId{n}" for n in range(1, len(ids) + 2) if f"rId{n}" not in ids)
     ElementTree.SubElement(root, f"{{{_PKG_REL_NS}}}Relationship", Id=rel_id, Type=kind, Target=target)
