@@ -105,7 +105,18 @@ def _save(wb, src: Path, dst: Path, report: Report) -> None:
         wb.save(tmp)
         for sheet in restore_drawings(src, Path(tmp)):
             report.issue(sheet, None, None, "drawings (text boxes, shapes, images) could not be kept")
+        _set_mode(Path(tmp), dst)
         os.replace(tmp, dst)
     finally:
         if os.path.exists(tmp):
             os.remove(tmp)
+
+
+def _set_mode(tmp: Path, dst: Path) -> None:
+    """Give ``tmp`` the mode of an existing ``dst``, or that of a new file, instead of mkstemp's 0600."""
+    if dst.exists():
+        shutil.copymode(dst, tmp)
+        return
+    umask = os.umask(0)
+    os.umask(umask)
+    tmp.chmod(0o666 & ~umask)

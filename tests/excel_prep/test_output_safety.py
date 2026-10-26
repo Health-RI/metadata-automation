@@ -142,6 +142,20 @@ def test_failed_save_leaves_source_intact(plain_copy, monkeypatch):
     assert {p.name for p in plain_copy.parent.iterdir()} == {plain_copy.name}
 
 
+def test_init_keeps_file_mode(plain_copy):
+    plain_copy.chmod(0o640)
+    prepare_workbook(plain_copy, init=True)
+    assert plain_copy.stat().st_mode & 0o777 == 0o640
+
+
+def test_new_output_gets_default_mode(plain_small, tmp_path):
+    out = tmp_path / "out.xlsx"
+    prepare_workbook(plain_small, out)
+    umask = os.umask(0)
+    os.umask(umask)
+    assert out.stat().st_mode & 0o777 == 0o666 & ~umask
+
+
 def test_drawing_sheets(plain_copy):
     add_drawings(plain_copy, [1, 5])
     assert drawing_sheets(plain_copy) == ["Info", "Distribution"]
