@@ -24,7 +24,7 @@ _CARDINALITY = re.compile(r"^(\d+)(?:\.\.(\d+|n|\*))?$")
 
 def prepare_class_sheet(ws: Worksheet, model: dict[str, ModelClass] | None, init: bool, report: Report) -> None:
     """Add pipeline columns and, when ``model`` is given, apply the range rules (FDP ones unless ``init``)."""
-    cols, added = ensure_columns(ws, CLASS_SHEET_COLUMNS)
+    cols, added = ensure_columns(ws, CLASS_SHEET_COLUMNS, report)
     if added:
         for name in added:
             copy_column_format(ws, 1, cols[name])

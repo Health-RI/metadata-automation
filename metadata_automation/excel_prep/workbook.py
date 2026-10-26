@@ -25,17 +25,35 @@ def headers(ws: Worksheet) -> dict[str, int]:
     return {str(c.value).strip(): c.column for c in ws[1] if not is_empty(c.value)}
 
 
-def ensure_columns(ws: Worksheet, columns: list[str]) -> tuple[dict[str, int], list[str]]:
-    """Append missing columns after the last header. Returns the headers and the added names."""
+def ensure_columns(ws: Worksheet, columns: list[str], report: Report) -> tuple[dict[str, int], list[str]]:
+    """Append missing columns after the last column with data. Returns the headers and the added names.
+
+    Data in columns without a header is reported, as the modeler may have meant it as a pipeline column.
+    """
     cols = headers(ws)
+    for col in _unheaded_data_columns(ws, cols):
+        report.issue(ws.title, None, f"column {get_column_letter(col)}", "data in column without header")
     added = []
+    last = _last_data_column(ws)
     for name in columns:
         if name not in cols:
-            col = max(cols.values(), default=0) + 1
-            ws.cell(row=1, column=col, value=name)
-            cols[name] = col
+            last += 1
+            ws.cell(row=1, column=last, value=name)
+            cols[name] = last
             added.append(name)
     return cols, added
+
+
+def _last_data_column(ws: Worksheet) -> int:
+    """Index of the right-most column with a non-empty cell, 0 for an empty sheet."""
+    return max((c.column for row in ws.iter_rows() for c in row if not is_empty(c.value)), default=0)
+
+
+def _unheaded_data_columns(ws: Worksheet, cols: dict[str, int]) -> list[int]:
+    """Columns without a header that have a non-empty cell below the header."""
+    headed = set(cols.values())
+    cells = (c for row in ws.iter_rows(min_row=2) for c in row)
+    return sorted({c.column for c in cells if c.column not in headed and not is_empty(c.value)})
 
 
 def copy_column_format(ws: Worksheet, src_col: int, dst_col: int) -> None:

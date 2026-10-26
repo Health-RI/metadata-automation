@@ -1,10 +1,12 @@
 """Problems that are reported instead of fixed."""
 
 from openpyxl import load_workbook
+from openpyxl.utils import get_column_letter
 from prep_helpers import CLASS_ANSWERS, answer_classes, cell, find_row, set_cell
 
 from metadata_automation.excel_prep.preparer import prepare_workbook
 from metadata_automation.excel_prep.report import Cell
+from metadata_automation.excel_prep.workbook import headers
 
 
 class TestIssues:
@@ -70,3 +72,22 @@ class TestIssues:
         messages = [f.message for f in report.issues]
         assert "expected TRUE or FALSE, got 'maybe'" in messages
         assert "sheet 'Ghost' does not exist" in messages
+
+    def test_unheaded_data_is_reported_and_kept(self, plain_small, tmp_path):
+        src = tmp_path / "src.xlsx"
+        wb = load_workbook(plain_small)
+        ws = wb["Catalog"]
+        notes_col = ws.max_column + 2
+        ws.cell(row=3, column=notes_col, value="modeler note")
+        wb.save(src)
+
+        out = tmp_path / "first.xlsx"
+        report = prepare_workbook(src, out)
+        letter = get_column_letter(notes_col)
+        assert any(
+            f.cell == Cell("Catalog", None, f"column {letter}") and f.message == "data in column without header"
+            for f in report.issues
+        )
+        ws = load_workbook(out)["Catalog"]
+        assert ws.cell(row=3, column=notes_col).value == "modeler note"
+        assert all(col > notes_col for name, col in headers(ws).items() if name.startswith("SHACL_"))

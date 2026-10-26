@@ -45,7 +45,7 @@ def add_general_sheets(wb: Workbook, names: list[str], report: Report) -> None:
 def prepare_classes_sheet(wb: Workbook, namespace: str | None, report: Report) -> dict[str, ModelClass]:
     """Add missing columns and rows, derive class_URI when ``namespace`` is given, and return the model classes."""
     ws = wb["classes"]
-    cols, added = ensure_columns(ws, CLASSES_COLUMNS)
+    cols, added = ensure_columns(ws, CLASSES_COLUMNS, report)
     if added:
         report.change("classes", None, None, f"added columns {', '.join(added)}")
 
@@ -99,7 +99,7 @@ def _class_rows(ws: Worksheet, cols: dict[str, int], sheets: list[str], report: 
 def prepare_prefixes_sheet(wb: Workbook, report: Report) -> None:
     """Add a row, without namespace, for every used prefix that is not registered."""
     ws = wb["prefixes"]
-    cols, added = ensure_columns(ws, PREFIXES_COLUMNS)
+    cols, added = ensure_columns(ws, PREFIXES_COLUMNS, report)
     if added:
         report.change("prefixes", None, None, f"added columns {', '.join(added)}")
     rows = data_rows(ws, cols, ("prefix",))
