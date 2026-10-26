@@ -30,6 +30,7 @@ from metadata_automation.excel_prep.report import Report
 from metadata_automation.excel_prep.structure import (
     add_general_sheets,
     check_duplicates,
+    normalize_sheet_names,
     prepare_classes_sheet,
     prepare_prefixes_sheet,
 )
@@ -52,8 +53,9 @@ def prepare_workbook(
     dst = _output_path(src, dst, init, overwrite)
 
     wb = load_workbook(src, rich_text=True)
-    check_duplicates(wb)
     report = Report()
+    normalize_sheet_names(wb, report)
+    check_duplicates(wb)
 
     if init and drawing_sheets(src):
         backup = src.with_name(src.name + ".bak")

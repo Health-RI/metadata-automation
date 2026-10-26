@@ -30,12 +30,25 @@ class ModelClass:
     independent: bool | None
 
 
+def normalize_sheet_names(wb: Workbook, report: Report) -> None:
+    """Rename case variants of the general sheets, e.g. 'Classes', to the names the pipeline reads."""
+    for name in NON_CLASS_SHEETS:
+        for title in wb.sheetnames:
+            if title != name and title.lower() == name.lower():
+                ws = wb[title]
+                # openpyxl counts the sheet's own name as a clash, so go through a free name.
+                ws.title = f"{name}__tmp"
+                ws.title = name
+                report.change(name, None, None, f"renamed from '{title}'")
+
+
 def add_general_sheets(wb: Workbook, names: list[str], report: Report) -> None:
-    """Create the missing ``names`` sheets after Info / User Guide."""
+    """Create the missing ``names`` sheets after Info / User Guide; a case variant counts as present."""
     index = max((wb.sheetnames.index(n) + 1 for n in ("Info", "User Guide") if n in wb.sheetnames), default=0)
     for name in names:
-        if name in wb.sheetnames:
-            index = wb.sheetnames.index(name) + 1
+        lowered = [n.lower() for n in wb.sheetnames]
+        if name.lower() in lowered:
+            index = lowered.index(name.lower()) + 1
             continue
         ws = wb.create_sheet(name, index)
         for col, header in enumerate(SHEET_COLUMNS[name], start=1):
@@ -105,7 +118,8 @@ def _class_rows(ws: Worksheet, cols: dict[str, int], sheets: list[str], report: 
     rows = {text(ws, r, cols["sheet_name"]): r for r in data_rows(ws, cols, ("sheet_name",))}
     for name, row in rows.items():
         if name not in sheets:
-            reason = "is not a class sheet" if name in NON_CLASS_SHEETS else "does not exist"
+            general = name.lower() in {n.lower() for n in NON_CLASS_SHEETS}
+            reason = "is not a class sheet" if general else "does not exist"
             report.issue("classes", row, "sheet_name", f"sheet '{name}' {reason}")
 
     next_row = max(rows.values(), default=1) + 1

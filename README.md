@@ -113,7 +113,7 @@ Drawings (text boxes, shapes, images), which openpyxl drops on save, are copied 
 #### Description
 
 Adds what `shaclplay` and `sempyro` need on top of a plain model Excel, using only information in the Excel itself.
-Every sheet except `Info`, `User Guide`, `prefixes` and `classes` is a class sheet.
+Every sheet except `Info`, `User Guide`, `prefixes` and `classes` is a class sheet. These names are matched regardless of case, and a variant such as `Classes` is renamed.
 A duplicate `sheet_name` or `SHACL_target_ontology_name` in `classes` stops the run before anything is written.
 
 General steps (always):

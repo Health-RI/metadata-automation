@@ -55,3 +55,9 @@ def answer_classes(path, answers=CLASS_ANSWERS, class_uris=True):
         if class_uris:
             set_cell(ws, row, "class_URI", f"hri:{target.split(':')[1]}")
     wb.save(path)
+
+
+def rename_sheet(wb, old, new):
+    """Rename through a free name; openpyxl counts the sheet's own name as a clash in any case."""
+    wb[old].title = f"{new}__tmp"
+    wb[f"{new}__tmp"].title = new

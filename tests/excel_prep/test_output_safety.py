@@ -175,6 +175,17 @@ def test_drawings_are_kept_by_sheet_name(plain_copy, tmp_path):
     load_workbook(out)
 
 
+def test_drawings_follow_a_renamed_general_sheet(plain_copy, tmp_path):
+    add_drawings(plain_copy, [1])
+    files = _read(plain_copy)
+    files["xl/workbook.xml"] = files["xl/workbook.xml"].replace(b'name="Info"', b'name="info"')
+    _write(plain_copy, files)
+
+    out = tmp_path / "out.xlsx"
+    prepare_workbook(plain_copy, out)
+    assert drawing_texts(out) == {"Info": "note 1"}
+
+
 def test_init_keeps_drawings_and_backs_up_source(plain_copy):
     add_drawings(plain_copy, [1])
     before = sha(plain_copy)

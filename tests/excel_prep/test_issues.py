@@ -3,11 +3,11 @@
 import pytest
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
-from prep_helpers import CLASS_ANSWERS, answer_classes, cell, find_row, set_cell, sha
+from prep_helpers import CLASS_ANSWERS, answer_classes, cell, find_row, rename_sheet, set_cell, sha
 
 from metadata_automation.excel_prep.preparer import prepare_workbook
-from metadata_automation.excel_prep.report import Cell
-from metadata_automation.excel_prep.workbook import headers
+from metadata_automation.excel_prep.report import Cell, Finding
+from metadata_automation.excel_prep.workbook import class_sheet_names, headers
 
 
 class TestIssues:
@@ -134,3 +134,21 @@ class TestIssues:
 
         report = prepare_workbook(src, tmp_path / "out.xlsx")
         assert Cell("Catalog", row, "Property URI") in report.gaps
+
+    def test_general_sheet_case_variants_are_renamed(self, plain_small, tmp_path):
+        first = tmp_path / "first.xlsx"
+        prepare_workbook(plain_small, first)
+        wb = load_workbook(first)
+        rename_sheet(wb, "classes", "Classes")
+        rename_sheet(wb, "prefixes", "PREFIXES")
+        rename_sheet(wb, "Info", "info")
+        rename_sheet(wb, "Resource", "resource")
+        wb.save(first)
+
+        out = tmp_path / "second.xlsx"
+        report = prepare_workbook(first, out)
+        names = load_workbook(out).sheetnames
+        assert {"classes", "prefixes", "Info", "resource"} <= set(names)
+        assert not {"Classes", "PREFIXES", "info", "Resource", "classes1", "prefixes1"} & set(names)
+        assert Finding(Cell("classes"), "renamed from 'Classes'") in report.changes
+        assert class_sheet_names(load_workbook(out)) == ["resource", "Catalog", "Dataset", "Agent", "Distribution"]

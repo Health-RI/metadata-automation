@@ -33,7 +33,8 @@ def restore_drawings(src: Path, dst: Path) -> list[str]:
     """Copy the drawings of ``src`` into ``dst`` by sheet name. Returns the sheets whose drawings could not be kept."""
     files = _read(src)
     out = _read(dst)
-    out_sheets = _sheet_parts(out)
+    # Excel sheet names are unique regardless of case; the preparer may fix their case.
+    out_sheets = {name.lower(): part for name, part in _sheet_parts(out).items()}
     copied: dict[str, str] = {}
     overrides: dict[str, str] = {}
     lost = []
@@ -41,7 +42,7 @@ def restore_drawings(src: Path, dst: Path) -> list[str]:
         drawing = _drawing_target(files, part)
         if not drawing:
             continue
-        out_part = out_sheets.get(name)
+        out_part = out_sheets.get(name.lower())
         if out_part is None or _HAS_DRAWING.search(out[out_part]):
             if _SHAPES.search(files[drawing]):
                 lost.append(name)
