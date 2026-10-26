@@ -111,7 +111,7 @@ def test_missing_independent_column_fails(runner, sheets, base_yaml, tmp_path):
     result = _run(runner, _write(tmp_path / "model.xlsx", sheets), base_yaml, tmp_path / "out.yaml")
 
     assert result.exit_code == 1
-    assert "SHACL_independent_class" in result.output
+    assert "Column 'SHACL_independent_class' not found in the classes sheet" in result.output
 
 
 def test_resource_to_dependent_class_fails(runner, sheets, base_yaml, tmp_path):

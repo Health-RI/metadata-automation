@@ -188,6 +188,8 @@ def generate_properties(
     properties = yaml.safe_load(base_path.read_text()) or {}
     model = Model(excel_path)
 
+    if INDEPENDENT_COLUMN not in model.classes.columns:
+        raise ValueError(f"Column '{INDEPENDENT_COLUMN}' not found in the classes sheet")
     schema_names = independent_schemas(model, list(properties.get("parentChild") or {}))
     if not schema_names:
         raise ValueError(f"No class has {INDEPENDENT_COLUMN} TRUE in the classes sheet")
