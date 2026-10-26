@@ -45,7 +45,7 @@ def _normalize_url(url: str) -> str:
 _NORMALIZED_MAPPINGS = {_normalize_url(url): mapping for url, mapping in VOCAB_MAPPINGS.items()}
 
 
-def get_vocab_mapping(vocab_url: str) -> dict:
+def get_vocab_mapping(vocab_url: object) -> dict | None:
     """
     Get the sh:in mapping for a controlled vocabulary URL.
 
@@ -60,7 +60,7 @@ def get_vocab_mapping(vocab_url: str) -> dict:
     return _NORMALIZED_MAPPINGS.get(_normalize_url(vocab_url))
 
 
-def find_vocab_mapping(cell_text, hyperlink=None) -> dict:
+def find_vocab_mapping(cell_text: object, hyperlink: object = None) -> dict | None:
     """
     Find the sh:in mapping for a controlled vocabulary cell.
 
@@ -86,7 +86,7 @@ def find_vocab_mapping(cell_text, hyperlink=None) -> dict:
     return None
 
 
-def has_vocab_mapping(vocab_url: str) -> bool:
+def has_vocab_mapping(vocab_url: object) -> bool:
     """
     Check if a controlled vocabulary URL has a known mapping.
 
