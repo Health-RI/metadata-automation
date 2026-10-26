@@ -6,7 +6,7 @@ import pytest
 from openpyxl import load_workbook
 from prep_helpers import CLASS_ANSWERS, answer_classes, cell, find_row, set_cell, sha
 
-from metadata_automation.excel_prep.columns import CLASS_SHEET_COLUMNS
+from metadata_automation.excel_prep.columns import CLASS_SHEET_COLUMNS, VOCAB_COLUMN
 from metadata_automation.excel_prep.preparer import prepare_workbook
 from metadata_automation.excel_prep.report import Cell
 from metadata_automation.excel_prep.workbook import class_sheet_names, headers
@@ -70,12 +70,31 @@ class TestInit:
         wb = load_workbook(answered)
         ws = wb["Catalog"]
         row = find_row(ws, "Property URI", "dct:license")
-        set_cell(ws, row, "Controlled vocabulary (if applicable)", "http://example.org/licenses")
+        set_cell(ws, row, VOCAB_COLUMN, "http://publications.europa.eu/resource/authority/access-right")
         wb.save(answered)
         prepare_workbook(answered, init=True)
         ws = load_workbook(answered)["Catalog"]
         assert cell(ws, row, "SHACL_dash:viewer") == "dash:LabelViewer"
         assert cell(ws, row, "SHACL_dash:editor") == "dash:URIEditor"
+
+    def test_out_of_model_range_with_unknown_vocab_gets_uri_viewer(self, answered):
+        wb = load_workbook(answered)
+        ws = wb["Catalog"]
+        row = find_row(ws, "Property URI", "dct:license")
+        set_cell(ws, row, VOCAB_COLUMN, "GeoNames")
+        wb.save(answered)
+        prepare_workbook(answered, init=True)
+        ws = load_workbook(answered)["Catalog"]
+        assert cell(ws, row, "SHACL_dash:viewer") == "dash:URIViewer"
+
+    def test_missing_vocab_column_is_reported_once(self, answered):
+        wb = load_workbook(answered)
+        ws = wb["Catalog"]
+        ws.delete_cols(headers(ws)[VOCAB_COLUMN])
+        wb.save(answered)
+        report = prepare_workbook(answered, init=True)
+        missing = [f for f in report.issues if f.cell == Cell("Catalog", None, VOCAB_COLUMN)]
+        assert len(missing) == 1
 
     def test_full_run_references_independent_class_by_iri(self, answered, tmp_path):
         prepare_workbook(answered, init=True)

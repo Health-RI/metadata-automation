@@ -1,6 +1,7 @@
 """Small pure helpers."""
 
 import pytest
+from openpyxl import Workbook
 
 from metadata_automation.excel_prep.class_sheet import relax_cardinality
 from metadata_automation.excel_prep.dash import LABEL, URI, expected_dash, has_vocab
@@ -32,12 +33,34 @@ def test_is_literal(range_, expected):
     assert is_literal(range_) is expected
 
 
+ACCESS_RIGHT = "http://publications.europa.eu/resource/authority/access-right"
+
+
 @pytest.mark.parametrize(
-    "value, expected",
-    [("", False), ("NA", False), ("n/a", False), ("-", False), ("http://example.org/vocab", True), ("GeoNames", True)],
+    "value, hyperlink, expected",
+    [
+        ("", None, False),
+        ("NA", None, False),
+        ("GeoNames", None, False),
+        ("http://example.org/vocab", None, False),
+        (ACCESS_RIGHT, None, True),
+        ("Access rights", ACCESS_RIGHT, True),
+    ],
 )
-def test_has_vocab(value, expected):
-    assert has_vocab(value) is expected
+def test_has_vocab(value, hyperlink, expected):
+    # Arrange
+    ws = Workbook().active
+    ws.cell(row=2, column=1, value=value or None).hyperlink = hyperlink
+
+    # Act
+    result = has_vocab(ws, 2, 1)
+
+    # Assert
+    assert result is expected
+
+
+def test_has_vocab_without_column():
+    assert has_vocab(Workbook().active, 2, None) is False
 
 
 @pytest.mark.parametrize(
