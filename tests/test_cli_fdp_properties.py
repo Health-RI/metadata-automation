@@ -120,3 +120,31 @@ def test_resource_to_dependent_class_fails(runner, sheets, base_yaml, tmp_path):
 
     assert result.exit_code == 1
     assert "'Agent' is not an independent class" in result.output
+
+
+@pytest.mark.parametrize(
+    "sheet, column",
+    [("classes", "class_URI"), ("prefixes", "namespace"), ("Dataset", "Range")],
+)
+def test_missing_required_column_fails(runner, sheets, base_yaml, tmp_path, sheet, column):
+    sheets[sheet] = sheets[sheet].drop(columns=column)
+    result = _run(runner, _write(tmp_path / "model.xlsx", sheets), base_yaml, tmp_path / "out.yaml")
+
+    assert result.exit_code == 1
+    assert f"Sheet '{sheet}' is missing column(s): {column}" in result.output
+
+
+def test_missing_prefixes_sheet_fails(runner, sheets, base_yaml, tmp_path):
+    del sheets["prefixes"]
+    result = _run(runner, _write(tmp_path / "model.xlsx", sheets), base_yaml, tmp_path / "out.yaml")
+
+    assert result.exit_code == 1
+    assert "Missing sheet(s): prefixes" in result.output
+
+
+def test_class_without_sheet_fails(runner, sheets, base_yaml, tmp_path):
+    del sheets["Unused"]
+    result = _run(runner, _write(tmp_path / "model.xlsx", sheets), base_yaml, tmp_path / "out.yaml")
+
+    assert result.exit_code == 1
+    assert "Sheet(s) listed in classes not found: Unused" in result.output

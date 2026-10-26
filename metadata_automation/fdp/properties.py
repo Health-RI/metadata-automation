@@ -24,6 +24,14 @@ from metadata_automation.excel_prep.workbook import parse_bool
 NODE_COLUMN = "SHACL_sh:node"
 INDEPENDENT_COLUMN = "SHACL_independent_class"
 RESOURCES_COLUMN = "FDP_resources"
+REQUIRED_COLUMNS = {"classes": ["sheet_name", "class_URI"], "prefixes": ["prefix", "namespace"]}
+
+
+def _require_columns(sheet: pd.DataFrame, columns: list[str], sheet_name: str) -> None:
+    """Raise a ValueError naming the ``columns`` missing from ``sheet``."""
+    missing = [column for column in columns if column not in sheet.columns]
+    if missing:
+        raise ValueError(f"Sheet '{sheet_name}' is missing column(s): {', '.join(missing)}")
 
 
 def _local_name(curie: str) -> str:
@@ -42,8 +50,17 @@ class Model:
         # All sheets by name, e.g. {"classes": DataFrame, "Dataset": DataFrame}; source for every lookup below.
         # object dtype keeps TRUE/FALSE as booleans in columns with blanks.
         self.sheets = pd.read_excel(excel_path, sheet_name=None, dtype=object)
+        missing = [name for name in REQUIRED_COLUMNS if name not in self.sheets]
+        if missing:
+            raise ValueError(f"Missing sheet(s): {', '.join(missing)}")
+        for name, columns in REQUIRED_COLUMNS.items():
+            _require_columns(self.sheets[name], columns, name)
         # Rows of the classes sheet with a sheet and URI, e.g. (Dataset, hri:Dataset); one row per model class.
         self.classes = self.sheets["classes"].dropna(subset=["sheet_name", "class_URI"])
+        # Every class needs its sheet; shaclplay generates a SHACL file per class sheet.
+        missing = [name for name in self.classes.sheet_name if name not in self.sheets]
+        if missing:
+            raise ValueError(f"Sheet(s) listed in classes not found: {', '.join(missing)}")
         # Prefix -> namespace, e.g. {"dcat": "https://www.w3.org/ns/dcat#"}; expands CURIEs to full IRIs.
         self.namespaces = {
             row.prefix: row.namespace for row in self.sheets["prefixes"].dropna().itertuples() if row.prefix
@@ -62,7 +79,7 @@ class Model:
                 self.schema_by_range[str(row.SHACL_target_ontology_name).strip()] = schema_name(row.class_URI)
 
     def sheet(self, name: str) -> pd.DataFrame:
-        return self.sheets.get(name, pd.DataFrame())
+        return self.sheets[name]
 
 
 def independent_schemas(model: Model, parents: list[str]) -> list[str]:
@@ -125,6 +142,7 @@ def build_resources(model: Model, schema_names: list[str]) -> dict[str, dict[str
         sheet = model.sheet(sheet_name)
         if RESOURCES_COLUMN not in sheet.columns:
             continue
+        _require_columns(sheet, ["Property URI", "Range"], sheet_name)
         # Only properties with an FDP_resources name define a child resource.
         for _, values in sheet.dropna(subset=[RESOURCES_COLUMN]).iterrows():
             name = str(values[RESOURCES_COLUMN]).strip()
