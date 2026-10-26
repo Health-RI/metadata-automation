@@ -47,7 +47,7 @@ OPTIONAL_CLASSES_COLUMNS = [
     "SeMPyRO_import_classes",
     "SeMPyRO_add_rdf_model",
 ]
-REQUIRED_PROPERTY_COLUMNS = ["SeMPyRO_rdf_term", "SeMPyRO_rdf_type", "SeMPyRO_range"]
+REQUIRED_PROPERTY_COLUMNS = ["Property URI", "SeMPyRO_rdf_term", "SeMPyRO_rdf_type", "SeMPyRO_range"]
 OPTIONAL_PROPERTY_COLUMNS = [
     "SHACL_dash:viewer",
     "SHACL_dash:editor",

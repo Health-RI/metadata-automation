@@ -123,3 +123,14 @@ class TestIssues:
         with pytest.raises(ValueError, match="sheet_name 'Dataset' in rows"):
             prepare_workbook(first, out)
         assert not out.exists()
+
+    def test_property_without_uri_is_a_gap(self, plain_small, tmp_path):
+        src = tmp_path / "src.xlsx"
+        wb = load_workbook(plain_small)
+        ws = wb["Catalog"]
+        row = find_row(ws, "Property URI", "dct:title")
+        ws.cell(row=row, column=headers(ws)["Property URI"]).value = None
+        wb.save(src)
+
+        report = prepare_workbook(src, tmp_path / "out.xlsx")
+        assert Cell("Catalog", row, "Property URI") in report.gaps
