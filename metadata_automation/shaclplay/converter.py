@@ -10,8 +10,9 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 
+from metadata_automation.excel_prep.columns import VOCAB_COLUMN
+
 from .utils import (
-    VOCAB_COLUMN,
     VOCAB_HYPERLINK_COLUMN,
     get_current_datetime_iso,
     parse_cardinality,

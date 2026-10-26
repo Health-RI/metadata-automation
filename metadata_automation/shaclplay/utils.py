@@ -10,7 +10,6 @@ from typing import Optional, Tuple
 import openpyxl
 import pandas as pd
 
-VOCAB_COLUMN = "Controlled vocabulary (if applicable)"
 VOCAB_HYPERLINK_COLUMN = "Controlled vocabulary hyperlink"
 
 

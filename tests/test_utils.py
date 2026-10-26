@@ -8,6 +8,7 @@ import yaml
 from freezegun import freeze_time
 from linkml.generators.pydanticgen.pydanticgen import SplitMode
 
+from metadata_automation.excel_prep.columns import VOCAB_COLUMN
 from metadata_automation.linkml.creator import LinkMLCreator
 from metadata_automation.sempyro.cleanup import remove_unwanted_classes
 from metadata_automation.sempyro.sempyro_generator import CustomPydanticGenerator
@@ -19,7 +20,6 @@ from metadata_automation.sempyro.utils import (
 )
 from metadata_automation.shaclplay.converter import SHACLPlayConverter
 from metadata_automation.shaclplay.utils import (
-    VOCAB_COLUMN,
     VOCAB_HYPERLINK_COLUMN,
     get_current_datetime_iso,
     parse_cardinality,

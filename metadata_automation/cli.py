@@ -13,6 +13,7 @@ from pathlib import Path
 import click
 import pandas as pd
 
+from metadata_automation.excel_prep.columns import VOCAB_COLUMN
 from metadata_automation.excel_prep.preparer import prepare_workbook
 from metadata_automation.linkml.creator import LinkMLCreator
 from metadata_automation.sempyro.cleanup import remove_unwanted_classes
@@ -20,7 +21,6 @@ from metadata_automation.sempyro.inheritance_inspector import format_report, ins
 from metadata_automation.sempyro.utils import generate_from_linkml, load_yaml
 from metadata_automation.shaclplay.converter import SHACLPlayConverter
 from metadata_automation.shaclplay.utils import (
-    VOCAB_COLUMN,
     VOCAB_HYPERLINK_COLUMN,
     read_column_hyperlinks,
     write_shaclplay_excel,
