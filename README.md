@@ -145,6 +145,15 @@ It then prints a report with:
 
 Changes, issues and prefix findings on a class sheet row also show its `Property URI`, e.g. `Catalog / Cardinality / row 3 (dcat:dataset)`.
 
+#### `SHACL_independent_class`
+
+Set per class in the `classes` sheet. It decides how other classes refer to this class in the FDP, and is only used without `--init`:
+- `TRUE`: the class is a resource of its own in the FDP, e.g. `dcat:Dataset` or `dcat:Distribution`. A property with this class as range points to it by IRI: the range gets `(IRI)`, the property becomes optional, `SHACL_sh:node` is emptied, and the URI viewer and editor are used. The class needs a `dct:title` property; a missing one is reported.
+- `FALSE`: the class only exists inside another resource, e.g. `foaf:Agent` as a publisher. Its properties are nested through `SHACL_sh:node` and edited in place.
+- Empty: treated as `FALSE`. The report lists the column among the empty optional cells, so check it for every class before the FDP run.
+
+`TRUE`/`FALSE`, `yes`/`no` and `1`/`0` are accepted (any case); any other value is reported and treated as `FALSE`.
+
 **Workflow:**
 1. Run `prepare-excel --init` on the plain Excel.
 2. Fill in `class_URI`, `SHACL_target_ontology_name` and, for FDP, `SHACL_independent_class` in the `classes` sheet.
