@@ -15,8 +15,8 @@ import pandas as pd
 
 from metadata_automation.excel_prep.columns import VOCAB_COLUMN
 from metadata_automation.excel_prep.preparer import prepare_workbook
-from metadata_automation.fdp.properties import generate_properties
-from metadata_automation.fdp.shapes import PIECES_DIR, merge_fdp_shapes
+from metadata_automation.fdp.properties import INDEPENDENT_COLUMN, generate_properties
+from metadata_automation.fdp.shapes import FDP_DIR, PIECES_DIR, fdp_schema_classes, merge_fdp_shapes, missing_pieces
 from metadata_automation.linkml.creator import LinkMLCreator
 from metadata_automation.sempyro.cleanup import remove_unwanted_classes
 from metadata_automation.sempyro.inheritance_inspector import format_report, inspect_file
@@ -325,6 +325,21 @@ def shacl_from_shaclplay(
         click.echo(f"Found {len(excel_files)} SHACLPlay Excel files to convert")
         click.echo()
 
+        # Read the model Excel before converting, so a bad -e file fails before any output is written.
+        schemas = fdp_schema_classes(Path(input_excel))
+        if not schemas:
+            click.echo(
+                f"Warning: No FDP schemas found (no class has {INDEPENDENT_COLUMN} TRUE), skipping {FDP_DIR}",
+                err=True,
+            )
+        missing = missing_pieces(schemas, {f.stem.removeprefix("SHACL-") for f in excel_files})
+        if missing:
+            click.echo(
+                f"Error: SHACLPlay files needed for the FDP schemas were not found: {', '.join(missing)}",
+                err=True,
+            )
+            exit(1)
+
         # Process each file
         output_file_dir = output_dir / PIECES_DIR
         pieces: dict[str, Path] = {}
@@ -422,7 +437,7 @@ def shacl_from_shaclplay(
                 traceback.print_exc()
                 exit(1)
 
-        for path in merge_fdp_shapes(Path(input_excel), pieces, namespaces, output_dir):
+        for path in merge_fdp_shapes(schemas, pieces, namespaces, output_dir):
             click.echo(f"  ✓ Merged {path}")
         click.echo()
 

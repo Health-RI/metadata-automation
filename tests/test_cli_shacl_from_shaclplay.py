@@ -57,6 +57,15 @@ def write_model_excel(path: Path, independent: dict[str, bool], nodes: dict[str,
     return path
 
 
+def _renamed_inputs(test_expected_dir: Path, tmp_path: Path) -> Path:
+    """Copy of the multi SHACLPlay files with mixed-case names, e.g. ``SHACL-ClassA.xlsx``."""
+    target = tmp_path / "renamed"
+    target.mkdir()
+    for file in (test_expected_dir / "multi").glob("SHACL-*.xlsx"):
+        (target / file.name.replace("class", "Class")).write_bytes(file.read_bytes())
+    return target
+
+
 class TestShaclFromShaclplayCLI:
     """Integration tests for shacl_from_shaclplay CLI command."""
 
@@ -128,8 +137,8 @@ class TestShaclFromShaclplayCLI:
     def test_shacl_from_shaclplay_multiple_files(
         self, runner, shaclplay_multi_input_dir, test_expected_dir, multi_model_excel, tmp_path
     ):
-        model_excel = multi_model_excel
         """Test processing multiple SHACLPlay files."""
+        model_excel = multi_model_excel
         output_dir = tmp_path / "output"
 
         result = runner.invoke(
@@ -200,12 +209,35 @@ class TestFdpShapes:
         validation = Graph().parse(output_dir / "ValidationShape" / "hri-shapes.ttl")
         assert isomorphic(validation, pieces[0] + pieces[1])
 
-    def test_missing_piece_fails(self, runner, test_expected_dir, tmp_path):
+    def test_missing_piece_fails_before_conversion(self, runner, test_expected_dir, tmp_path):
         excel = write_model_excel(tmp_path / "model.xlsx", {"ClassA": True, "Other": True})
-        result = self._run(runner, test_expected_dir, tmp_path / "output", excel)
+        output_dir = tmp_path / "output"
+        result = self._run(runner, test_expected_dir, output_dir, excel)
 
         assert result.exit_code == 1
         assert "other" in result.output
+        assert not output_dir.exists()
+
+    def test_invalid_model_excel_fails_before_conversion(self, runner, test_expected_dir, tmp_path):
+        excel = tmp_path / "model.xlsx"
+        pd.DataFrame({"sheet_name": ["ClassA"]}).to_excel(excel, sheet_name="classes", index=False)
+        output_dir = tmp_path / "output"
+        result = self._run(runner, test_expected_dir, output_dir, excel)
+
+        assert result.exit_code == 1
+        assert "Missing sheet(s): prefixes" in result.output
+        assert not output_dir.exists()
+
+    def test_pieces_match_case_insensitively(self, runner, test_expected_dir, tmp_path):
+        excel = write_model_excel(tmp_path / "model.xlsx", {"ClassA": True, "ClassB": False})
+        output_dir = tmp_path / "output"
+        result = runner.invoke(
+            shacl_from_shaclplay,
+            ["-i", str(_renamed_inputs(test_expected_dir, tmp_path)), "-o", str(output_dir), "-e", str(excel)],
+        )
+
+        assert result.exit_code == 0, result.output
+        assert (output_dir / "FairDataPointShape" / "ClassA.ttl").exists()
 
     def test_without_independent_classes_only_validation(self, runner, test_expected_dir, tmp_path):
         excel = write_model_excel(tmp_path / "model.xlsx", {"ClassA": None, "ClassB": None})
@@ -213,6 +245,7 @@ class TestFdpShapes:
         result = self._run(runner, test_expected_dir, output_dir, excel)
 
         assert result.exit_code == 0, result.output
+        assert "No FDP schemas found" in result.output
         assert not (output_dir / "FairDataPointShape").exists()
         pieces = [Graph().parse(output_dir / "PiecesShape" / f) for f in ("hri-classa.ttl", "hri-classb.ttl")]
         validation = Graph().parse(output_dir / "ValidationShape" / "hri-shapes.ttl")

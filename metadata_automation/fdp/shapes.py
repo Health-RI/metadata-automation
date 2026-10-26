@@ -30,24 +30,41 @@ def validation_filename(namespaces: set[str]) -> str:
     return f"{next(iter(namespaces))}-shapes.ttl" if len(namespaces) == 1 else "Validation-shapes.ttl"
 
 
-def merge_fdp_shapes(excel_path: Path, pieces: dict[str, Path], namespaces: set[str], output_dir: Path) -> list[Path]:
-    """Write FDP and validation shapes for the independent classes in the Excel.
+def fdp_schema_classes(excel_path: Path) -> dict[str, list[str]]:
+    """Map each FDP schema in the Excel to the class names whose SHACL pieces it merges.
 
-    ``pieces`` maps class names (SHACLPlay file name without ``SHACL-``) to their
-    SHACL files. Without independent classes, the FDP shapes are skipped and the
-    validation shape merges all pieces. Returns the written files.
+    Class names are lowercased sheet names, matching the SHACLPlay file names
+    (``shaclplay`` writes ``SHACL-{sheet.lower()}.xlsx``). Empty without independent classes.
     """
     model = Model(excel_path)
-    schemas = {
+    return {
         name: [sheet.lower() for sheet in sheets]
         for name, sheets in schema_sheets(model, independent_schemas(model, [])).items()
     }
+
+
+def missing_pieces(schemas: dict[str, list[str]], class_names: set[str]) -> list[str]:
+    """Class names the FDP schemas need that are not in ``class_names`` (compared case-insensitively)."""
+    available = {name.lower() for name in class_names}
+    return sorted({c for classes in schemas.values() for c in classes} - available)
+
+
+def merge_fdp_shapes(
+    schemas: dict[str, list[str]], pieces: dict[str, Path], namespaces: set[str], output_dir: Path
+) -> list[Path]:
+    """Write FDP and validation shapes for the ``schemas`` from ``fdp_schema_classes``.
+
+    ``pieces`` maps class names (SHACLPlay file name without ``SHACL-``) to their
+    SHACL files. Without schemas, the FDP shapes are skipped and the validation
+    shape merges all pieces. Returns the written files.
+    """
+    pieces = {name.lower(): path for name, path in pieces.items()}
     validation_path = output_dir / VALIDATION_DIR / validation_filename(namespaces)
     if not schemas:
         merge_turtle(list(pieces.values()), validation_path)
         return [validation_path]
 
-    missing = sorted({c for classes in schemas.values() for c in classes} - pieces.keys())
+    missing = missing_pieces(schemas, set(pieces))
     if missing:
         raise ValueError(f"SHACLPlay files needed for the FDP schemas were not found: {', '.join(missing)}")
 
