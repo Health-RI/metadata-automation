@@ -8,8 +8,14 @@ Two modes:
   by IRI with relaxed cardinality and URI DASH, title check) and write a new workbook.
 
 Values that cannot be derived are left empty and listed in the report.
+
+openpyxl drops drawings (text boxes, shapes, images) on save. They are reported,
+and in init mode the source is first copied to a ``.bak`` file.
 """
 
+import os
+import shutil
+import tempfile
 from pathlib import Path
 
 from openpyxl import load_workbook
@@ -17,6 +23,7 @@ from openpyxl import load_workbook
 from metadata_automation.excel_prep.class_sheet import prepare_class_sheet
 from metadata_automation.excel_prep.columns import FDP_SHEETS, GENERAL_SHEETS
 from metadata_automation.excel_prep.dash import apply_dash_rules
+from metadata_automation.excel_prep.drawings import drawing_sheets
 from metadata_automation.excel_prep.gaps import add_property_uris, collect_gaps
 from metadata_automation.excel_prep.prefix_check import check_prefixes
 from metadata_automation.excel_prep.report import Report
@@ -25,28 +32,35 @@ from metadata_automation.excel_prep.titles import check_titles
 from metadata_automation.excel_prep.workbook import class_sheet_names
 
 
-def prepare_workbook(src: Path, dst: Path | None = None, namespace: str | None = None, init: bool = False) -> Report:
+def prepare_workbook(
+    src: Path, dst: Path | None = None, namespace: str | None = None, init: bool = False, overwrite: bool = False
+) -> Report:
     """Prepare ``src`` and return what was done and what is missing.
 
     An empty class_URI is derived from ``namespace`` when given, and otherwise left empty.
 
     With ``init``, ``src`` is updated in place and ``dst`` must be None. Otherwise the FDP
-    rules are applied too and the result is written to ``dst``, which must differ from ``src``.
+    rules are applied too and the result is written to ``dst``, which must differ from ``src``
+    and must not exist unless ``overwrite``.
     """
     src = Path(src)
-    dst = _output_path(src, dst, init)
+    dst = _output_path(src, dst, init, overwrite)
 
-    wb = load_workbook(src)
+    wb = load_workbook(src, rich_text=True)
     report = Report()
 
+    if drawings := drawing_sheets(src):
+        _report_drawings(src, drawings, init, report)
+
     add_general_sheets(wb, GENERAL_SHEETS if init else GENERAL_SHEETS + FDP_SHEETS, report)
-    model = prepare_classes_sheet(wb, namespace, report)
-    # Without SHACL_target_ontology defined, the class will not be registered in 'model'
+    model, untargeted = prepare_classes_sheet(wb, namespace, report)
     # Without every target class known, a range cannot be told apart from an out-of-model one.
-    untargeted = [n for n in class_sheet_names(wb) if n not in {c.sheet for c in model.values()}]
     if untargeted:
         report.issue(
-            "classes", None, "SHACL_target_ontology_name", "range rules skipped until filled in for every class"
+            "classes",
+            None,
+            "SHACL_target_ontology_name",
+            f"range rules skipped until filled in for every class; empty for {', '.join(untargeted)}",
         )
     for name in class_sheet_names(wb):
         prepare_class_sheet(wb[name], None if untargeted else model, init, report)
@@ -59,18 +73,47 @@ def prepare_workbook(src: Path, dst: Path | None = None, namespace: str | None =
     add_property_uris(wb, report)
     collect_gaps(wb, report)
 
-    dst.parent.mkdir(parents=True, exist_ok=True)
-    wb.save(dst)
+    _save(wb, dst)
     return report
 
 
-def _output_path(src: Path, dst: Path | None, init: bool) -> Path:
+def _output_path(src: Path, dst: Path | None, init: bool, overwrite: bool) -> Path:
     if init:
         if dst is not None:
             raise ValueError("--init updates the input in place; no output path is accepted.")
         return src
     if dst is None:
         raise ValueError("An output path is required.")
-    if Path(dst).resolve() == src.resolve():
+    dst = Path(dst)
+    if not dst.exists():
+        return dst
+    if os.path.samefile(src, dst):
         raise ValueError("Output path must differ from the input path; the source file is left untouched.")
-    return Path(dst)
+    if not overwrite:
+        raise ValueError(f"Output file {dst} already exists; pass --overwrite to replace it.")
+    return dst
+
+
+def _report_drawings(src: Path, sheets: list[str], init: bool, report: Report) -> None:
+    """Report drawings that are lost on save; in init mode, back up the source first."""
+    if init:
+        backup = src.with_name(src.name + ".bak")
+        shutil.copy2(src, backup)
+        lost = f"are removed from the input; the original is kept as {backup.name}"
+    else:
+        lost = "are not copied to the output"
+    for sheet in sheets:
+        report.issue(sheet, None, None, f"drawings (text boxes, shapes, images) {lost}")
+
+
+def _save(wb, dst: Path) -> None:
+    """Save through a temporary file, so a failed save leaves ``dst`` intact."""
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(suffix=dst.suffix, dir=dst.parent)
+    os.close(fd)
+    try:
+        wb.save(tmp)
+        os.replace(tmp, dst)
+    finally:
+        if os.path.exists(tmp):
+            os.remove(tmp)

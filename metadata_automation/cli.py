@@ -671,7 +671,10 @@ def sempyro(
     is_flag=True,
     help="Update the input in place: add sheets, columns, prefixes, sh:node and DASH values, and run the checks.",
 )
-def prepare_excel(input_excel: str, output_excel: str | None, namespace: str | None, init: bool) -> None:
+@click.option("--overwrite", is_flag=True, help="Replace an existing output file. Not used with --init.")
+def prepare_excel(
+    input_excel: str, output_excel: str | None, namespace: str | None, init: bool, overwrite: bool
+) -> None:
     """Prepare a plain metadata Excel for the shaclplay and sempyro commands.
 
     \b
@@ -685,7 +688,7 @@ def prepare_excel(input_excel: str, output_excel: str | None, namespace: str | N
     if output_path is None and not init:
         output_path = Path(f"./outputs/prepared/{input_path.stem}_prepared.xlsx")
     try:
-        report = prepare_workbook(input_path, output_path, namespace, init=init)
+        report = prepare_workbook(input_path, output_path, namespace, init=init, overwrite=overwrite)
     except Exception as e:
         click.echo(f"Error: {e}", err=True)
         exit(1)

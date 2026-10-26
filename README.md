@@ -106,6 +106,9 @@ metadata-automation prepare-excel -i ./inputs/plain_model.xlsx -o ./outputs/prep
 - `-o, --output-excel`: Path for the prepared Excel (default: `./outputs/prepared/{input}_prepared.xlsx`). Not allowed with `--init`.
 - `-n, --namespace`: Namespace prefix used to derive empty `class_URI` values as `{namespace}:{local name of SHACL_target_ontology_name}`. Without it, `class_URI` is left empty and reported.
 - `--init`: Update the input in place with the general steps only (no FDP rules).
+- `--overwrite`: Replace an existing output file. Without it, an existing output is refused. Not used with `--init`.
+
+openpyxl drops drawings (text boxes, shapes, images) on save. They are reported per sheet; with `--init` the original input is first copied to `{input}.bak`.
 
 #### Description
 

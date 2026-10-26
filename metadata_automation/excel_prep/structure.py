@@ -42,8 +42,13 @@ def add_general_sheets(wb: Workbook, names: list[str], report: Report) -> None:
         index += 1
 
 
-def prepare_classes_sheet(wb: Workbook, namespace: str | None, report: Report) -> dict[str, ModelClass]:
-    """Add missing columns and rows, derive class_URI when ``namespace`` is given, and return the model classes."""
+def prepare_classes_sheet(
+    wb: Workbook, namespace: str | None, report: Report
+) -> tuple[dict[str, ModelClass], list[str]]:
+    """Add missing columns and rows, and derive class_URI when ``namespace`` is given.
+
+    Returns the model classes and the class sheets with an empty SHACL_target_ontology_name.
+    """
     ws = wb["classes"]
     cols, added = ensure_columns(ws, CLASSES_COLUMNS, report)
     if added:
@@ -53,6 +58,7 @@ def prepare_classes_sheet(wb: Workbook, namespace: str | None, report: Report) -
     rows = _class_rows(ws, cols, sheets, report)
 
     model: dict[str, ModelClass] = {}
+    untargeted = []
     for name in sheets:
         row = rows[name]
         target = text(ws, row, cols["SHACL_target_ontology_name"])
@@ -68,6 +74,7 @@ def prepare_classes_sheet(wb: Workbook, namespace: str | None, report: Report) -
             report.issue("classes", row, "SHACL_independent_class", f"expected TRUE or FALSE, got {raw_independent!r}")
 
         if not target:
+            untargeted.append(name)
             continue
         if target in model:
             report.issue(
@@ -75,7 +82,7 @@ def prepare_classes_sheet(wb: Workbook, namespace: str | None, report: Report) -
             )
             continue
         model[target] = ModelClass(name, class_uri, independent)
-    return model
+    return model, untargeted
 
 
 def _class_rows(ws: Worksheet, cols: dict[str, int], sheets: list[str], report: Report) -> dict[str, int]:

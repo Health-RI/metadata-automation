@@ -3,6 +3,7 @@
 import re
 from copy import copy
 
+from openpyxl.cell.rich_text import CellRichText
 from openpyxl.utils import get_column_letter
 from openpyxl.workbook import Workbook
 from openpyxl.worksheet.worksheet import Worksheet
@@ -68,7 +69,7 @@ def copy_column_format(ws: Worksheet, src_col: int, dst_col: int) -> None:
 
 
 def is_empty(value) -> bool:
-    return value is None or (isinstance(value, str) and not value.strip())
+    return value is None or (isinstance(value, (str, CellRichText)) and not str(value).strip())
 
 
 def text(ws: Worksheet, row: int, col: int | None) -> str:

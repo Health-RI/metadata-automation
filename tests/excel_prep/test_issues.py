@@ -91,3 +91,17 @@ class TestIssues:
         ws = load_workbook(out)["Catalog"]
         assert ws.cell(row=3, column=notes_col).value == "modeler note"
         assert all(col > notes_col for name, col in headers(ws).items() if name.startswith("SHACL_"))
+
+    def test_untargeted_sheets_are_named(self, plain_small, tmp_path):
+        report = prepare_workbook(plain_small, tmp_path / "first.xlsx")
+        issue = next(f for f in report.issues if "range rules skipped" in f.message)
+        assert all(name in issue.message for name in CLASS_ANSWERS)
+
+    def test_duplicate_target_is_not_untargeted(self, plain_small, tmp_path):
+        first = tmp_path / "first.xlsx"
+        prepare_workbook(plain_small, first)
+        answer_classes(first, {**CLASS_ANSWERS, "Dataset": ("dcat:Catalog", True)})
+
+        report = prepare_workbook(first, tmp_path / "second.xlsx")
+        assert any("also used by" in f.message for f in report.issues)
+        assert not any("range rules skipped" in f.message for f in report.issues)
