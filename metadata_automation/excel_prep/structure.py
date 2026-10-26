@@ -1,5 +1,6 @@
 """Add the general sheets, columns and rows, and read the model classes."""
 
+from collections import defaultdict
 from dataclasses import dataclass
 
 from openpyxl.workbook import Workbook
@@ -14,6 +15,7 @@ from metadata_automation.excel_prep.workbook import (
     curie_prefix,
     data_rows,
     ensure_columns,
+    headers,
     parse_bool,
     text,
 )
@@ -40,6 +42,24 @@ def add_general_sheets(wb: Workbook, names: list[str], report: Report) -> None:
             ws.cell(row=1, column=col, value=header)
         report.change(name, None, None, "added sheet")
         index += 1
+
+
+def check_duplicates(wb: Workbook) -> None:
+    """Raise when the 'classes' sheet repeats a sheet_name or SHACL_target_ontology_name."""
+    if "classes" not in wb.sheetnames:
+        return
+    ws = wb["classes"]
+    cols = headers(ws)
+    duplicates = []
+    for column in ("sheet_name", "SHACL_target_ontology_name"):
+        if column not in cols:
+            continue
+        rows = defaultdict(list)
+        for row in data_rows(ws, cols, (column,)):
+            rows[text(ws, row, cols[column])].append(row)
+        duplicates += [f"{column} '{v}' in rows {', '.join(map(str, r))}" for v, r in rows.items() if len(r) > 1]
+    if duplicates:
+        raise ValueError("Duplicates in the 'classes' sheet; fix them and run again:\n  " + "\n  ".join(duplicates))
 
 
 def prepare_classes_sheet(
@@ -75,11 +95,6 @@ def prepare_classes_sheet(
 
         if not target:
             untargeted.append(name)
-            continue
-        if target in model:
-            report.issue(
-                "classes", row, "SHACL_target_ontology_name", f"'{target}' also used by '{model[target].sheet}'"
-            )
             continue
         model[target] = ModelClass(name, class_uri, independent)
     return model, untargeted

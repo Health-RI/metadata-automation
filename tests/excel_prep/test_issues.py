@@ -1,8 +1,9 @@
 """Problems that are reported instead of fixed."""
 
+import pytest
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
-from prep_helpers import CLASS_ANSWERS, answer_classes, cell, find_row, set_cell
+from prep_helpers import CLASS_ANSWERS, answer_classes, cell, find_row, set_cell, sha
 
 from metadata_automation.excel_prep.preparer import prepare_workbook
 from metadata_automation.excel_prep.report import Cell
@@ -97,11 +98,28 @@ class TestIssues:
         issue = next(f for f in report.issues if "range rules skipped" in f.message)
         assert all(name in issue.message for name in CLASS_ANSWERS)
 
-    def test_duplicate_target_is_not_untargeted(self, plain_small, tmp_path):
+    def test_duplicate_target_blocks_the_run(self, plain_small, tmp_path):
         first = tmp_path / "first.xlsx"
         prepare_workbook(plain_small, first)
         answer_classes(first, {**CLASS_ANSWERS, "Dataset": ("dcat:Catalog", True)})
+        ws = load_workbook(first)["classes"]
+        rows = ", ".join(str(find_row(ws, "sheet_name", n)) for n in ("Catalog", "Dataset"))
+        before = sha(first)
 
-        report = prepare_workbook(first, tmp_path / "second.xlsx")
-        assert any("also used by" in f.message for f in report.issues)
-        assert not any("range rules skipped" in f.message for f in report.issues)
+        with pytest.raises(ValueError, match=f"SHACL_target_ontology_name 'dcat:Catalog' in rows {rows}"):
+            prepare_workbook(first, init=True)
+        assert sha(first) == before
+        assert not first.with_name("first.xlsx.bak").exists()
+
+    def test_duplicate_sheet_name_blocks_the_run(self, plain_small, tmp_path):
+        first = tmp_path / "first.xlsx"
+        prepare_workbook(plain_small, first)
+        wb = load_workbook(first)
+        ws = wb["classes"]
+        set_cell(ws, find_row(ws, "sheet_name", "Agent"), "sheet_name", "Dataset")
+        wb.save(first)
+
+        out = tmp_path / "second.xlsx"
+        with pytest.raises(ValueError, match="sheet_name 'Dataset' in rows"):
+            prepare_workbook(first, out)
+        assert not out.exists()

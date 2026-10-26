@@ -27,7 +27,12 @@ from metadata_automation.excel_prep.drawings import drawing_sheets, restore_draw
 from metadata_automation.excel_prep.gaps import add_property_uris, collect_gaps
 from metadata_automation.excel_prep.prefix_check import check_prefixes
 from metadata_automation.excel_prep.report import Report
-from metadata_automation.excel_prep.structure import add_general_sheets, prepare_classes_sheet, prepare_prefixes_sheet
+from metadata_automation.excel_prep.structure import (
+    add_general_sheets,
+    check_duplicates,
+    prepare_classes_sheet,
+    prepare_prefixes_sheet,
+)
 from metadata_automation.excel_prep.titles import check_titles
 from metadata_automation.excel_prep.workbook import class_sheet_names
 
@@ -41,12 +46,13 @@ def prepare_workbook(
 
     With ``init``, ``src`` is updated in place and ``dst`` must be None. Otherwise the FDP
     rules are applied too and the result is written to ``dst``, which must differ from ``src``
-    and must not exist unless ``overwrite``.
+    and must not exist unless ``overwrite``. Nothing is written when 'classes' has duplicates.
     """
     src = Path(src)
     dst = _output_path(src, dst, init, overwrite)
 
     wb = load_workbook(src, rich_text=True)
+    check_duplicates(wb)
     report = Report()
 
     if init and drawing_sheets(src):
