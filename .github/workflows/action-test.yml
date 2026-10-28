@@ -14,10 +14,29 @@ jobs:
         uses: ./
         with:
           excel-path: inputs/HealthRI_v2.0.2.xlsx
-          output-path: ${{ runner.temp }}/generated
+          output-path: ${{ runner.temp }}/generated/pieces
+          validation-output-path: ${{ runner.temp }}/generated/validation
+          validation-file-name: Validation.ttl
           namespace: hri
 
-      - name: Check the output is flat and non-empty
+      - name: Check the per-class output is flat and holds no merged files
         run: |
-          ls "$RUNNER_TEMP"/generated
-          test -n "$(ls "$RUNNER_TEMP"/generated/hri-*.ttl)"
+          ls "$RUNNER_TEMP"/generated/pieces
+          test -n "$(ls "$RUNNER_TEMP"/generated/pieces/hri-*.ttl)"
+          test -z "$(ls "$RUNNER_TEMP"/generated/pieces | grep -- '-shapes.ttl')"
+
+      - name: Check the validation SHACL is written under the requested name
+        run: test -s "$RUNNER_TEMP"/generated/validation/Validation.ttl
+
+      - name: The action fails when FDP SHACLs are requested but the Excel has no independent class
+        id: fdp-without-schemas
+        uses: ./
+        continue-on-error: true
+        with:
+          excel-path: inputs/HealthRI_v2.0.2.xlsx
+          output-path: ${{ runner.temp }}/generated-fdp/pieces
+          fdp-output-path: ${{ runner.temp }}/generated-fdp/fdp
+          namespace: hri
+
+      - name: Check that failure was reported
+        run: test "${{ steps.fdp-without-schemas.outcome }}" = "failure"
