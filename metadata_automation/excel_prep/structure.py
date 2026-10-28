@@ -16,6 +16,7 @@ from metadata_automation.excel_prep.workbook import (
     data_rows,
     ensure_columns,
     headers,
+    is_empty,
     parse_bool,
     text,
 )
@@ -103,18 +104,24 @@ def prepare_classes_sheet(
 
         raw_independent = ws.cell(row=row, column=cols["SHACL_independent_class"]).value
         independent = parse_bool(raw_independent)
-        if independent is None and text(ws, row, cols["SHACL_independent_class"]):
-            report.issue("classes", row, "SHACL_independent_class", f"expected TRUE or FALSE, got {raw_independent!r}")
-        elif independent is None:
-            report.issue("classes", row, "SHACL_independent_class", f"empty for '{name}'; treated as FALSE (dependent)")
-        elif independent:
-            report.issue("classes", row, "SHACL_independent_class", f"TRUE for '{name}'; treated as independent")
+        report.issue("classes", row, "SHACL_independent_class", _independence(name, raw_independent, independent))
 
         if not target:
             untargeted.append(name)
             continue
         model[target] = ModelClass(name, class_uri, independent)
     return model, untargeted
+
+
+def _independence(name: str, raw, independent: bool | None) -> str:
+    """How the SHACL_independent_class value of class sheet ``name`` is treated."""
+    if independent is True:
+        return f"TRUE for '{name}'; treated as independent"
+    if independent is False:
+        return f"FALSE for '{name}'; treated as dependent"
+    if is_empty(raw):
+        return f"empty for '{name}'; treated as FALSE (dependent)"
+    return f"expected TRUE or FALSE, got {raw!r}"
 
 
 def _class_rows(ws: Worksheet, cols: dict[str, int], sheets: list[str], report: Report) -> dict[str, int]:
