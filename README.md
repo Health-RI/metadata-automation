@@ -406,20 +406,30 @@ When using `--output-file`, the same report is also written to the specified fil
 ## GitHub Action
 
 The repository doubles as a composite GitHub Action that generates the SHACL Turtle files from the source Excel file
-(`shaclplay` followed by `shacl-from-shaclplay`) and writes them flat to a directory as `{namespace}-{class}.ttl`.
-It does not commit anything; callers decide whether to compare or commit the result.
+(`shaclplay` followed by `shacl-from-shaclplay`). It does not commit anything; callers decide whether to compare or commit the result.
 
 ```yaml
-- uses: Health-RI/metadata-automation@v1.0.0
+- uses: Health-RI/metadata-automation@v1.1.0
   with:
     excel-path: Documents/Health-RI_v2.1.0-for-FDP.xlsx
     output-path: Formalisation(shacl)/Core/PiecesShape
+    fdp-output-path: Formalisation(shacl)/Core/FairDataPointShape
+    validation-output-path: Formalisation(shacl)/Core/ValidationShape
+    validation-file-name: HRI-Datamodel-shapes.ttl
     namespace: hrishapes
 ```
 
-`namespace` is optional and overrides the namespace given in the Excel file (like `-n` on the CLI); when omitted the
-namespace from the Excel file is used. Existing `{namespace}-*.ttl` files in `output-path` are replaced, so shapes removed from the Excel file also disappear.
-Always reference an exact release (e.g. `@v1.0.0`) so the generated output stays reproducible.
+| Input | Required | Description |
+|---|---|---|
+| `excel-path` | yes | Source metadata Excel file. |
+| `output-path` | yes | Folder for the per-class SHACLs, written flat as `{namespace}-{class}.ttl`. Existing `{namespace}-*.ttl` files in it are replaced. |
+| `fdp-output-path` | no | Folder for the FDP SHACLs (one file per independent class). Existing `*.ttl` files in it are replaced. When given and no FDP SHACLs are generated (no class has `SHACL_independent_class` `TRUE`), the action fails. Without it the FDP SHACLs are not written. |
+| `validation-output-path` | no | Folder for the joined validation SHACL. Existing `*.ttl` files in it are replaced. Without it the validation SHACL is not written. |
+| `validation-file-name` | no | Name of the validation SHACL in `validation-output-path` (default: the generated `{namespace}-shapes.ttl`). |
+| `namespace` | no | Overrides the namespace given in the Excel file (like `-n` on the CLI). |
+
+The Excel file is also passed to `shacl-from-shaclplay` as `-e`, so the FDP and validation SHACLs follow its `SHACL_independent_class` column.
+Always reference an exact release (e.g. `@v1.1.0`) so the generated output stays reproducible.
 
 ### Releasing
 
