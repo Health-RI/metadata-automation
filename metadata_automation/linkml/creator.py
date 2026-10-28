@@ -6,6 +6,12 @@ from typing import List, Optional
 import pandas as pd
 import yaml
 
+# Name of the types file in the LinkML output directory; the schemas import it relative to themselves.
+SEMPYRO_TYPES_NAME = "sempyro_types"
+SEMPYRO_TYPES_FILE = f"{SEMPYRO_TYPES_NAME}.yaml"
+# Hand-maintained types file copied when no derived types are set.
+DEFAULT_SEMPYRO_TYPES_SOURCE = Path("./inputs/sempyro") / SEMPYRO_TYPES_FILE
+
 
 class LinkMLCreator:
     def __init__(self, output_path: Path) -> None:
@@ -153,7 +159,7 @@ class LinkMLCreator:
         linkml_id = self._create_id(ontology, ontology_class)
 
         # Add Sempyro types
-        self.linkml_data[linkml_id]["data"]["imports"].append("../sempyro_types")
+        self.linkml_data[linkml_id]["data"]["imports"].append(f"../{SEMPYRO_TYPES_NAME}")
 
         # Add RDF model import if needed
         if add_rdf_model and str(add_rdf_model).lower() in [
@@ -250,7 +256,8 @@ class LinkMLCreator:
 
         # Check if any schema uses sempyro_types import
         needs_sempyro_types = any(
-            "../sempyro_types" in linkml_dict["data"].get("imports", []) for linkml_dict in self.linkml_data.values()
+            f"../{SEMPYRO_TYPES_NAME}" in linkml_dict["data"].get("imports", [])
+            for linkml_dict in self.linkml_data.values()
         )
 
         for linkml_dict in self.linkml_data.values():
@@ -279,13 +286,13 @@ class LinkMLCreator:
 
         # Copy sempyro_types.yaml if needed
         if needs_sempyro_types and self.sempyro_types is not None:
-            sempyro_types_dest = self.output_path / "sempyro_types.yaml"
+            sempyro_types_dest = self.output_path / SEMPYRO_TYPES_FILE
             with open(sempyro_types_dest, "w") as f:
                 yaml.dump(self.sempyro_types, f, sort_keys=False, default_flow_style=False)
             print(f"Written {sempyro_types_dest}")
         elif needs_sempyro_types:
-            sempyro_types_source = Path("./inputs/sempyro/sempyro_types.yaml")
-            sempyro_types_dest = self.output_path / "sempyro_types.yaml"
+            sempyro_types_source = DEFAULT_SEMPYRO_TYPES_SOURCE
+            sempyro_types_dest = self.output_path / SEMPYRO_TYPES_FILE
 
             if sempyro_types_source.exists():
                 shutil.copy2(sempyro_types_source, sempyro_types_dest)

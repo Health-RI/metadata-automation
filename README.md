@@ -304,7 +304,7 @@ metadata-automation sempyro -i ./inputs/source_excel.xlsx -n hri
 - `--sempyro-output-path`: Output directory for SeMPyRO Pydantic classes (default: `./outputs/sempyro_classes`)
 - `--types-path`: Hand-maintained SeMPyRO types YAML (default: `./inputs/sempyro/sempyro_types.yaml` when it exists). Optional; takes precedence over the derived types.
 - `--imports-path`: Hand-maintained imports YAML (default: `./inputs/sempyro/imports.yaml` when it exists). Optional; takes precedence over the derived imports.
-- `--derived-imports-path`: Where the imports used for generation are written (default: `{sempyro-output-path}/{namespace}-imports.yaml`)
+- `--derived-imports-path`: Where the imports used for generation are written (default: `{sempyro-output-path}/{namespace}-imports.yaml` (file name set by `DERIVED_IMPORTS_FILE` in `cli.py`))
 
 #### Description
 
@@ -352,7 +352,7 @@ and creating the Pydantic class name by making the `namespace` all caps and conc
 The generated SeMPyRO Pydantic classes need Python imports. These are derived from the generated code in two passes:
 1. Every class is generated once without imports. The names the code references but does not define (classes, `Field`, `DCTERMS`, ...)
    are collected from the Python AST; the generated code is never imported or executed (like `inspect_inheritance`).
-2. Each name is resolved to an import path and the result is written to `{sempyro-output-path}/{namespace}-imports.yaml`
+2. Each name is resolved to an import path and the result is written to `{sempyro-output-path}/{namespace}-imports.yaml` (file name set by `DERIVED_IMPORTS_FILE` in `cli.py`)
    (`--derived-imports-path`), keyed `{namespace}-{ClassName}`, e.g., `hri-Dataset`, in the format of `imports.yaml`.
    The classes are then generated again with these imports.
 

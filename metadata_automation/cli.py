@@ -41,6 +41,13 @@ from metadata_automation.shaclplay.utils import (
 )
 
 
+# Hand-maintained sempyro inputs used when the matching option is not given and the file exists.
+DEFAULT_SEMPYRO_TYPES_PATH = "./inputs/sempyro/sempyro_types.yaml"
+DEFAULT_SEMPYRO_IMPORTS_PATH = "./inputs/sempyro/imports.yaml"
+# File name of the derived imports in the sempyro output directory.
+DERIVED_IMPORTS_FILE = "{namespace}-imports.yaml"
+
+
 def _hand_maintained_path(given: Optional[str], default: str) -> Optional[Path]:
     """The hand-maintained file to use: the given path, else the default when it exists, else none."""
     if given:
@@ -512,7 +519,7 @@ def shacl_from_shaclplay(
     default=None,
     help=(
         "Hand-maintained imports YAML ({namespace}-{ClassName} -> import block). Takes precedence over derived "
-        "imports. Default: ./inputs/sempyro/imports.yaml if it exists."
+        f"imports. Default: {DEFAULT_SEMPYRO_IMPORTS_PATH} if it exists."
     ),
 )
 @click.option(
@@ -521,14 +528,14 @@ def shacl_from_shaclplay(
     default=None,
     help=(
         "Hand-maintained SeMPyRO types YAML. Its types take precedence over types derived from SeMPyRO_range. "
-        "Default: ./inputs/sempyro/sempyro_types.yaml if it exists."
+        f"Default: {DEFAULT_SEMPYRO_TYPES_PATH} if it exists."
     ),
 )
 @click.option(
     "--derived-imports-path",
     type=click.Path(dir_okay=False),
     default=None,
-    help="Where to write the imports used for generation. Default: {sempyro-output-path}/{namespace}-imports.yaml.",
+    help=f"Where to write the imports used for generation. Default: {{sempyro-output-path}}/{DERIVED_IMPORTS_FILE}.",
 )
 def sempyro(
     input_excel: str,
@@ -597,10 +604,12 @@ def sempyro(
 
         click.echo()
 
-        hand_types_p = _hand_maintained_path(types_path, "./inputs/sempyro/sempyro_types.yaml")
-        hand_imports_p = _hand_maintained_path(imports_path, "./inputs/sempyro/imports.yaml")
+        hand_types_p = _hand_maintained_path(types_path, DEFAULT_SEMPYRO_TYPES_PATH)
+        hand_imports_p = _hand_maintained_path(imports_path, DEFAULT_SEMPYRO_IMPORTS_PATH)
         derived_imports_p = (
-            Path(derived_imports_path) if derived_imports_path else sempyro_output_path / f"{namespace}-imports.yaml"
+            Path(derived_imports_path)
+            if derived_imports_path
+            else sempyro_output_path / DERIVED_IMPORTS_FILE.format(namespace=namespace)
         )
 
         click.echo("[1/4] Generating LinkML schemas...")

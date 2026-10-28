@@ -7,7 +7,8 @@ import pandas as pd
 import pytest
 import yaml
 
-from metadata_automation.cli import sempyro
+from metadata_automation.cli import DERIVED_IMPORTS_FILE, sempyro
+from metadata_automation.linkml.creator import SEMPYRO_TYPES_FILE
 from metadata_automation.sempyro.derive import (
     SempyroIndex,
     SymbolResolver,
@@ -288,7 +289,7 @@ class TestEndToEnd:
 
     @pytest.fixture
     def run(self, runner, test_input_dir, tmp_path, empty_yaml):
-        def _run(excel="test_metadata.xlsx", imports=None, types=None):
+        def _run(excel="test_metadata.xlsx", imports=None, types=None, extra=()):
             args = [
                 "--input-excel",
                 str(test_input_dir / excel),
@@ -302,6 +303,7 @@ class TestEndToEnd:
                 str(types or empty_yaml),
                 "--imports-path",
                 str(imports or empty_yaml),
+                *extra,
             ]
             return runner.invoke(sempyro, args)
 
@@ -322,10 +324,10 @@ class TestEndToEnd:
         # The namespace object HRI is not part of sempyro, so it has to be supplied by hand.
         assert "hri-TestClass: cannot resolve symbol 'HRI'" in result.output
 
-        types = yaml.safe_load((tmp_path / "linkml" / "sempyro_types.yaml").read_text())["types"]
+        types = yaml.safe_load((tmp_path / "linkml" / SEMPYRO_TYPES_FILE).read_text())["types"]
         assert {"LiteralField", "str"} <= set(types)
 
-        imports = yaml.safe_load((tmp_path / "classes" / "hri-imports.yaml").read_text())
+        imports = yaml.safe_load((tmp_path / "classes" / DERIVED_IMPORTS_FILE.format(namespace="hri")).read_text())
         assert "hri-TestClass" in imports
         assert "from sempyro import LiteralField" in imports["hri-TestClass"]
         assert "from rdflib.namespace import DCTERMS" in imports["hri-TestClass"]
@@ -360,14 +362,23 @@ class TestEndToEnd:
         result = run(types=hand)
 
         assert result.exit_code == 0, result.output
-        types = yaml.safe_load((tmp_path / "linkml" / "sempyro_types.yaml").read_text())["types"]
+        types = yaml.safe_load((tmp_path / "linkml" / SEMPYRO_TYPES_FILE).read_text())["types"]
         assert types["str"]["description"] == "mine"
         assert "LiteralField" in types
+
+    def test_derived_imports_path_is_configurable(self, run, tmp_path):
+        target = tmp_path / "elsewhere" / "my_imports.yaml"
+
+        result = run(extra=["--derived-imports-path", str(target)])
+
+        assert result.exit_code == 0, result.output
+        assert "hri-TestClass" in yaml.safe_load(target.read_text())
+        assert not (tmp_path / "classes" / DERIVED_IMPORTS_FILE.format(namespace="hri")).exists()
 
     def test_multi_class_fixture(self, run, tmp_path):
         result = run(excel="multi_metadata.xlsx")
 
         assert result.exit_code == 0, result.output
-        imports = yaml.safe_load((tmp_path / "classes" / "hri-imports.yaml").read_text())
+        imports = yaml.safe_load((tmp_path / "classes" / DERIVED_IMPORTS_FILE.format(namespace="hri")).read_text())
         class_files = {p.stem for p in (tmp_path / "classes" / "hri").glob("*.py")}
         assert class_files == set(imports)
