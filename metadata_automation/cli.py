@@ -282,7 +282,7 @@ def shaclplay(
 def shacl_from_shaclplay(
     input_path: str,
     output_path: str,
-    input_excel: str,
+    input_excel: str | None,
 ) -> None:
     """Generate SHACL Turtle files from SHACLPlay Excel files.
 
@@ -325,7 +325,7 @@ def shacl_from_shaclplay(
         click.echo()
 
         # Read the model Excel before converting, so a bad -e file fails before any output is written.
-        schemas = fdp_schema_classes(Path(input_excel))
+        schemas = fdp_schema_classes(Path(input_excel)) if input_excel else {}
         if not schemas:
             click.echo(
                 f"Warning: No FDP schemas found (no class has {INDEPENDENT_COLUMN} TRUE), skipping {FDP_DIR}",

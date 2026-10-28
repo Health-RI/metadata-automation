@@ -105,6 +105,18 @@ class TestShaclFromShaclplayCLI:
         assert expected_file.exists()
         assert_turtle_equivalent(output_file, expected_file)
 
+    def test_shacl_from_shaclplay_without_model_excel(self, runner, shaclplay_input_dir, tmp_path):
+        """Without -e no FDP schemas are known: warn, skip FDP shapes, still write pieces and validation."""
+        output_dir = tmp_path / "output"
+
+        result = runner.invoke(
+            shacl_from_shaclplay, ["--input-path", str(shaclplay_input_dir), "--output-path", str(output_dir)]
+        )
+
+        assert result.exit_code == 0
+        assert "No FDP schemas found" in result.output
+        assert (output_dir / "PiecesShape" / "hri-testclass.ttl").exists()
+
     def test_shacl_from_shaclplay_no_files(self, runner, model_excel, tmp_path):
         """Test error handling when no SHACLPlay files found."""
         empty_dir = tmp_path / "empty"
