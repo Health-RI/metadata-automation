@@ -7,8 +7,10 @@ and SeMPyRO Pydantic classes.
 
 import subprocess
 import sys
+import tempfile
 import traceback
 from pathlib import Path
+from typing import Optional, Set
 
 import click
 import pandas as pd
@@ -19,6 +21,16 @@ from metadata_automation.fdp.properties import INDEPENDENT_COLUMN, generate_prop
 from metadata_automation.fdp.shapes import FDP_DIR, PIECES_DIR, fdp_schema_classes, merge_fdp_shapes, missing_pieces
 from metadata_automation.linkml.creator import LinkMLCreator
 from metadata_automation.sempyro.cleanup import remove_unwanted_classes
+from metadata_automation.sempyro.derive import (
+    SymbolResolver,
+    collect_range_types,
+    collect_symbols,
+    derive_imports,
+    derive_types,
+    merge_hand_only,
+    merge_types,
+    write_imports_yaml,
+)
 from metadata_automation.sempyro.inheritance_inspector import format_report, inspect_file
 from metadata_automation.sempyro.utils import generate_from_linkml, load_yaml
 from metadata_automation.shaclplay.converter import SHACLPlayConverter
@@ -27,6 +39,21 @@ from metadata_automation.shaclplay.utils import (
     read_column_hyperlinks,
     write_shaclplay_excel,
 )
+
+
+def _hand_maintained_path(given: Optional[str], default: str) -> Optional[Path]:
+    """The hand-maintained file to use: the given path, else the default when it exists, else none."""
+    if given:
+        return Path(given)
+    return Path(default) if Path(default).exists() else None
+
+
+def _first_pass_symbols(schema_file: Path, work_dir: Path) -> Set[str]:
+    """Generate a class without imports and return the symbols its code references, without executing it."""
+    first_pass_file = work_dir / f"{schema_file.stem}.py"
+    generate_from_linkml({"schema_path": schema_file, "imports": "", "output_path": str(first_pass_file)})
+    remove_unwanted_classes(first_pass_file, schema_file)
+    return collect_symbols(first_pass_file.read_text(encoding="utf-8"))
 
 
 @click.group()
@@ -481,21 +508,47 @@ def shacl_from_shaclplay(
 )
 @click.option(
     "--imports-path",
-    type=click.Path(exists=True),
-    default="./inputs/sempyro/imports.yaml",
-    help="Path to imports configuration YAML file.",
+    type=click.Path(exists=True, dir_okay=False),
+    default=None,
+    help=(
+        "Hand-maintained imports YAML ({namespace}-{ClassName} -> import block). Takes precedence over derived "
+        "imports. Default: ./inputs/sempyro/imports.yaml if it exists."
+    ),
+)
+@click.option(
+    "--types-path",
+    type=click.Path(exists=True, dir_okay=False),
+    default=None,
+    help=(
+        "Hand-maintained SeMPyRO types YAML. Its types take precedence over types derived from SeMPyRO_range. "
+        "Default: ./inputs/sempyro/sempyro_types.yaml if it exists."
+    ),
+)
+@click.option(
+    "--derived-imports-path",
+    type=click.Path(dir_okay=False),
+    default=None,
+    help="Where to write the imports used for generation. Default: {sempyro-output-path}/{namespace}-imports.yaml.",
 )
 def sempyro(
     input_excel: str,
     namespace: str,
     linkml_output_path: str,
     sempyro_output_path: str,
-    imports_path: str,
+    imports_path: Optional[str],
+    types_path: Optional[str],
+    derived_imports_path: Optional[str],
 ) -> None:
     """Generate SeMPyRO Pydantic classes from metadata.
 
     Converts metadata Excel file to LinkML schemas and then generates
     SeMPyRO Pydantic classes with RDF capabilities.
+
+    \b
+    The types and the imports are derived: types from the SeMPyRO_range
+    values, imports from the symbols the generated code references,
+    resolved against the installed sempyro package. Hand-maintained
+    --types-path and --imports-path entries take precedence.
 
     \b
     The Excel file must contain:
@@ -506,7 +559,6 @@ def sempyro(
         excel_path = Path(input_excel)
         linkml_output_path = Path(linkml_output_path)
         sempyro_output_path = Path(sempyro_output_path)
-        imports_p = Path(imports_path)
         exclude_list = ["Info", "User Guide"]
 
         click.echo("=" * 80)
@@ -545,29 +597,31 @@ def sempyro(
 
         click.echo()
 
+        hand_types_p = _hand_maintained_path(types_path, "./inputs/sempyro/sempyro_types.yaml")
+        hand_imports_p = _hand_maintained_path(imports_path, "./inputs/sempyro/imports.yaml")
+        derived_imports_p = (
+            Path(derived_imports_path) if derived_imports_path else sempyro_output_path / f"{namespace}-imports.yaml"
+        )
+
         click.echo("[1/4] Generating LinkML schemas...")
         try:
             linkml_creator = LinkMLCreator(linkml_output_path)
             linkml_creator.load_excel(str(excel_path), exclude_list)
+
+            range_types = collect_range_types(linkml_creator.filtered_sheets, linkml_creator.table_classes)
+            hand_types = load_yaml(hand_types_p) if hand_types_p else None
+            linkml_creator.sempyro_types = merge_types(derive_types(range_types), hand_types)
+            hand_type_names = set((hand_types or {}).get("types") or {})
+            click.echo(
+                f"  ✓ Types: {len(range_types)} used in SeMPyRO_range "
+                f"({len(set(range_types) & hand_type_names)} from {hand_types_p})"
+            )
+
             linkml_creator.build_sempyro()
             linkml_creator.write_to_file()
             click.echo("  ✓ LinkML schemas generated")
         except Exception as e:
             click.echo(f"Error: Failed to generate LinkML schemas: {e}", err=True)
-            traceback.print_exc()
-            exit(1)
-        click.echo()
-
-        click.echo("[2/4] Loading imports configuration...")
-        if not imports_p.exists():
-            click.echo(f"Error: Imports file not found at {imports_p}", err=True)
-            exit(1)
-
-        try:
-            imports = load_yaml(imports_p)
-            click.echo(f"  ✓ Loaded imports for {len(imports)} classes")
-        except Exception as e:
-            click.echo(f"Error: Failed to load imports configuration: {e}", err=True)
             traceback.print_exc()
             exit(1)
         click.echo()
@@ -588,16 +642,58 @@ def sempyro(
             click.echo(f"Error: Failed to read class names from Excel: {e}", err=True)
             traceback.print_exc()
             exit(1)
-
         click.echo()
-        click.echo("[3/4] Generating SeMPyRO Pydantic classes...")
 
         linkml_definitions_path = linkml_output_path / namespace
         sempyro_class_output_path = sempyro_output_path / namespace
         sempyro_class_output_path.mkdir(parents=True, exist_ok=True)
 
+        click.echo("[2/4] Deriving imports from the generated code...")
+        hand_imports = {}
+        if hand_imports_p:
+            try:
+                hand_imports = load_yaml(hand_imports_p) or {}
+                click.echo(f"  ✓ Loaded hand-maintained imports for {len(hand_imports)} classes from {hand_imports_p}")
+            except Exception as e:
+                click.echo(f"Error: Failed to load imports configuration: {e}", err=True)
+                traceback.print_exc()
+                exit(1)
+        try:
+            symbols_per_class = {}
+            with tempfile.TemporaryDirectory() as first_pass_dir:
+                for class_name in class_names:
+                    class_key = f"{namespace}-{class_name}"
+                    schema_file = linkml_definitions_path / f"{class_key}.yaml"
+                    if not schema_file.exists():
+                        click.echo(f"Error: Schema file not found for {class_name}: {schema_file}", err=True)
+                        exit(1)
+                    try:
+                        symbols_per_class[class_key] = _first_pass_symbols(schema_file, Path(first_pass_dir))
+                    except Exception as e:
+                        click.echo(f"Error: Failed to generate {class_name}: {e}", err=True)
+                        traceback.print_exc()
+                        exit(1)
+            imports, imports_report = derive_imports(symbols_per_class, hand_imports, SymbolResolver())
+            imports = merge_hand_only(imports, hand_imports)
+            write_imports_yaml(imports, derived_imports_p)
+            click.echo(f"  ✓ Imports for {len(symbols_per_class)} classes written to {derived_imports_p}")
+            for class_key, symbol, imported_as in imports_report.aliased:
+                click.echo(f"  Note: {class_key}: '{symbol}' imported as alias of {imported_as}")
+            for class_key, symbol, reason in imports_report.unresolved:
+                click.echo(f"  ⚠ Warning: {class_key}: cannot resolve symbol '{symbol}' ({reason})", err=True)
+            if imports_report.unresolved:
+                click.echo(
+                    "  Add the missing imports for these classes to the hand-maintained imports file (--imports-path)."
+                )
+        except Exception as e:
+            click.echo(f"Error: Failed to derive imports: {e}", err=True)
+            traceback.print_exc()
+            exit(1)
+        click.echo()
+
+        click.echo("[3/4] Generating SeMPyRO Pydantic classes...")
+
         success_count = 0
-        no_imports = []
 
         for class_name in class_names:
             class_key = f"{namespace}-{class_name}"
@@ -605,20 +701,6 @@ def sempyro(
             output_file = sempyro_class_output_path / f"{class_key}.py"
 
             click.echo(f"  Processing {class_name}...")
-
-            if not schema_file.exists():
-                click.echo(
-                    f"Error: Schema file not found for {class_name}: {schema_file}",
-                    err=True,
-                )
-                exit(1)
-
-            if class_key not in imports:
-                click.echo(
-                    f"Warning: No imports configuration found for {class_key}",
-                )
-                no_imports.append(class_key)
-                continue
 
             try:
                 link_dict = {
@@ -680,10 +762,9 @@ def sempyro(
         click.echo(f"  Successfully generated: {success_count} classes")
         click.echo(f"  LinkML schemas: {linkml_output_path}")
         click.echo(f"  SeMPyRO classes: {sempyro_output_path}")
-        if no_imports:
-            click.echo("  Classes skipped due to missing imports configuration:")
-            for cls in no_imports:
-                click.echo(f"    - {cls}")
+        click.echo(f"  Imports used: {derived_imports_p}")
+        if imports_report.unresolved:
+            click.echo(f"  Unresolved symbols: {len(imports_report.unresolved)} (see warnings above)")
         click.echo("=" * 80)
 
     except Exception as e:

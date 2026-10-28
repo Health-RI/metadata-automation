@@ -15,6 +15,8 @@ class LinkMLCreator:
         self.table_classes = None
         self.linkml_data = {}
         self.validation_logic = self._load_validation_logic()
+        # Types file content to write instead of copying ./inputs/sempyro/sempyro_types.yaml.
+        self.sempyro_types: Optional[dict] = None
 
     def _load_validation_logic(self) -> dict:
         """Load validation logic from YAML file if it exists."""
@@ -276,7 +278,12 @@ class LinkMLCreator:
                 print(f"Warning: RDF model source file not found at {rdf_model_source}")
 
         # Copy sempyro_types.yaml if needed
-        if needs_sempyro_types:
+        if needs_sempyro_types and self.sempyro_types is not None:
+            sempyro_types_dest = self.output_path / "sempyro_types.yaml"
+            with open(sempyro_types_dest, "w") as f:
+                yaml.dump(self.sempyro_types, f, sort_keys=False, default_flow_style=False)
+            print(f"Written {sempyro_types_dest}")
+        elif needs_sempyro_types:
             sempyro_types_source = Path("./inputs/sempyro/sempyro_types.yaml")
             sempyro_types_dest = self.output_path / "sempyro_types.yaml"
 

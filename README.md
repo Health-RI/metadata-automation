@@ -302,11 +302,15 @@ metadata-automation sempyro -i ./inputs/source_excel.xlsx -n hri
   - Used for LinkML schema and SeMPyRO class organization
 - `--linkml-output-path`: Output directory for LinkML schemas (default: `./outputs/linkml`)
 - `--sempyro-output-path`: Output directory for SeMPyRO Pydantic classes (default: `./outputs/sempyro_classes`)
-- `--imports-path`: Path to imports configuration YAML file (default: `./inputs/sempyro/imports.yaml`)
+- `--types-path`: Hand-maintained SeMPyRO types YAML (default: `./inputs/sempyro/sempyro_types.yaml` when it exists). Optional; takes precedence over the derived types.
+- `--imports-path`: Hand-maintained imports YAML (default: `./inputs/sempyro/imports.yaml` when it exists). Optional; takes precedence over the derived imports.
+- `--derived-imports-path`: Where the imports used for generation are written (default: `{sempyro-output-path}/{namespace}-imports.yaml`)
 
 #### Description
 
 This command converts the initial Excel file to LinkML YAML files, and subsequently to SeMPyRO Pydantic classes.
+
+The types file and the imports are derived automatically, so neither has to be maintained by hand (see 'SeMPyRO types' and 'Imports' below).
 
 The Pydantic generation uses adapted Jinja templates located in `./metadata_automation/sempyro/templates/`. These templates are necessary to:
 - Handle SeMPyRO-specific class generation
@@ -329,7 +333,13 @@ Any namespace objects and Enums are not created in this automation pipeline. If 
 be defined separately and imported using the imports, explained below.
 
 **SeMPyRO types:**\
-All types in the `SeMPyRO_range` column should be known in the list in `./inputs/sempyro/sempyro_types.yaml`. 
+The LinkML types file is derived from the `SeMPyRO_range` column: every type in a (comma separated) range is added, so every
+type used in a range is present. The `uri` follows from the type (`str` → `xsd:string`, `int` → `xsd:int`, `date` → `xsd:date`,
+`datetime` → `xsd:dateTime`, `LiteralField` → `rdfs:Literal`, anything else `xsd:anyURI`). The result is written to
+`{linkml-output-path}/sempyro_types.yaml`.
+
+Types in the optional hand-maintained `./inputs/sempyro/sempyro_types.yaml` (`--types-path`) take precedence: their entries replace the
+derived entry with the same name, and the file's header (`id`, `prefixes`, ...) and unused types are kept.
 
 **Validation logic:**\
 If any validators should be included in the resulting SeMPyRO Pydantic classes, add them in `./inputs/sempyro/validation_logic.yaml`.
@@ -339,13 +349,45 @@ and creating the Pydantic class name by making the `namespace` all caps and conc
 `{namespace.upper()}{class_name}`, resulting in `DCATDataset`.
 
 **Imports:**\
-The generated SeMPyRO Pydantic classes are in the form of Python code, for which imports should be defined. 
-This can be done in `./inputs/sempyro/imports.yaml`. The imports are automatically linked to classes based on the naming convention `{namespace}-{ClassName}`, e.g., `hri-Dataset`.
+The generated SeMPyRO Pydantic classes need Python imports. These are derived from the generated code in two passes:
+1. Every class is generated once without imports. The names the code references but does not define (classes, `Field`, `DCTERMS`, ...)
+   are collected from the Python AST; the generated code is never imported or executed (like `inspect_inheritance`).
+2. Each name is resolved to an import path and the result is written to `{sempyro-output-path}/{namespace}-imports.yaml`
+   (`--derived-imports-path`), keyed `{namespace}-{ClassName}`, e.g., `hri-Dataset`, in the format of `imports.yaml`.
+   The classes are then generated again with these imports.
+
+Names are resolved in this order: `typing`, `datetime`, `abc`, `enum`, `pydantic`, the standard library modules (`logging`), the installed `sempyro` package, `rdflib.namespace`, `rdflib`.
+The `sempyro` package is read from its installed source (without importing it) and a name resolves to the shortest module path that exposes it,
+e.g., `from sempyro import LiteralField` and `from sempyro.dcat import DCATDataset`. A generated base class name that differs from the
+`sempyro` class only by case, or that is a known legacy name (the aliases of `inspect_inheritance`, e.g., `FOAFAgent` for `sempyro.foaf.Agent`), is imported as an alias
+(`from sempyro.foaf import Agent as FOAFAgent`) and reported as a note.
+
+A symbol that cannot be resolved (not in `sempyro`, or exposed by several modules at the same depth) is reported as a warning with the
+symbol and the class (`hri-Dataset: cannot resolve symbol 'HRI'`) and left out; the run continues. This includes namespace objects and Enums
+that do not exist in `sempyro`, which are not created by this pipeline. Add them to the hand-maintained imports to fix the warning.
+
+**Hand-maintained inputs:**\
+`./inputs/sempyro/imports.yaml` (`--imports-path`) is optional and takes precedence over the derived imports: a class's hand-maintained block
+is kept as written, a name it already imports is not imported again from the derived imports, and names it does not import are added from
+the derived imports. A hand-maintained class that is not in the model is carried over to the derived imports file. `--types-path` works the same
+for types, see above. The files used for the final generation are the ones written to the outputs; the hand-maintained inputs are never modified.
+Importing one name under two aliases in the same class (e.g., hand-maintained `OWL as HRI` while the class also uses `OWL`) is not supported by the
+LinkML import model; only one of them is kept.
+
+**Differences with the hand-maintained files of v2.0.2:**\
+With the v2.0.2 Excel the derived types are those of `./inputs/sempyro/sempyro_types.yaml` plus `DCATCatalog`, `date` and `datetime`, which are used in
+ranges but were missing. For the imports, the derived blocks contain every name the generated code uses. Intentional differences with
+`./inputs/sempyro/imports.yaml`:
+- Names that the generated code does not use are not imported (e.g., `Path`, `Namespace`, `List` and a number of validator helpers in classes without that logic).
+- Names the hand-maintained blocks lack are added: `logging`, `Optional`, `AnyUrl`, `SPDX`, `date_handler`, ... (the hand-maintained file also contains typos such as `import Logging`, `GeonovumLicences`).
+- Base classes are imported under the name the generated code uses (`Agent as FOAFAgent`).
+- `HRI` (the `hri` namespace object) and `GeonovumLicenses` do not exist in the installed `sempyro` and stay unresolved; they remain in the hand-maintained file.
 
 #### Outputs
 
 Python files are generated in `./outputs/sempyro_classes/{namespace}/` and automatically formatted with ruff.
-LinkML schemas are generated in `./outputs/linkml/{namespace}/`.
+LinkML schemas are generated in `./outputs/linkml/{namespace}/`, with the types file in `./outputs/linkml/sempyro_types.yaml`.
+The imports used are written to `./outputs/sempyro_classes/{namespace}-imports.yaml`.
 
 ### `inspect_inheritance`: Analyzing SeMPyRO Class Inheritance Overlap
 
