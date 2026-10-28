@@ -277,7 +277,6 @@ def shaclplay(
     "-e",
     "--input-excel",
     type=click.Path(exists=True, dir_okay=False),
-    required=True,
     help="Metadata model Excel the SHACLPlay files were generated from; defines the FDP schemas.",
 )
 def shacl_from_shaclplay(
