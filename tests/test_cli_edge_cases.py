@@ -1,12 +1,15 @@
 """Tests for CLI edge cases and exceptional scenarios."""
 
 import subprocess
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
 import pytest
 
 from metadata_automation.cli import main
+
+MODEL_EXCEL = Path(__file__).parent / "test_input" / "test_metadata.xlsx"
 
 
 class TestSHACLPlayEdgeCases:
@@ -180,6 +183,8 @@ class TestSHACLFromSHACLPlayEdgeCases:
                     str(tmp_path),
                     "-o",
                     str(tmp_path / "output"),
+                    "-e",
+                    str(MODEL_EXCEL),
                 ],
             )
 
@@ -201,6 +206,8 @@ class TestSHACLFromSHACLPlayEdgeCases:
                 str(tmp_path),
                 "-o",
                 str(tmp_path / "output"),
+                "-e",
+                str(MODEL_EXCEL),
             ],
         )
 
@@ -237,6 +244,8 @@ class TestSHACLFromSHACLPlayEdgeCases:
                     str(tmp_path),
                     "-o",
                     str(tmp_path / "output"),
+                    "-e",
+                    str(MODEL_EXCEL),
                 ],
             )
 
@@ -266,6 +275,8 @@ class TestSHACLFromSHACLPlayEdgeCases:
                     str(tmp_path),
                     "-o",
                     str(tmp_path / "output"),
+                    "-e",
+                    str(MODEL_EXCEL),
                 ],
             )
 

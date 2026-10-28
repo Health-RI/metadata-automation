@@ -224,13 +224,14 @@ SHACLPlay Excel files are generated in the specified output directory.
 ### `shacl_from_shaclplay`: Converting SHACLPlay Excel to SHACL Turtle files
 
 ```bash
-metadata-automation shacl-from-shaclplay -i ./outputs/shaclplay/default -o ./outputs/shacl_shapes
+metadata-automation shacl-from-shaclplay -i ./outputs/shaclplay/default -o ./outputs/shacl_shapes -e ./inputs/Health-RI_v2.1.0.xlsx
 ```
 
 #### Command Options
 
 - `-i, --input-path`: Path to directory containing SHACLPlay Excel files (required)
 - `-o, --output-path`: Output directory for SHACL Turtle files (default: `./outputs/shacl_shapes`)
+- `-e, --input-excel`: Metadata model Excel the SHACLPlay files were generated from; defines the FDP schemas (required)
 
 #### Description
 
@@ -247,11 +248,20 @@ The command processes all SHACLPlay Excel files from the input directory. These 
 
 **Namespace detection:**\
 The namespace is auto-detected from each Excel file's NodeShapes sheet and used to construct output file paths:
-`{output-path}/{namespace}/{namespace}-{classname}.ttl`
+`{output-path}/PiecesShape/{namespace}-{classname}.ttl`
+
+**Model Excel:**\
+The FDP schemas are the classes with `SHACL_independent_class` `TRUE`, as in `fdp-properties`. Without that column (or no `TRUE` values) the FDP shapes are skipped.
 
 #### Outputs
 
-The resulting SHACLs are written to `{output-path}/{namespace}/{namespace}-{classname}.ttl`.
+The command writes the same output as FairDataPointSchemaTool's `template` command:
+
+| Folder | Content |
+|---|---|
+| `{output-path}/PiecesShape/` | One SHACL per class: `{namespace}-{classname}.ttl` |
+| `{output-path}/FairDataPointShape/` | One SHACL per FDP schema (`{Schema}.ttl`, spaces removed), merged with the classes it reaches through `SHACL_sh:node` (independent classes skipped) |
+| `{output-path}/ValidationShape/` | The SHACLs used by the FDP schemas (all SHACLs without FDP schemas), merged into `{namespace}-shapes.ttl`, or `Validation-shapes.ttl` when the classes have different namespaces |
 
 ### `fdp-properties`: Generating a FairDataPointSchemaTool Properties.yaml
 
