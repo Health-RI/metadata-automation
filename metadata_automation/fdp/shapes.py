@@ -18,7 +18,7 @@ VALIDATION_DIR = "ValidationShape"
 
 def merge_turtle(files: list[Path], output_path: Path) -> None:
     """Parse the Turtle files into one graph and write it to ``output_path``."""
-    graph = Graph()
+    graph = Graph(bind_namespaces="none")
     for file in files:
         graph.parse(file, format="turtle")
     output_path.parent.mkdir(parents=True, exist_ok=True)
