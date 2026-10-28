@@ -19,12 +19,16 @@ from metadata_automation.sempyro.utils import (
 )
 from metadata_automation.shaclplay.converter import SHACLPlayConverter
 from metadata_automation.shaclplay.utils import (
+    VOCAB_COLUMN,
+    VOCAB_HYPERLINK_COLUMN,
     get_current_datetime_iso,
     parse_cardinality,
+    read_column_hyperlinks,
     slugify_property_label,
     write_shaclplay_excel,
 )
 from metadata_automation.shaclplay.vocab_mappings import (
+    find_vocab_mapping,
     get_vocab_mapping,
     has_vocab_mapping,
 )
@@ -276,76 +280,145 @@ def test_vocab_mappings():
     assert mapping["editor"] == "dash:EnumSelectEditor"
     assert has_vocab_mapping(url) is True
     assert has_vocab_mapping("https://example.com/unknown") is False
+    assert has_vocab_mapping(float("nan")) is False
+    assert get_vocab_mapping(None) is None
+    # Scheme and trailing slash are ignored
+    assert get_vocab_mapping("https://publications.europa.eu/resource/authority/access-right/") == mapping
 
 
-def test_shaclplay_converter_branches(template_file: Path, test_input_dir: Path):
-    converter = SHACLPlayConverter(template_file, test_input_dir / "test_metadata.xlsx")
+@pytest.mark.parametrize(
+    ("cell_text", "hyperlink"),
+    [
+        ("EU Vocabularies Distribution Status", "http://publications.europa.eu/resource/authority/distribution-status"),
+        ("Access rights: http://publications.europa.eu/resource/authority/access-right", None),
+        ("\nhttp://publications.europa.eu/resource/authority/access-right\nor\nhttps://example.com", None),
+        ("see (http://publications.europa.eu/resource/authority/access-right).", None),
+        ("http://publications.europa.eu/resource/authority/access-right, or other", None),
+    ],
+)
+def test_find_vocab_mapping(cell_text, hyperlink):
+    assert find_vocab_mapping(cell_text, hyperlink)["editor"] == "dash:EnumSelectEditor"
 
+
+def test_find_vocab_mapping_no_match():
+    assert find_vocab_mapping("GeoNames", None) is None
+    assert find_vocab_mapping(float("nan"), None) is None
+    assert find_vocab_mapping("https://example.com/unknown", "https://example.com/other") is None
+
+
+def test_read_column_hyperlinks(tmp_path: Path):
+    import openpyxl
+
+    path = tmp_path / "links.xlsx"
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = "Dataset"
+    sheet.append(["Property label", VOCAB_COLUMN])
+    sheet.append(["status", "Distribution Status"])
+    sheet.append(["title", "NA"])
+    sheet["B2"].hyperlink = "http://publications.europa.eu/resource/authority/distribution-status"
+    workbook.save(path)
+
+    assert read_column_hyperlinks(path, "Dataset", VOCAB_COLUMN, 3) == [
+        "http://publications.europa.eu/resource/authority/distribution-status",
+        None,
+        None,
+    ]
+    assert read_column_hyperlinks(path, "Dataset", "Missing column", 2) == [None, None]
+
+
+BASE_PROPERTY_ROW = {
+    "Property label": "title",
+    "Property URI": "dct:title",
+    "Definition": "The title",
+    "Usage note": "",
+    "Cardinality": "1",
+    "SHACL_sh:node": "hri:KindShape",
+    "SHACL_pattern": "[A-Za-z]+",
+    VOCAB_COLUMN: "http://publications.europa.eu/resource/authority/access-right",
+    "SHACL_sh:uniqueLang": "true",
+    "SHACL_default_value": "default",
+    "SHACL_dash:viewer": "dash:TextFieldViewer",
+    "SHACL_dash:editor": "dash:TextFieldEditor",
+}
+
+
+@pytest.fixture
+def shaclplay_converter(template_file: Path, test_input_dir: Path) -> SHACLPlayConverter:
+    return SHACLPlayConverter(template_file, test_input_dir / "test_metadata.xlsx")
+
+
+def _convert(converter: SHACLPlayConverter, **overrides) -> list:
+    row = pd.Series({**BASE_PROPERTY_ROW, **overrides})
+    return converter._convert_property_to_shaclplay(row, "TestClass", "hri:TestClass", "hri")
+
+
+def test_shaclplay_converter_missing_namespace_raises(shaclplay_converter: SHACLPlayConverter):
     with pytest.raises(KeyError):
-        converter._get_namespace_url("missing")
+        shaclplay_converter._get_namespace_url("missing")
 
-    nodeshapes = converter._build_nodeshapes(
+
+def test_shaclplay_converter_builds_nodeshapes(shaclplay_converter: SHACLPlayConverter):
+    nodeshapes = shaclplay_converter._build_nodeshapes(
         class_name="TestClass",
         class_uri="hri:TestClass",
         target_class="dcat:Dataset",
         description=None,
     )
+
     assert "excel template for testclass" in str(nodeshapes.iat[4, 1]).lower()
 
-    base_row = {
-        "Property label": "title",
-        "Property URI": "dct:title",
-        "Definition": "The title",
-        "Usage note": "",
-        "Cardinality": "1",
-        "SHACL_sh:node": "hri:KindShape",
-        "SHACL_pattern": "[A-Za-z]+",
-        "Controlled vocabulary (if applicable)": "http://publications.europa.eu/resource/authority/access-right",
-        "SHACL_sh:uniqueLang": "true",
-        "SHACL_default_value": "default",
-        "SHACL_dash:viewer": "dash:TextFieldViewer",
-        "SHACL_dash:editor": "dash:TextFieldEditor",
-    }
 
-    for cardinality in ("1", "1..1"):
-        row = pd.Series({**base_row, "Cardinality": cardinality, "Range": "rdfs:Literal"})
-        out = converter._convert_property_to_shaclplay(row, "TestClass", "hri:TestClass", "hri")
-        assert out[6] == 1  # sh:minCount
-        assert out[7] == 1  # sh:maxCount
+@pytest.mark.parametrize("cardinality", ["1", "1..1"])
+def test_shaclplay_converter_exactly_one_cardinality(shaclplay_converter: SHACLPlayConverter, cardinality: str):
+    out = _convert(shaclplay_converter, Cardinality=cardinality, Range="rdfs:Literal")
 
-    row_iri = pd.Series({**base_row, "Range": "dcat:Dataset (IRI)"})
-    iri_out = converter._convert_property_to_shaclplay(row_iri, "TestClass", "hri:TestClass", "hri")
-    assert iri_out[8] == "sh:IRI"
-
-    row_literal = pd.Series({**base_row, "Range": "rdfs:Literal"})
-    literal_out = converter._convert_property_to_shaclplay(row_literal, "TestClass", "hri:TestClass", "hri")
-    assert literal_out[8] == "sh:Literal"
-
-    row_node = pd.Series({**base_row, "Range": "hri:Kind"})
-    node_out = converter._convert_property_to_shaclplay(row_node, "TestClass", "hri:TestClass", "hri")
-    assert "KindShape" in str(node_out[10])
-
-    row_xsd = pd.Series(
-        {
-            **base_row,
-            "Range": "xsd:dateTime",
-            "SHACL_sh:node": "nan",
-        }
-    )
-    xsd_out = converter._convert_property_to_shaclplay(row_xsd, "TestClass", "hri:TestClass", "hri")
-    assert xsd_out[8] == "sh:Literal"
-    assert xsd_out[9] == "xsd:dateTime"
-    assert xsd_out[15] == "[A-Za-z]+"
-    assert xsd_out[17]
-    assert xsd_out[22] == "dash:TextFieldViewer"
-    assert xsd_out[23] == "dash:EnumSelectEditor"
+    assert out[6] == 1  # sh:minCount
+    assert out[7] == 1  # sh:maxCount
 
 
 @pytest.mark.parametrize(
-    "column",
-    ["Controlled vocabulary (if applicable)", "Controlled vocabluary (if applicable)"],
+    ("range_value", "node_kind"),
+    [("dcat:Dataset (IRI)", "sh:IRI"), ("rdfs:Literal", "sh:Literal")],
 )
-def test_shaclplay_converter_reads_vocab_column(template_file: Path, test_input_dir: Path, column: str):
+def test_shaclplay_converter_node_kind(shaclplay_converter: SHACLPlayConverter, range_value: str, node_kind: str):
+    out = _convert(shaclplay_converter, Range=range_value)
+
+    assert out[8] == node_kind
+
+
+def test_shaclplay_converter_sh_node(shaclplay_converter: SHACLPlayConverter):
+    out = _convert(shaclplay_converter, Range="hri:Kind")
+
+    assert "KindShape" in str(out[10])
+
+
+def test_shaclplay_converter_xsd_range(shaclplay_converter: SHACLPlayConverter):
+    out = _convert(shaclplay_converter, Range="xsd:dateTime", **{"SHACL_sh:node": "nan"})
+
+    assert out[8] == "sh:Literal"
+    assert out[9] == "xsd:dateTime"
+    assert out[15] == "[A-Za-z]+"
+    assert out[17]
+    assert out[22] == "dash:TextFieldViewer"
+    assert out[23] == "dash:EnumSelectEditor"
+
+
+def test_shaclplay_converter_vocab_hyperlink(shaclplay_converter: SHACLPlayConverter):
+    out = _convert(
+        shaclplay_converter,
+        Range="dct:RightsStatement (IRI)",
+        **{
+            VOCAB_COLUMN: "Access rights vocabulary",
+            VOCAB_HYPERLINK_COLUMN: "http://publications.europa.eu/resource/authority/access-right",
+        },
+    )
+
+    assert "access-right/PUBLIC" in out[17]
+    assert out[23] == "dash:EnumSelectEditor"
+
+
+def test_shaclplay_converter_reads_vocab_column(template_file: Path, test_input_dir: Path):
     converter = SHACLPlayConverter(template_file, test_input_dir / "test_metadata.xlsx")
     row = pd.Series(
         {
@@ -353,13 +426,13 @@ def test_shaclplay_converter_reads_vocab_column(template_file: Path, test_input_
             "Property URI": "dct:accessRights",
             "Cardinality": "1",
             "Range": "dct:RightsStatement (IRI)",
-            column: "http://publications.europa.eu/resource/authority/access-right",
+            VOCAB_COLUMN: "http://publications.europa.eu/resource/authority/access-right",
         }
     )
 
     out = converter._convert_property_to_shaclplay(row, "TestClass", "hri:TestClass", "hri")
 
-    assert "eu:PUBLIC" in str(out[17])
+    assert "<http://publications.europa.eu/resource/authority/access-right/PUBLIC>" in str(out[17])
 
 
 def test_custom_pydantic_generator_branches(tmp_path: Path):
