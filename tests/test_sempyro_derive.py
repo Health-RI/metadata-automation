@@ -8,7 +8,7 @@ import pytest
 import yaml
 
 from metadata_automation.cli import DERIVED_IMPORTS_FILE, sempyro
-from metadata_automation.linkml.creator import SEMPYRO_TYPES_FILE
+from metadata_automation.linkml.creator import DEFAULT_RDF_MODEL_PATH, SEMPYRO_TYPES_FILE
 from metadata_automation.sempyro.derive import (
     SempyroIndex,
     SymbolResolver,
@@ -374,6 +374,22 @@ class TestEndToEnd:
         assert result.exit_code == 0, result.output
         assert "hri-TestClass" in yaml.safe_load(target.read_text())
         assert not (tmp_path / "classes" / DERIVED_IMPORTS_FILE.format(namespace="hri")).exists()
+
+    def test_validation_logic_and_rdf_model_paths_are_configurable(self, run, tmp_path):
+        logic = tmp_path / "my_logic.yaml"
+        logic.write_text(
+            "classes:\n  HRITestclass:\n    annotations:\n      validator_logic: |\n        MARKER_FROM_CUSTOM_LOGIC = 1\n"
+        )
+        rdf_model = tmp_path / "my_rdf_model.yaml"
+        rdf_model.write_text("# custom rdf model\n" + DEFAULT_RDF_MODEL_PATH.read_text())
+
+        result = run(extra=["--validation-logic-path", str(logic), "--rdf-model-path", str(rdf_model)])
+
+        assert result.exit_code == 0, result.output
+        generated = (tmp_path / "classes" / "hri" / "hri-TestClass.py").read_text()
+        assert "MARKER_FROM_CUSTOM_LOGIC" in generated
+        copied = tmp_path / "linkml" / "rdf_model.yaml"
+        assert copied.read_text().startswith("# custom rdf model")
 
     def test_multi_class_fixture(self, run, tmp_path):
         result = run(excel="multi_metadata.xlsx")

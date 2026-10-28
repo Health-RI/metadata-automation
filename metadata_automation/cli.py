@@ -19,7 +19,11 @@ from metadata_automation.excel_prep.columns import VOCAB_COLUMN
 from metadata_automation.excel_prep.preparer import prepare_workbook
 from metadata_automation.fdp.properties import INDEPENDENT_COLUMN, generate_properties
 from metadata_automation.fdp.shapes import FDP_DIR, PIECES_DIR, fdp_schema_classes, merge_fdp_shapes, missing_pieces
-from metadata_automation.linkml.creator import LinkMLCreator
+from metadata_automation.linkml.creator import (
+    DEFAULT_RDF_MODEL_PATH,
+    DEFAULT_VALIDATION_LOGIC_PATH,
+    LinkMLCreator,
+)
 from metadata_automation.sempyro.cleanup import remove_unwanted_classes
 from metadata_automation.sempyro.derive import (
     SymbolResolver,
@@ -532,6 +536,18 @@ def shacl_from_shaclplay(
     ),
 )
 @click.option(
+    "--validation-logic-path",
+    type=click.Path(exists=True, dir_okay=False),
+    default=None,
+    help=f"Validation logic YAML. Default: {DEFAULT_VALIDATION_LOGIC_PATH} if it exists.",
+)
+@click.option(
+    "--rdf-model-path",
+    type=click.Path(exists=True, dir_okay=False),
+    default=None,
+    help=f"RDF model YAML copied to the LinkML output when a class needs it. Default: {DEFAULT_RDF_MODEL_PATH}.",
+)
+@click.option(
     "--derived-imports-path",
     type=click.Path(dir_okay=False),
     default=None,
@@ -544,6 +560,8 @@ def sempyro(
     sempyro_output_path: str,
     imports_path: Optional[str],
     types_path: Optional[str],
+    validation_logic_path: Optional[str],
+    rdf_model_path: Optional[str],
     derived_imports_path: Optional[str],
 ) -> None:
     """Generate SeMPyRO Pydantic classes from metadata.
@@ -614,7 +632,11 @@ def sempyro(
 
         click.echo("[1/4] Generating LinkML schemas...")
         try:
-            linkml_creator = LinkMLCreator(linkml_output_path)
+            linkml_creator = LinkMLCreator(
+                linkml_output_path,
+                validation_logic_path=Path(validation_logic_path) if validation_logic_path else None,
+                rdf_model_path=Path(rdf_model_path) if rdf_model_path else None,
+            )
             linkml_creator.load_excel(str(excel_path), exclude_list)
 
             range_types = collect_range_types(linkml_creator.filtered_sheets, linkml_creator.table_classes)

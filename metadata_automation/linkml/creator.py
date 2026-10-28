@@ -9,13 +9,31 @@ import yaml
 # Name of the types file in the LinkML output directory; the schemas import it relative to themselves.
 SEMPYRO_TYPES_NAME = "sempyro_types"
 SEMPYRO_TYPES_FILE = f"{SEMPYRO_TYPES_NAME}.yaml"
+# Defaults for the hand-maintained sempyro inputs.
+DEFAULT_SEMPYRO_INPUT_DIR = Path("./inputs/sempyro")
 # Hand-maintained types file copied when no derived types are set.
-DEFAULT_SEMPYRO_TYPES_SOURCE = Path("./inputs/sempyro") / SEMPYRO_TYPES_FILE
+DEFAULT_SEMPYRO_TYPES_SOURCE = DEFAULT_SEMPYRO_INPUT_DIR / SEMPYRO_TYPES_FILE
+DEFAULT_RDF_MODEL_PATH = DEFAULT_SEMPYRO_INPUT_DIR / "rdf_model.yaml"
+DEFAULT_VALIDATION_LOGIC_PATH = DEFAULT_SEMPYRO_INPUT_DIR / "validation_logic.yaml"
 
 
 class LinkMLCreator:
-    def __init__(self, output_path: Path) -> None:
+    def __init__(
+        self,
+        output_path: Path,
+        validation_logic_path: Optional[Path] = None,
+        rdf_model_path: Optional[Path] = None,
+    ) -> None:
+        """
+        Args:
+            output_path: Output directory for the LinkML schemas.
+            validation_logic_path: Validation logic YAML (default: DEFAULT_VALIDATION_LOGIC_PATH, if it exists).
+            rdf_model_path: RDF model YAML copied to the output directory when needed
+                (default: DEFAULT_RDF_MODEL_PATH).
+        """
         self.output_path = output_path
+        self.validation_logic_path = Path(validation_logic_path or DEFAULT_VALIDATION_LOGIC_PATH)
+        self.rdf_model_path = Path(rdf_model_path or DEFAULT_RDF_MODEL_PATH)
         self.filtered_sheets = None
         self.prefixes = {}
         self.table_classes = None
@@ -26,7 +44,7 @@ class LinkMLCreator:
 
     def _load_validation_logic(self) -> dict:
         """Load validation logic from YAML file if it exists."""
-        validation_logic_path = Path("./inputs/sempyro/validation_logic.yaml")
+        validation_logic_path = self.validation_logic_path
 
         if not validation_logic_path.exists():
             return {}
@@ -275,7 +293,7 @@ class LinkMLCreator:
 
         # Copy rdf_model.yaml if needed
         if needs_rdf_model:
-            rdf_model_source = Path("./inputs/sempyro/rdf_model.yaml")
+            rdf_model_source = self.rdf_model_path
             rdf_model_dest = self.output_path / "rdf_model.yaml"
 
             if rdf_model_source.exists():

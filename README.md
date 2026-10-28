@@ -304,6 +304,8 @@ metadata-automation sempyro -i ./inputs/source_excel.xlsx -n hri
 - `--sempyro-output-path`: Output directory for SeMPyRO Pydantic classes (default: `./outputs/sempyro_classes`)
 - `--types-path`: Hand-maintained SeMPyRO types YAML (default: `./inputs/sempyro/sempyro_types.yaml` when it exists). Optional; takes precedence over the derived types.
 - `--imports-path`: Hand-maintained imports YAML (default: `./inputs/sempyro/imports.yaml` when it exists). Optional; takes precedence over the derived imports.
+- `--validation-logic-path`: Validation logic YAML (default: `./inputs/sempyro/validation_logic.yaml` when it exists)
+- `--rdf-model-path`: RDF model YAML copied to the LinkML output for classes that inherit `RDFModel` (default: `./inputs/sempyro/rdf_model.yaml`)
 - `--derived-imports-path`: Where the imports used for generation are written (default: `{sempyro-output-path}/{namespace}-imports.yaml` (file name set by `DERIVED_IMPORTS_FILE` in `cli.py`))
 
 #### Description
@@ -342,7 +344,7 @@ Types in the optional hand-maintained `./inputs/sempyro/sempyro_types.yaml` (`--
 derived entry with the same name, and the file's header (`id`, `prefixes`, ...) and unused types are kept.
 
 **Validation logic:**\
-If any validators should be included in the resulting SeMPyRO Pydantic classes, add them in `./inputs/sempyro/validation_logic.yaml`.
+If any validators should be included in the resulting SeMPyRO Pydantic classes, add them in `./inputs/sempyro/validation_logic.yaml` (or the file given with `--validation-logic-path`).
 These code snippets will be linked to the corresponding classes on the class name used in the final Pydantic class. 
 This name is constructed by taking the `class_URI`, e.g., 'dcat:Dataset' following the `{namespace}:{class_name}` format, 
 and creating the Pydantic class name by making the `namespace` all caps and concatenating it with the `class_name`, i.e.,
