@@ -392,7 +392,7 @@ class TestSeMPyROEdgeCases:
 
         with patch("metadata_automation.cli.LinkMLCreator"):
             with patch("metadata_automation.cli.load_yaml") as mock_load:
-                mock_load.return_value = {"ex-TestClass": ["import"]}
+                mock_load.return_value = {"ex-TestClass": "import logging"}
 
                 with patch("metadata_automation.cli.generate_from_linkml") as mock_gen:
                     mock_gen.side_effect = RuntimeError("Error generating from LinkML")
@@ -434,9 +434,12 @@ class TestSeMPyROEdgeCases:
 
         with patch("metadata_automation.cli.LinkMLCreator"):
             with patch("metadata_automation.cli.load_yaml") as mock_load:
-                mock_load.return_value = {"ex-TestClass": ["import"]}
+                mock_load.return_value = {"ex-TestClass": "import logging"}
 
-                with patch("metadata_automation.cli.generate_from_linkml"):
+                with (
+                    patch("metadata_automation.cli.generate_from_linkml"),
+                    patch("metadata_automation.cli._first_pass_symbols", return_value=set()),
+                ):
                     with patch("metadata_automation.cli.remove_unwanted_classes"):
                         with patch("metadata_automation.cli.subprocess.run") as mock_run:
                             mock_result = MagicMock()
@@ -480,9 +483,12 @@ class TestSeMPyROEdgeCases:
 
         with patch("metadata_automation.cli.LinkMLCreator"):
             with patch("metadata_automation.cli.load_yaml") as mock_load:
-                mock_load.return_value = {"ex-TestClass": ["import"]}
+                mock_load.return_value = {"ex-TestClass": "import logging"}
 
-                with patch("metadata_automation.cli.generate_from_linkml"):
+                with (
+                    patch("metadata_automation.cli.generate_from_linkml"),
+                    patch("metadata_automation.cli._first_pass_symbols", return_value=set()),
+                ):
                     with patch("metadata_automation.cli.remove_unwanted_classes"):
                         with patch("metadata_automation.cli.subprocess.run") as mock_run:
                             error = subprocess.CalledProcessError(returncode=1, cmd=["ruff"])
