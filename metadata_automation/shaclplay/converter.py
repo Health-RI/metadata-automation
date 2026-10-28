@@ -367,7 +367,11 @@ class SHACLPlayConverter:
         # Column 16: SHACL_sh:uniqueLang (leave empty for now)
 
         # Column 17: sh:in (controlled vocabulary)
-        vocab_url = property_row.get("Controlled vocabluary (if applicable)", "")
+        # Older Excels misspell the column as "vocabluary".
+        vocab_url = property_row.get(
+            "Controlled vocabulary (if applicable)",
+            property_row.get("Controlled vocabluary (if applicable)", ""),
+        )
         if pd.notna(vocab_url) and vocab_url != "nan":
             vocab_mapping = get_vocab_mapping(vocab_url)
             if vocab_mapping:

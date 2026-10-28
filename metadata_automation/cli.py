@@ -13,6 +13,7 @@ from pathlib import Path
 import click
 import pandas as pd
 
+from metadata_automation.excel_prep.preparer import prepare_workbook
 from metadata_automation.linkml.creator import LinkMLCreator
 from metadata_automation.sempyro.cleanup import remove_unwanted_classes
 from metadata_automation.sempyro.inheritance_inspector import format_report, inspect_file
@@ -641,6 +642,58 @@ def sempyro(
         if click.get_current_context().obj:
             traceback.print_exc()
         exit(1)
+
+
+@main.command()
+@click.option(
+    "-i",
+    "--input-excel",
+    type=click.Path(exists=True, dir_okay=False),
+    required=True,
+    help="Path to the plain metadata Excel file. Only modified with --init.",
+)
+@click.option(
+    "-o",
+    "--output-excel",
+    type=click.Path(dir_okay=False),
+    default=None,
+    help="Path for the prepared Excel (default: ./outputs/prepared/<input>_prepared.xlsx). Not used with --init.",
+)
+@click.option(
+    "-n",
+    "--namespace",
+    type=str,
+    default=None,
+    help="Namespace prefix used to derive empty class_URI values. Without it, class_URI is left empty.",
+)
+@click.option(
+    "--init",
+    is_flag=True,
+    help="Update the input in place: add sheets, columns, prefixes, sh:node and DASH values, and run the checks.",
+)
+@click.option("--overwrite", is_flag=True, help="Replace an existing output file. Not used with --init.")
+def prepare_excel(
+    input_excel: str, output_excel: str | None, namespace: str | None, init: bool, overwrite: bool
+) -> None:
+    """Prepare a plain metadata Excel for the shaclplay and sempyro commands.
+
+    \b
+    Adds the prefixes and classes sheets and the SHACL_* and SeMPyRO_*
+    columns, sets sh:node and DASH values, checks prefix consistency, and
+    prints the cells that still have to be filled in by hand. Without --init,
+    also applies the FDP rules and writes a new Excel.
+    """
+    input_path = Path(input_excel)
+    output_path = Path(output_excel) if output_excel else None
+    if output_path is None and not init:
+        output_path = Path(f"./outputs/prepared/{input_path.stem}_prepared.xlsx")
+    try:
+        report = prepare_workbook(input_path, output_path, namespace, init=init, overwrite=overwrite)
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        exit(1)
+    click.echo(report.format())
+    click.echo(f"Prepared Excel written to {output_path or input_path}")
 
 
 @main.command()

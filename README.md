@@ -93,6 +93,76 @@ In the Excel file there are three types of sheets:
   - `Range`: Data type of the property
   - `Cardinality`: Cardinality of the property, e.g., `1..n`.
 
+### `prepare-excel`: Preparing a plain metadata Excel
+
+```bash
+metadata-automation prepare-excel -i ./inputs/plain_model.xlsx --init
+metadata-automation prepare-excel -i ./inputs/plain_model.xlsx -o ./outputs/prepared/model_prepared.xlsx
+```
+
+#### Command Options
+
+- `-i, --input-excel`: Path to the plain metadata Excel file (required). Only modified with `--init`.
+- `-o, --output-excel`: Path for the prepared Excel (default: `./outputs/prepared/{input}_prepared.xlsx`). Not allowed with `--init`.
+- `-n, --namespace`: Namespace prefix used to derive empty `class_URI` values as `{namespace}:{local name of SHACL_target_ontology_name}`. Without it, `class_URI` is left empty and reported.
+- `--init`: Update the input in place with the general steps only (no FDP rules).
+- `--overwrite`: Replace an existing output file. Without it, an existing output is refused. Not used with `--init`.
+
+Drawings (text boxes, shapes, images), which openpyxl drops on save, are copied back from the input. With `--init`, an input that has drawings is first copied to `{input}.bak`; an input without drawings gets no backup.
+
+Other content openpyxl does not support is lost without warning, e.g. form controls, macros (VBA) and some data validation or conditional formatting. Keep a copy of the input when it uses these.
+
+#### Description
+
+Adds what `shaclplay` and `sempyro` need on top of a plain model Excel, using only information in the Excel itself.
+Every sheet except `Info`, `User Guide`, `prefixes` and `classes` is a class sheet. These names are matched regardless of case, and a variant such as `Classes` is renamed.
+A duplicate `sheet_name` or `SHACL_target_ontology_name` in `classes` stops the run before anything is written.
+
+General steps (always):
+- Adds the `prefixes` and `classes` sheets if missing, a `classes` row per class sheet, and all `SHACL_*` and `SeMPyRO_*` columns.
+- Adds every prefix used in the workbook to `prefixes`; unknown namespaces are left empty.
+- Once every class has a `SHACL_target_ontology_name`:
+  - A range that is a class of the model and not suffixed `(IRI)` gets its shape (`{class_URI}Shape`) in `SHACL_sh:node`, e.g. `hri:AgentShape`; a differing value is overwritten. This needs the class's `class_URI` (filled in, or derived with `-n`); without it `SHACL_sh:node` stays empty and no DASH values are set for the range.
+  - Any other range that is a prefixed name (CURIE) and not a literal (`rdfs:Literal` or an `xsd` datatype) gets `(IRI)` appended. Values without a prefix and full IRIs are left as they are; the prefix check reports values without a prefix and full IRIs that could be a CURIE.
+  - `SHACL_dash:viewer` / `SHACL_dash:editor` are derived (first matching rule). Empty cells are filled; a differing existing value is kept and reported.
+    - Range ends in `(IRI)` and is a model class or `rdfs:Resource`: `dash:URIViewer` / `dash:URIEditor`
+    - Any other range ending in `(IRI)` (an outside vocabulary): `dash:LabelViewer` / `dash:URIEditor`
+    - `SHACL_sh:node` filled: `dash:DetailsViewer` / `dash:BlankNodeEditor`
+    - `xsd:dateTime`: `dash:LiteralViewer` / `dash:DateTimePickerEditor`
+    - `dct:description` with a literal range: `dash:LiteralViewer` / `dash:TextAreaEditor`
+    - Any other `xsd:*` or `rdfs:Literal`: `dash:LiteralViewer` / `dash:TextFieldEditor`
+
+FDP steps (without `--init`; the result is written to a new file):
+- Adds the `Resource` sheet if missing.
+- The range rules replace the general ones:
+  - A range that is the target of a class with `SHACL_independent_class` `TRUE` (a class that exists on its own in the FDP) gets `(IRI)` appended, a non-required cardinality, e.g. `1..n` → `0..n`, an empty `SHACL_sh:node`, and `dash:URIViewer` / `dash:URIEditor` (overwriting other values).
+  - A range that is the target of a class with `SHACL_independent_class` `FALSE` (or not set) gets its shape in `SHACL_sh:node` when that class has a `class_URI`; a differing value is overwritten. A range ending in `(IRI)` is reported.
+- Reports an independent class without a `dct:title` property.
+
+It then prints a report with:
+- the changes made;
+- issues, e.g. a dependent class referenced as `(IRI)` or a differing DASH value;
+- a prefix check: used prefixes without a namespace, duplicate or aliased prefixes, case variants, full IRIs that could be CURIEs, and values with no prefix or stray whitespace in `Property URI` and `Range`;
+- every sheet, column and row that still has to be filled in by hand, plus a summary of empty optional columns (including `SHACL_independent_class`).
+
+Changes, issues and prefix findings on a class sheet row also show its `Property URI`, e.g. `Catalog / Cardinality / row 3 (dcat:dataset)`.
+
+#### `SHACL_independent_class`
+
+Set per class in the `classes` sheet. It decides how other classes refer to this class in the FDP, and is only used without `--init`:
+- `TRUE`: the class is a resource of its own in the FDP, e.g. `dcat:Dataset` or `dcat:Distribution`. A property with this class as range points to it by IRI: the range gets `(IRI)`, the property becomes optional, `SHACL_sh:node` is emptied, and the URI viewer and editor are used. The class needs a `dct:title` property; a missing one is reported.
+- `FALSE`: the class only exists inside another resource, e.g. `foaf:Agent` as a publisher. Its properties are nested through `SHACL_sh:node` and edited in place.
+- Empty: treated as `FALSE`. The report lists the column among the empty optional cells, so check it for every class before the FDP run.
+
+`TRUE`/`FALSE`, `yes`/`no` and `1`/`0` are accepted (any case); an empty or any other value is treated as `FALSE`. The value of every class, and how it is treated, is listed under issues so it can be checked.
+
+**Workflow:**
+1. Run `prepare-excel --init` on the plain Excel.
+2. Fill in `class_URI`, `SHACL_target_ontology_name` and, for FDP, `SHACL_independent_class` in the `classes` sheet.
+3. Run `prepare-excel --init` again to set `SHACL_sh:node` and DASH values.
+4. For the FDP, run `prepare-excel` without `--init` to write a new Excel with the FDP rules applied.
+5. Fill in the remaining reported cells, then run `shaclplay` and `sempyro`.
+
 ### `shaclplay`: Generating SHACLPlay Excel files
 
 ```bash

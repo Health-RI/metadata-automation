@@ -186,6 +186,7 @@ class LinkMLCreator:
 
             # Handle comma-separated range values
             range = slot_row["SeMPyRO_range"]
+            cardinality = str(slot_row["Cardinality"]).strip()
             slot_def = {
                 "description": slot_row["Definition"],
                 "slot_uri": slot_row["Property URI"],
@@ -193,8 +194,8 @@ class LinkMLCreator:
                     "rdf_term": slot_row["SeMPyRO_rdf_term"],
                     "rdf_type": slot_row["SeMPyRO_rdf_type"],
                 },
-                "required": str(slot_row["Cardinality"]) in ("1", "1..1", "1..n"),
-                "multivalued": (str(slot_row["Cardinality"]) == "0..n" or str(slot_row["Cardinality"]) == "1..n"),
+                "required": cardinality in ("1", "1..1", "1..n"),
+                "multivalued": cardinality in ("0..n", "1..n"),
             }
 
             # Check if range contains comma-separated values
