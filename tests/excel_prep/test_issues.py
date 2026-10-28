@@ -132,10 +132,22 @@ class TestIssues:
         row = find_row(load_workbook(first)["classes"], "sheet_name", "Agent")
 
         report = prepare_workbook(first, init=True) if init else prepare_workbook(first, tmp_path / "second.xlsx")
-        flagged = [f for f in report.issues if f.cell.column == "SHACL_independent_class"]
-        assert [f.cell for f in flagged] == [Cell("classes", row, "SHACL_independent_class")]
+        flagged = [f for f in report.issues if f.message.startswith("empty for")]
+        assert flagged == [Finding(Cell("classes", row, "SHACL_independent_class"), flagged[0].message)]
         assert "'Agent'" in flagged[0].message
         assert Cell("classes", row, "SHACL_independent_class") in report.optional_gaps
+
+    @pytest.mark.parametrize("init", [True, False])
+    def test_independent_classes_are_reported(self, plain_small, tmp_path, init):
+        first = tmp_path / "first.xlsx"
+        prepare_workbook(plain_small, first)
+        answer_classes(first)
+
+        report = prepare_workbook(first, init=True) if init else prepare_workbook(first, tmp_path / "second.xlsx")
+        messages = [f.message for f in report.issues if f.cell.column == "SHACL_independent_class"]
+        assert messages == [
+            f"TRUE for '{name}'; treated as independent" for name, (_, flag) in CLASS_ANSWERS.items() if flag
+        ]
 
     def test_property_without_uri_is_a_gap(self, plain_small, tmp_path):
         src = tmp_path / "src.xlsx"
