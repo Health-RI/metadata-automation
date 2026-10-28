@@ -1,10 +1,11 @@
 """Sheets and columns the prepared workbook must have."""
 
+VOCAB_COLUMN = "Controlled vocabulary (if applicable)"
 BASE_COLUMNS = [
     "Property label",
     "Definition",
     "Property URI",
-    "Controlled vocabulary (if applicable)",
+    VOCAB_COLUMN,
     "Usage note",
     "Range",
     "Cardinality",

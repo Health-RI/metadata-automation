@@ -125,8 +125,8 @@ General steps (always):
   - A range that is a class of the model and not suffixed `(IRI)` gets its shape (`{class_URI}Shape`) in `SHACL_sh:node`, e.g. `hri:AgentShape`; a differing value is overwritten. This needs the class's `class_URI` (filled in, or derived with `-n`); without it `SHACL_sh:node` stays empty and no DASH values are set for the range.
   - Any other range that is a prefixed name (CURIE) and not a literal (`rdfs:Literal` or an `xsd` datatype) gets `(IRI)` appended. Values without a prefix and full IRIs are left as they are; the prefix check reports values without a prefix and full IRIs that could be a CURIE.
   - `SHACL_dash:viewer` / `SHACL_dash:editor` are derived (first matching rule). Empty cells are filled; a differing existing value is kept and reported.
-    - Range ends in `(IRI)` and is a model class or `rdfs:Resource`: `dash:URIViewer` / `dash:URIEditor`
-    - Any other range ending in `(IRI)` (an outside vocabulary): `dash:LabelViewer` / `dash:URIEditor`
+    - Range ends in `(IRI)`, is an outside class (not a model class or `rdfs:Resource`) and has a `Controlled vocabulary (if applicable)` value (text or hyperlink) with a known mapping (see 'Controlled Vocabulary Mappings'): `dash:LabelViewer` / `dash:URIEditor`. A class sheet without this column is reported.
+    - Any other range ending in `(IRI)`: `dash:URIViewer` / `dash:URIEditor`
     - `SHACL_sh:node` filled: `dash:DetailsViewer` / `dash:BlankNodeEditor`
     - `xsd:dateTime`: `dash:LiteralViewer` / `dash:DateTimePickerEditor`
     - `dct:description` with a literal range: `dash:LiteralViewer` / `dash:TextAreaEditor`

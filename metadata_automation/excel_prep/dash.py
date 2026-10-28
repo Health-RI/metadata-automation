@@ -1,7 +1,9 @@
 """DASH viewer and editor for each property, derived from its range."""
 
 from openpyxl.workbook import Workbook
+from openpyxl.worksheet.worksheet import Worksheet
 
+from metadata_automation.excel_prep.columns import VOCAB_COLUMN
 from metadata_automation.excel_prep.prefix_check import namespace_map, same_term
 from metadata_automation.excel_prep.report import Report
 from metadata_automation.excel_prep.workbook import (
@@ -13,6 +15,7 @@ from metadata_automation.excel_prep.workbook import (
     split_iri_suffix,
     text,
 )
+from metadata_automation.shaclplay.vocab_mappings import find_vocab_mapping
 
 URI = ("dash:URIViewer", "dash:URIEditor")
 LABEL = ("dash:LabelViewer", "dash:URIEditor")
@@ -25,17 +28,29 @@ DESCRIPTION_PROPERTY = "dct:description"
 GENERIC_RESOURCE = "rdfs:Resource"
 
 
-def expected_dash(range_: str, node: str, is_description: bool, model_classes: set[str]) -> tuple[str, str] | None:
+def has_vocab(ws: Worksheet, row: int, col: int | None) -> bool:
+    """True when the controlled vocabulary cell (text or hyperlink) resolves to a known vocabulary mapping."""
+    if col is None:
+        return False
+    cell = ws.cell(row=row, column=col)
+    hyperlink = cell.hyperlink.target if cell.hyperlink else None
+    return find_vocab_mapping(text(ws, row, col), hyperlink) is not None
+
+
+def expected_dash(
+    range_: str, node: str, is_description: bool, model_classes: set[str], vocab: bool = False
+) -> tuple[str, str] | None:
     """Return ``(viewer, editor)`` for a prepared range, or None when no rule applies.
 
     Rules, in order: a range ending in (IRI) is a URI, shown by its label when it is
-    an outside vocabulary class (not a model class or rdfs:Resource); a range with a
+    an outside class (not a model class or rdfs:Resource) with a known controlled vocabulary; a range with a
     node shape links to another class of the model; xsd:dateTime gets a date picker;
     dct:description gets a text area; any other literal gets a text field.
     """
     base, has_iri = split_iri_suffix(range_)
     if has_iri:
-        return URI if base in model_classes or base == GENERIC_RESOURCE else LABEL
+        outside = base not in model_classes and base != GENERIC_RESOURCE
+        return LABEL if outside and vocab else URI
     range_ = base
     if node:
         return DETAILS
@@ -52,6 +67,8 @@ def apply_dash_rules(wb: Workbook, model_classes: set[str], report: Report) -> N
     for name in class_sheet_names(wb):
         ws = wb[name]
         cols = headers(ws)
+        if VOCAB_COLUMN not in cols:
+            report.issue(name, None, VOCAB_COLUMN, "column missing; IRI ranges get dash:URIViewer")
         for row in property_rows(ws, cols):
             is_description = same_term(text(ws, row, cols.get("Property URI")), DESCRIPTION_PROPERTY, namespaces)
             expected = expected_dash(
@@ -59,6 +76,7 @@ def apply_dash_rules(wb: Workbook, model_classes: set[str], report: Report) -> N
                 text(ws, row, cols["SHACL_sh:node"]),
                 is_description,
                 model_classes,
+                has_vocab(ws, row, cols.get(VOCAB_COLUMN)),
             )
             if expected is None:
                 continue
