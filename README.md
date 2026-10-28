@@ -154,7 +154,7 @@ Set per class in the `classes` sheet. It decides how other classes refer to this
 - `FALSE`: the class only exists inside another resource, e.g. `foaf:Agent` as a publisher. Its properties are nested through `SHACL_sh:node` and edited in place.
 - Empty: treated as `FALSE`. The report lists the column among the empty optional cells, so check it for every class before the FDP run.
 
-`TRUE`/`FALSE`, `yes`/`no` and `1`/`0` are accepted (any case); any other value is reported and treated as `FALSE`.
+`TRUE`/`FALSE`, `yes`/`no` and `1`/`0` are accepted (any case); an empty or any other value is reported per class and treated as `FALSE`.
 
 **Workflow:**
 1. Run `prepare-excel --init` on the plain Excel.

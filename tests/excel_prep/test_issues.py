@@ -124,6 +124,19 @@ class TestIssues:
             prepare_workbook(first, out)
         assert not out.exists()
 
+    @pytest.mark.parametrize("init", [True, False])
+    def test_empty_independent_flag_is_reported_per_class(self, plain_small, tmp_path, init):
+        first = tmp_path / "first.xlsx"
+        prepare_workbook(plain_small, first)
+        answer_classes(first, {**CLASS_ANSWERS, "Agent": ("foaf:Agent", None)})
+        row = find_row(load_workbook(first)["classes"], "sheet_name", "Agent")
+
+        report = prepare_workbook(first, init=True) if init else prepare_workbook(first, tmp_path / "second.xlsx")
+        flagged = [f for f in report.issues if f.cell.column == "SHACL_independent_class"]
+        assert [f.cell for f in flagged] == [Cell("classes", row, "SHACL_independent_class")]
+        assert "'Agent'" in flagged[0].message
+        assert Cell("classes", row, "SHACL_independent_class") in report.optional_gaps
+
     def test_property_without_uri_is_a_gap(self, plain_small, tmp_path):
         src = tmp_path / "src.xlsx"
         wb = load_workbook(plain_small)

@@ -105,6 +105,8 @@ def prepare_classes_sheet(
         independent = parse_bool(raw_independent)
         if independent is None and text(ws, row, cols["SHACL_independent_class"]):
             report.issue("classes", row, "SHACL_independent_class", f"expected TRUE or FALSE, got {raw_independent!r}")
+        elif independent is None:
+            report.issue("classes", row, "SHACL_independent_class", f"empty for '{name}'; treated as FALSE (dependent)")
 
         if not target:
             untargeted.append(name)
