@@ -108,7 +108,9 @@ metadata-automation prepare-excel -i ./inputs/plain_model.xlsx -o ./outputs/prep
 - `--init`: Update the input in place with the general steps only (no FDP rules).
 - `--overwrite`: Replace an existing output file. Without it, an existing output is refused. Not used with `--init`.
 
-Drawings (text boxes, shapes, images), which openpyxl drops on save, are copied back from the input. With `--init` the original input is first copied to `{input}.bak`.
+Drawings (text boxes, shapes, images), which openpyxl drops on save, are copied back from the input. With `--init`, an input that has drawings is first copied to `{input}.bak`; an input without drawings gets no backup.
+
+Other content openpyxl does not support is lost without warning, e.g. form controls, macros (VBA) and some data validation or conditional formatting. Keep a copy of the input when it uses these.
 
 #### Description
 
