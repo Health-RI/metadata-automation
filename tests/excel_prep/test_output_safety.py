@@ -13,6 +13,7 @@ from openpyxl.chart import BarChart, Reference
 from prep_helpers import sha
 
 from metadata_automation.excel_prep.drawings import _drawing_target, _read, _sheet_parts, _write, drawing_sheets
+from metadata_automation.excel_prep.fdp import derive_fdp_workbook
 from metadata_automation.excel_prep.preparer import prepare_workbook
 from metadata_automation.excel_prep.report import Cell
 
@@ -109,14 +110,14 @@ def test_existing_output_is_refused(plain_small, tmp_path):
     out = tmp_path / "out.xlsx"
     out.write_bytes(b"keep")
     with pytest.raises(ValueError, match="--overwrite"):
-        prepare_workbook(plain_small, out)
+        derive_fdp_workbook(plain_small, out)
     assert out.read_bytes() == b"keep"
 
 
 def test_overwrite_replaces_existing_output(plain_small, tmp_path):
     out = tmp_path / "out.xlsx"
     out.write_bytes(b"old")
-    prepare_workbook(plain_small, out, overwrite=True)
+    derive_fdp_workbook(plain_small, out, overwrite=True)
     assert "classes" in load_workbook(out).sheetnames
 
 
@@ -125,7 +126,7 @@ def test_same_file_by_other_path_is_refused(plain_copy, tmp_path):
     os.link(plain_copy, link)
     before = sha(plain_copy)
     with pytest.raises(ValueError, match="must differ"):
-        prepare_workbook(plain_copy, link, overwrite=True)
+        derive_fdp_workbook(plain_copy, link, overwrite=True)
     assert sha(plain_copy) == before
 
 
@@ -137,20 +138,20 @@ def test_failed_save_leaves_source_intact(plain_copy, monkeypatch):
     before = sha(plain_copy)
     monkeypatch.setattr(Workbook, "save", fail)
     with pytest.raises(OSError):
-        prepare_workbook(plain_copy, init=True)
+        prepare_workbook(plain_copy)
     assert sha(plain_copy) == before
     assert {p.name for p in plain_copy.parent.iterdir()} == {plain_copy.name}
 
 
 def test_init_keeps_file_mode(plain_copy):
     plain_copy.chmod(0o640)
-    prepare_workbook(plain_copy, init=True)
+    prepare_workbook(plain_copy)
     assert plain_copy.stat().st_mode & 0o777 == 0o640
 
 
 def test_new_output_gets_default_mode(plain_small, tmp_path):
     out = tmp_path / "out.xlsx"
-    prepare_workbook(plain_small, out)
+    derive_fdp_workbook(plain_small, out)
     umask = os.umask(0)
     os.umask(umask)
     assert out.stat().st_mode & 0o777 == 0o666 & ~umask
@@ -164,7 +165,7 @@ def test_drawing_sheets(plain_copy):
 def test_drawings_are_kept_by_sheet_name(plain_copy, tmp_path):
     add_drawings(plain_copy, [1, 5])
     out = tmp_path / "out.xlsx"
-    report = prepare_workbook(plain_copy, out)
+    report = derive_fdp_workbook(plain_copy, out)
 
     assert drawing_texts(out) == {"Info": "note 1", "Distribution": "note 5"}
     files = _read(out)
@@ -182,14 +183,14 @@ def test_drawings_follow_a_renamed_general_sheet(plain_copy, tmp_path):
     _write(plain_copy, files)
 
     out = tmp_path / "out.xlsx"
-    prepare_workbook(plain_copy, out)
+    derive_fdp_workbook(plain_copy, out)
     assert drawing_texts(out) == {"Info": "note 1"}
 
 
 def test_init_keeps_drawings_and_backs_up_source(plain_copy):
     add_drawings(plain_copy, [1])
     before = sha(plain_copy)
-    report = prepare_workbook(plain_copy, init=True)
+    report = prepare_workbook(plain_copy)
     assert sha(plain_copy.with_name("plain.xlsx.bak")) == before
     assert any(f.cell == Cell("plain.xlsx") and "plain.xlsx.bak" in f.message for f in report.changes)
     assert drawing_texts(plain_copy) == {"Info": "note 1"}
@@ -197,21 +198,21 @@ def test_init_keeps_drawings_and_backs_up_source(plain_copy):
 
 def test_full_run_writes_no_backup(plain_copy, tmp_path):
     add_drawings(plain_copy, [1])
-    prepare_workbook(plain_copy, tmp_path / "out.xlsx")
+    derive_fdp_workbook(plain_copy, tmp_path / "out.xlsx")
     assert not plain_copy.with_name("plain.xlsx.bak").exists()
 
 
 def test_chart_kept_by_openpyxl_is_not_reported(plain_copy, tmp_path):
     add_chart(plain_copy, "Info")
     add_drawings(plain_copy, [5])
-    report = prepare_workbook(plain_copy, tmp_path / "out.xlsx")
+    report = derive_fdp_workbook(plain_copy, tmp_path / "out.xlsx")
     assert drawing_texts(tmp_path / "out.xlsx")["Distribution"] == "note 5"
     assert not any("drawings" in f.message for f in report.issues)
 
 
 def test_shapes_next_to_chart_are_reported(plain_copy, tmp_path):
     add_chart(plain_copy, "Info", text_box=True)
-    report = prepare_workbook(plain_copy, tmp_path / "out.xlsx")
+    report = derive_fdp_workbook(plain_copy, tmp_path / "out.xlsx")
     assert any(f.cell == Cell("Info") and "could not be kept" in f.message for f in report.issues)
 
 
@@ -221,7 +222,7 @@ def test_rich_text_is_kept(plain_copy):
     wb["Info"]["A10"] = rich
     wb.save(plain_copy)
 
-    prepare_workbook(plain_copy, init=True)
+    prepare_workbook(plain_copy)
     value = load_workbook(plain_copy, rich_text=True)["Info"]["A10"].value
     assert isinstance(value, CellRichText)
     assert str(value) == "plain bold"

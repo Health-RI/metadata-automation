@@ -14,6 +14,7 @@ import click
 import pandas as pd
 
 from metadata_automation.excel_prep.columns import VOCAB_COLUMN
+from metadata_automation.excel_prep.fdp import derive_fdp_workbook
 from metadata_automation.excel_prep.preparer import prepare_workbook
 from metadata_automation.fdp.properties import INDEPENDENT_COLUMN, generate_properties
 from metadata_automation.fdp.shapes import FDP_DIR, PIECES_DIR, fdp_schema_classes, merge_fdp_shapes, missing_pieces
@@ -699,14 +700,14 @@ def sempyro(
     "--input-excel",
     type=click.Path(exists=True, dir_okay=False),
     required=True,
-    help="Path to the plain metadata Excel file. Only modified with --init.",
+    help="Path to the plain metadata Excel file. Only modified with --in-place.",
 )
 @click.option(
     "-o",
     "--output-excel",
     type=click.Path(dir_okay=False),
     default=None,
-    help="Path for the prepared Excel (default: ./outputs/prepared/<input>_prepared.xlsx). Not used with --init.",
+    help="Path for the prepared Excel. Give this or --in-place.",
 )
 @click.option(
     "-n",
@@ -716,33 +717,78 @@ def sempyro(
     help="Namespace prefix used to derive empty class_URI values. Without it, class_URI is left empty.",
 )
 @click.option(
-    "--init",
+    "--in-place",
     is_flag=True,
     help="Update the input in place: add sheets, columns, prefixes, sh:node and DASH values, and run the checks.",
 )
-@click.option("--overwrite", is_flag=True, help="Replace an existing output file. Not used with --init.")
+@click.option("--overwrite", is_flag=True, help="Replace an existing output file. Not used with --in-place.")
 def prepare_excel(
-    input_excel: str, output_excel: str | None, namespace: str | None, init: bool, overwrite: bool
+    input_excel: str, output_excel: str | None, namespace: str | None, in_place: bool, overwrite: bool
 ) -> None:
     """Prepare a plain metadata Excel for the shaclplay and sempyro commands.
 
     \b
     Adds the prefixes and classes sheets and the SHACL_* and SeMPyRO_*
     columns, sets sh:node and DASH values, checks prefix consistency, and
-    prints the cells that still have to be filled in by hand. Without --init,
-    also applies the FDP rules and writes a new Excel.
+    prints the cells that still have to be filled in by hand. Either writes a
+    new Excel (-o) or updates the input in place (--in-place). The FDP variant
+    is made with derive-fdp-excel.
     """
+    if in_place == (output_excel is not None):
+        click.echo("Error: give either an output path (-o) or --in-place, not both and not neither.", err=True)
+        exit(1)
     input_path = Path(input_excel)
     output_path = Path(output_excel) if output_excel else None
-    if output_path is None and not init:
-        output_path = Path(f"./outputs/prepared/{input_path.stem}_prepared.xlsx")
     try:
-        report = prepare_workbook(input_path, output_path, namespace, init=init, overwrite=overwrite)
+        report = prepare_workbook(input_path, output_path, namespace, overwrite=overwrite)
     except Exception as e:
         click.echo(f"Error: {e}", err=True)
         exit(1)
     click.echo(report.format())
     click.echo(f"Prepared Excel written to {output_path or input_path}")
+
+
+@main.command()
+@click.option(
+    "-i",
+    "--input-excel",
+    type=click.Path(exists=True, dir_okay=False),
+    required=True,
+    help="Path to the metadata Excel file. It is never modified.",
+)
+@click.option(
+    "-o",
+    "--output-excel",
+    type=click.Path(dir_okay=False),
+    required=True,
+    help="Path for the FDP variant of the Excel.",
+)
+@click.option(
+    "-n",
+    "--namespace",
+    type=str,
+    default=None,
+    help="Namespace prefix used to derive empty class_URI values. Without it, class_URI is left empty.",
+)
+@click.option("--overwrite", is_flag=True, help="Replace an existing output file.")
+def derive_fdp_excel(input_excel: str, output_excel: str, namespace: str | None, overwrite: bool) -> None:
+    """Derive the FDP variant of a metadata Excel.
+
+    \b
+    Classes with SHACL_independent_class TRUE are resources of their own in
+    the FDP. A range pointing at one gets (IRI), a non-required cardinality,
+    an empty SHACL_sh:node and the URI viewer and editor. The Resource sheet
+    is added when missing and independent classes without dct:title are
+    reported. The workbook is prepared in memory as prepare-excel does, which
+    changes nothing for an already prepared Excel. The input is never modified.
+    """
+    try:
+        report = derive_fdp_workbook(Path(input_excel), Path(output_excel), namespace, overwrite=overwrite)
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        exit(1)
+    click.echo(report.format())
+    click.echo(f"FDP Excel written to {output_excel}")
 
 
 @main.command()
