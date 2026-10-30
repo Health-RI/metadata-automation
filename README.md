@@ -182,6 +182,30 @@ Runs the steps of `prepare-excel` on an in-memory copy and writes the difference
 
 Rows are identified by sheet and key, not by row number: the key is the property URI (or `label: {label}` without one), the sheet name in `classes` and the prefix in `prefixes`. When a key occurs more than once in a sheet, `Occurrence` tells which one. A plan therefore survives rows being inserted or sorted in the source.
 
+### `apply-plan`: Applying a plan to the Excel
+
+```bash
+metadata-automation apply-plan -p ./inputs/model-plan.xlsx
+```
+
+#### Command Options
+
+- `-p, --plan`: Path to the plan made by `plan-excel` (required).
+- `-i, --input-excel`: The Excel the plan was made from (default: the source named in the plan, next to the plan).
+- `-o, --output-excel`: Write the result to a new file instead of updating the input in place.
+- `--overwrite`: Replace an existing output file. Not used when updating in place.
+- `--keep-plan`: Keep the plan after updating in place. By default it is deleted, so a plan next to the source always means work is pending.
+- `--ignore-source-hash`: Apply although the Excel changed since the plan was made, for instance because rows were added or sorted. Every edit is still matched on its key and checked against the value it expected.
+- `--log`: Also write the log of changes to this file.
+
+#### Description
+
+Applies the edits of the plan that have `Apply` set to `yes`, using the proposed values as they are in the plan, and writes the values typed under `Value to apply` on the `Gaps` sheet. The log lists every applied edit, every gap value written, every skipped edit and every required cell that is still empty.
+
+Nothing is written when the plan does not fit: the plan was made from another version of the Excel (checked on the SHA-256 in `Summary`), a row or column is missing, or a cell no longer has the value the plan expected. All problems are listed at once. Drawings are kept as for `prepare-excel`, and an in-place update of an Excel with drawings first copies it to `{input}.bak`.
+
+Applying a plan gives the same cells as `prepare-excel` on the same Excel, apart from edits that were skipped or changed.
+
 ### `derive-fdp-excel`: Deriving the FDP variant of an Excel
 
 ```bash

@@ -13,9 +13,10 @@ from pathlib import Path
 import click
 import pandas as pd
 
+from metadata_automation.excel_prep.apply import apply_plan as apply_plan_to_workbook
 from metadata_automation.excel_prep.columns import VOCAB_COLUMN
 from metadata_automation.excel_prep.fdp import derive_fdp_workbook
-from metadata_automation.excel_prep.plan import compute_plan, default_plan_path, write_plan
+from metadata_automation.excel_prep.plan import compute_plan, default_plan_path, read_plan, write_plan
 from metadata_automation.excel_prep.preparer import prepare_workbook
 from metadata_automation.fdp.properties import INDEPENDENT_COLUMN, generate_properties
 from metadata_automation.fdp.shapes import FDP_DIR, PIECES_DIR, fdp_schema_classes, merge_fdp_shapes, missing_pieces
@@ -794,6 +795,80 @@ def plan_excel(input_excel: str, output_plan: str | None, namespace: str | None,
         click.echo(f"Error: {e}", err=True)
         exit(1)
     click.echo(f"Plan written to {plan_path}")
+
+
+@main.command()
+@click.option(
+    "-p",
+    "--plan",
+    "plan_path",
+    type=click.Path(exists=True, dir_okay=False),
+    required=True,
+    help="Path to the plan made by plan-excel.",
+)
+@click.option(
+    "-i",
+    "--input-excel",
+    type=click.Path(exists=True, dir_okay=False),
+    default=None,
+    help="Excel the plan was made from (default: the source named in the plan, next to the plan).",
+)
+@click.option(
+    "-o",
+    "--output-excel",
+    type=click.Path(dir_okay=False),
+    default=None,
+    help="Write the result to a new file instead of updating the input in place.",
+)
+@click.option("--overwrite", is_flag=True, help="Replace an existing output file. Not used when updating in place.")
+@click.option("--keep-plan", is_flag=True, help="Keep the plan after updating in place; it is deleted by default.")
+@click.option(
+    "--ignore-source-hash",
+    is_flag=True,
+    help="Apply although the Excel changed since the plan was made. Each edit is still matched and checked.",
+)
+@click.option(
+    "--log",
+    "log_path",
+    type=click.Path(dir_okay=False),
+    default=None,
+    help="Also write the log of changes to this file.",
+)
+def apply_plan(
+    plan_path: str,
+    input_excel: str | None,
+    output_excel: str | None,
+    overwrite: bool,
+    keep_plan: bool,
+    ignore_source_hash: bool,
+    log_path: str | None,
+) -> None:
+    """Apply a plan from plan-excel to the metadata Excel.
+
+    \b
+    Writes the edits of the plan that are marked Apply = yes and the values
+    typed under Gaps, and logs every change. Refuses a plan made from another
+    version of the Excel (unless --ignore-source-hash), and writes nothing
+    when an edit does not fit. The
+    Excel is updated in place (the plan is then deleted) unless -o is given.
+    """
+    plan_file = Path(plan_path)
+    try:
+        source = Path(input_excel) if input_excel else plan_file.with_name(read_plan(plan_file).source_name)
+        if not source.exists():
+            raise ValueError(f"Source {source} not found; pass it with -i.")
+        output = Path(output_excel) if output_excel else None
+        result = apply_plan_to_workbook(
+            source, plan_file, output, overwrite=overwrite, keep_plan=keep_plan, check_hash=not ignore_source_hash
+        )
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        exit(1)
+    log = result.format()
+    click.echo(log)
+    if log_path:
+        Path(log_path).write_text(log, encoding="utf-8")
+    click.echo(f"Updated Excel written to {output or source}")
 
 
 @main.command()
