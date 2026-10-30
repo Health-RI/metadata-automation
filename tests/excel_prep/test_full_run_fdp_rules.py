@@ -1,29 +1,29 @@
-"""Full run after the class questions are answered: FDP range and DASH rules."""
+"""FDP variant after the class questions are answered: FDP range and DASH rules."""
 
 import pytest
 from openpyxl import load_workbook
 from prep_helpers import CLASS_ANSWERS, answer_classes, cell, find_row, set_cell
 
-from metadata_automation.excel_prep.preparer import prepare_workbook
+from metadata_automation.excel_prep.fdp import derive_fdp_workbook
 from metadata_automation.excel_prep.report import Cell
 
 
 class TestSecondPass:
     def test_class_uri_derived_from_namespace(self, plain_small, tmp_path):
         first = tmp_path / "first.xlsx"
-        prepare_workbook(plain_small, first)
+        derive_fdp_workbook(plain_small, first)
         answer_classes(first, class_uris=False)
         second = tmp_path / "second.xlsx"
-        prepare_workbook(first, second, namespace="ex")
+        derive_fdp_workbook(first, second, namespace="ex")
         ws = load_workbook(second)["classes"]
         assert cell(ws, find_row(ws, "sheet_name", "Catalog"), "class_URI") == "ex:Catalog"
 
     def test_class_uri_is_not_derived(self, plain_small, tmp_path):
         first = tmp_path / "first.xlsx"
-        prepare_workbook(plain_small, first)
+        derive_fdp_workbook(plain_small, first)
         answer_classes(first, class_uris=False)
         second = tmp_path / "second.xlsx"
-        report = prepare_workbook(first, second)
+        report = derive_fdp_workbook(first, second)
         ws = load_workbook(second)["classes"]
         row = find_row(ws, "sheet_name", "Catalog")
         assert not cell(ws, row, "class_URI")
@@ -62,7 +62,7 @@ class TestSecondPass:
 
     def test_differing_node_shape_is_corrected(self, plain_small, tmp_path):
         first = tmp_path / "first.xlsx"
-        prepare_workbook(plain_small, first)
+        derive_fdp_workbook(plain_small, first)
         answer_classes(first)
         wb = load_workbook(first)
         ws = wb["Catalog"]
@@ -71,20 +71,20 @@ class TestSecondPass:
         wb.save(first)
 
         second = tmp_path / "second.xlsx"
-        report = prepare_workbook(first, second)
+        report = derive_fdp_workbook(first, second)
         assert any(
             f.cell == Cell("Catalog", row, "SHACL_sh:node")
-            and f.message == "'old:AgentShape' -> 'hri:AgentShape' (dependent class)"
+            and f.message == "'old:AgentShape' -> 'hri:AgentShape' (class of this model)"
             for f in report.changes
         )
         assert cell(load_workbook(second)["Catalog"], row, "SHACL_sh:node") == "hri:AgentShape"
 
     def test_unset_independent_flag_means_dependent(self, plain_small, tmp_path):
         first = tmp_path / "first.xlsx"
-        prepare_workbook(plain_small, first)
+        derive_fdp_workbook(plain_small, first)
         answer_classes(first, {**CLASS_ANSWERS, "Agent": ("foaf:Agent", None)})
         second = tmp_path / "second.xlsx"
-        prepare_workbook(first, second)
+        derive_fdp_workbook(first, second)
         ws = load_workbook(second)["Catalog"]
         row = find_row(ws, "Property URI", "dct:publisher")
         assert cell(ws, row, "Range") == "foaf:Agent"
@@ -126,7 +126,7 @@ class TestSecondPass:
 
     def test_rdfs_class_range_gets_iri(self, plain_small, tmp_path):
         first = tmp_path / "first.xlsx"
-        prepare_workbook(plain_small, first)
+        derive_fdp_workbook(plain_small, first)
         answer_classes(first)
         wb = load_workbook(first)
         ws = wb["Distribution"]
@@ -135,7 +135,7 @@ class TestSecondPass:
         wb.save(first)
 
         second = tmp_path / "second.xlsx"
-        prepare_workbook(first, second)
+        derive_fdp_workbook(first, second)
         ws = load_workbook(second)["Distribution"]
         assert cell(ws, row, "Range") == "rdfs:Resource (IRI)"
         assert cell(ws, row, "SHACL_dash:viewer") == "dash:URIViewer"
@@ -148,7 +148,7 @@ class TestSecondPass:
 
     def test_is_idempotent(self, second_pass, tmp_path):
         _, _, path = second_pass
-        report = prepare_workbook(path, tmp_path / "third.xlsx")
+        report = derive_fdp_workbook(path, tmp_path / "third.xlsx")
         assert report.changes == []
 
     def test_no_title_issue_when_independent_classes_have_one(self, second_pass):
