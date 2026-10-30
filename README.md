@@ -206,6 +206,23 @@ Nothing is written when the plan does not fit: the plan was made from another ve
 
 Applying a plan gives the same cells as `prepare-excel` on the same Excel, apart from edits that were skipped or changed.
 
+### `check-excel`: Checking the technical columns
+
+```bash
+metadata-automation check-excel -i ./inputs/model.xlsx
+```
+
+#### Command Options
+
+- `-i, --input-excel`: Path to the metadata Excel file (required). It is never modified.
+- `-n, --namespace`: Namespace prefix used to derive empty `class_URI` values, as for `plan-excel`.
+- `--summary`: Also append the result as markdown to this file, e.g. `$GITHUB_STEP_SUMMARY`.
+- `--hint`: What to do when the check fails, shown in the result. Default: run `plan-excel`, inspect the plan and apply it with `apply-plan`.
+
+#### Description
+
+Computes the plan in memory. The check passes (exit code 0) when the technical columns are correct (no edit is pending) and complete (no required cell is empty). Otherwise it exits with 1 and lists the pending edits and the required cells to fill in, with the hint on what to do. An input that cannot be read exits with 2, so a broken file is not mistaken for a failed check.
+
 ### `derive-fdp-excel`: Deriving the FDP variant of an Excel
 
 ```bash
