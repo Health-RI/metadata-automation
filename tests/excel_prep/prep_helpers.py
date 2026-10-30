@@ -4,7 +4,7 @@ import hashlib
 
 from openpyxl import load_workbook
 
-from metadata_automation.excel_prep.workbook import headers, text
+from metadata_automation.excel_prep.workbook import class_sheet_names, data_rows, headers, property_rows, text
 
 # Answers a modeler gives after the first pass: target class and whether it is independent.
 CLASS_ANSWERS = {
@@ -61,3 +61,27 @@ def rename_sheet(wb, old, new):
     """Rename through a free name; openpyxl counts the sheet's own name as a clash in any case."""
     wb[old].title = f"{new}__tmp"
     wb[f"{new}__tmp"].title = new
+
+
+def fill_reported_gaps(path):
+    """Fill every required gap with a valid value, as the modeler would after reading the report."""
+    wb = load_workbook(path)
+    ws = wb["prefixes"]
+    for row in data_rows(ws, headers(ws), ("prefix",)):
+        set_cell(ws, row, "namespace", NAMESPACES[cell(ws, row, "prefix")])
+
+    ws = wb["classes"]
+    for row in data_rows(ws, headers(ws), ("sheet_name",)):
+        set_cell(ws, row, "SeMPyRO_annotations_ontology", "https://www.w3.org/TR/vocab-dcat-3/")
+        set_cell(ws, row, "SeMPyRO_annotations_IRI", f"https://example.org/{cell(ws, row, 'sheet_name')}")
+        set_cell(ws, row, "SeMPyRO_add_rdf_model", True)
+
+    for name in class_sheet_names(wb):
+        ws = wb[name]
+        for row in property_rows(ws, headers(ws)):
+            prefix, local = cell(ws, row, "Property URI").split(":")
+            literal = cell(ws, row, "Range").startswith(("rdfs:Literal", "xsd:"))
+            set_cell(ws, row, "SeMPyRO_rdf_term", f"{RDF_NAMESPACES[prefix]}.{local}")
+            set_cell(ws, row, "SeMPyRO_rdf_type", "rdfs_literal" if literal else "uri")
+            set_cell(ws, row, "SeMPyRO_range", "LiteralField, str" if literal else "AnyHttpUrl")
+    wb.save(path)
