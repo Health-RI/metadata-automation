@@ -14,6 +14,12 @@ inputs:
       class_URI counts as a required cell to fill in.
     required: false
     default: ""
+  ignore-gaps:
+    description: >-
+      Column patterns whose empty required cells are not counted, separated by commas or newlines, e.g.
+      `SeMPyRO_*` while SeMPyRO classes are not generated yet. They are reported as not checked.
+    required: false
+    default: ""
   hint:
     description: What to do when the check fails, shown in the result, e.g. a link to the plan workflow.
     required: false
@@ -31,11 +37,15 @@ runs:
         ACTION_PATH: ${{ github.action_path }}
         EXCEL_PATH: ${{ inputs.excel-path }}
         NAMESPACE: ${{ inputs.namespace }}
+        IGNORE_GAPS: ${{ inputs.ignore-gaps }}
         HINT: ${{ inputs.hint }}
       run: |
         set -uo pipefail
         args=(-i "$EXCEL_PATH" --summary "$GITHUB_STEP_SUMMARY")
         if [ -n "$NAMESPACE" ]; then args+=(-n "$NAMESPACE"); fi
+        while read -r pattern; do
+          if [ -n "$pattern" ]; then args+=(--ignore-gaps "$pattern"); fi
+        done < <(printf '%s\n' "$IGNORE_GAPS" | tr ',' '\n' | sed 's/^ *//; s/ *$//')
         if [ -n "$HINT" ]; then args+=(--hint "$HINT"); fi
         uv run --python 3.13 --frozen --project "$ACTION_PATH/.." metadata-automation check-excel "${args[@]}"
         status=$?

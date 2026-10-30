@@ -774,7 +774,15 @@ def prepare_excel(
     help="Namespace prefix used to derive empty class_URI values. Without it, class_URI is left empty.",
 )
 @click.option("--overwrite", is_flag=True, help="Replace an existing plan, including any edits made to it.")
-def plan_excel(input_excel: str, output_plan: str | None, namespace: str | None, overwrite: bool) -> None:
+@click.option(
+    "--ignore-gaps",
+    "ignore_gaps",
+    multiple=True,
+    help="Do not require cells in columns matching this pattern, e.g. 'SeMPyRO_*'. Can be repeated.",
+)
+def plan_excel(
+    input_excel: str, output_plan: str | None, namespace: str | None, overwrite: bool, ignore_gaps: tuple[str, ...]
+) -> None:
     """Plan the technical columns of a metadata Excel without modifying it.
 
     \b
@@ -785,7 +793,7 @@ def plan_excel(input_excel: str, output_plan: str | None, namespace: str | None,
     input_path = Path(input_excel)
     plan_path = Path(output_plan) if output_plan else default_plan_path(input_path)
     try:
-        plan, report = compute_plan(input_path, namespace)
+        plan, report = compute_plan(input_path, namespace, ignore_gaps)
         click.echo(report.format())
         click.echo(f"Plan: {len(plan.edits)} edit(s), {len(plan.gaps)} required cell(s) to fill in.")
         if plan.is_empty:
@@ -821,7 +829,15 @@ def plan_excel(input_excel: str, output_plan: str | None, namespace: str | None,
     help="Also write the result as markdown to this file, e.g. $GITHUB_STEP_SUMMARY (appended).",
 )
 @click.option("--hint", type=str, default=DEFAULT_HINT, help="What to do when the check fails; shown in the result.")
-def check_excel(input_excel: str, namespace: str | None, summary_path: str | None, hint: str) -> None:
+@click.option(
+    "--ignore-gaps",
+    "ignore_gaps",
+    multiple=True,
+    help="Do not require cells in columns matching this pattern, e.g. 'SeMPyRO_*'. Can be repeated.",
+)
+def check_excel(
+    input_excel: str, namespace: str | None, summary_path: str | None, hint: str, ignore_gaps: tuple[str, ...]
+) -> None:
     """Check that the technical columns of a metadata Excel are correct and complete.
 
     \b
@@ -831,7 +847,7 @@ def check_excel(input_excel: str, namespace: str | None, summary_path: str | Non
     """
     input_path = Path(input_excel)
     try:
-        plan, _ = compute_plan(input_path, namespace)
+        plan, _ = compute_plan(input_path, namespace, ignore_gaps)
     except Exception as e:
         click.echo(f"Error: {e}", err=True)
         exit(2)

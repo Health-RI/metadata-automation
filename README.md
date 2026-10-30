@@ -168,6 +168,7 @@ metadata-automation plan-excel -i ./inputs/model.xlsx
 - `-o, --output-plan`: Path for the plan (default: next to the input as `{name}-plan.xlsx`).
 - `-n, --namespace`: Namespace prefix used to derive empty `class_URI` values, as for `prepare-excel`.
 - `--overwrite`: Replace an existing plan. Without it an existing plan is refused, as it may hold edits.
+- `--ignore-gaps`: Do not list required cells in columns matching this pattern as gaps, e.g. `SeMPyRO_*`. Can be repeated. They are counted in the `Summary` sheet.
 
 #### Description
 
@@ -218,6 +219,7 @@ metadata-automation check-excel -i ./inputs/model.xlsx
 - `-n, --namespace`: Namespace prefix used to derive empty `class_URI` values, as for `plan-excel`.
 - `--summary`: Also append the result as markdown to this file, e.g. `$GITHUB_STEP_SUMMARY`.
 - `--hint`: What to do when the check fails, shown in the result. Default: run `plan-excel`, inspect the plan and apply it with `apply-plan`.
+- `--ignore-gaps`: Do not require cells in columns matching this pattern, e.g. `SeMPyRO_*`. Can be repeated. The number of cells not checked is reported.
 
 #### Description
 
@@ -540,6 +542,7 @@ Two more actions work on the metadata Excel. They are sub-actions of this reposi
 | both | `namespace` | no | Namespace prefix used to derive empty `class_URI` values. |
 | `excel-plan` | `plan-path` | no | Where to write the plan (default: next to the Excel as `{name}-plan.xlsx`). |
 | `excel-plan` | `overwrite` | no | `true` replaces an existing plan, including edits made to it. Default `false`: the action fails when a plan exists. |
+| both | `ignore-gaps` | no | Column patterns whose empty required cells are not counted, separated by commas or newlines, e.g. `SeMPyRO_*`. |
 | `excel-check` | `hint` | no | What to do when the check fails, shown in the job summary. |
 
 `excel-plan` writes the plan report to the job summary and has the outputs `plan-written` and `plan-path`. `excel-check` appends its result to the job summary, creates an error annotation when it fails, and never modifies the Excel. Applying a plan is done with `apply-plan`, see above.
