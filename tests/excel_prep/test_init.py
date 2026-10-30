@@ -7,6 +7,7 @@ from openpyxl import load_workbook
 from prep_helpers import CLASS_ANSWERS, answer_classes, cell, find_row, set_cell, sha
 
 from metadata_automation.excel_prep.columns import CLASS_SHEET_COLUMNS, VOCAB_COLUMN
+from metadata_automation.excel_prep.fdp import derive_fdp_workbook
 from metadata_automation.excel_prep.preparer import prepare_workbook
 from metadata_automation.excel_prep.report import Cell
 from metadata_automation.excel_prep.workbook import class_sheet_names, headers
@@ -22,13 +23,13 @@ class TestInit:
     @pytest.fixture
     def answered(self, plain_copy):
         """An init output with the class questions answered, so every rule could apply."""
-        prepare_workbook(plain_copy, init=True)
+        prepare_workbook(plain_copy)
         answer_classes(plain_copy, {k: v for k, v in CLASS_ANSWERS.items() if k != "Resource"})
         return plain_copy
 
     def test_updates_in_place_without_fdp_sheets(self, plain_copy):
         before = sha(plain_copy)
-        report = prepare_workbook(plain_copy, init=True)
+        report = prepare_workbook(plain_copy)
         assert sha(plain_copy) != before
         wb = load_workbook(plain_copy)
         assert wb.sheetnames[:3] == ["Info", "prefixes", "classes"]
@@ -38,12 +39,15 @@ class TestInit:
         assert any(c.cell.sheet == "prefixes" for c in report.changes)
         assert report.prefix_issues
 
-    def test_rejects_output_path(self, plain_copy, tmp_path):
-        with pytest.raises(ValueError, match="in place"):
-            prepare_workbook(plain_copy, tmp_path / "out.xlsx", init=True)
+    def test_output_path_writes_a_new_file_without_fdp_rules(self, plain_copy, tmp_path):
+        out = tmp_path / "out.xlsx"
+        before = plain_copy.read_bytes()
+        prepare_workbook(plain_copy, out)
+        assert plain_copy.read_bytes() == before
+        assert "Resource" not in load_workbook(out).sheetnames
 
     def test_model_range_gets_node_shape_only(self, answered):
-        report = prepare_workbook(answered, init=True)
+        report = prepare_workbook(answered)
         ws = load_workbook(answered)["Catalog"]
         row = find_row(ws, "Property URI", "dcat:dataset")
         assert cell(ws, row, "Range") == "dcat:Dataset"
@@ -54,7 +58,7 @@ class TestInit:
         assert not any(f.cell in untouched for f in report.changes)
 
     def test_out_of_model_range_gets_iri_and_uri_viewer(self, answered):
-        report = prepare_workbook(answered, init=True)
+        report = prepare_workbook(answered)
         ws = load_workbook(answered)["Catalog"]
         row = find_row(ws, "Property URI", "dct:license")
         assert cell(ws, row, "Range") == "dct:LicenseDocument (IRI)"
@@ -72,7 +76,7 @@ class TestInit:
         row = find_row(ws, "Property URI", "dct:license")
         set_cell(ws, row, VOCAB_COLUMN, "http://publications.europa.eu/resource/authority/access-right")
         wb.save(answered)
-        prepare_workbook(answered, init=True)
+        prepare_workbook(answered)
         ws = load_workbook(answered)["Catalog"]
         assert cell(ws, row, "SHACL_dash:viewer") == "dash:LabelViewer"
         assert cell(ws, row, "SHACL_dash:editor") == "dash:URIEditor"
@@ -83,7 +87,7 @@ class TestInit:
         row = find_row(ws, "Property URI", "dct:license")
         set_cell(ws, row, VOCAB_COLUMN, "GeoNames")
         wb.save(answered)
-        prepare_workbook(answered, init=True)
+        prepare_workbook(answered)
         ws = load_workbook(answered)["Catalog"]
         assert cell(ws, row, "SHACL_dash:viewer") == "dash:URIViewer"
 
@@ -92,17 +96,17 @@ class TestInit:
         ws = wb["Catalog"]
         ws.delete_cols(headers(ws)[VOCAB_COLUMN])
         wb.save(answered)
-        report = prepare_workbook(answered, init=True)
+        report = prepare_workbook(answered)
         missing = [f for f in report.issues if f.cell == Cell("Catalog", None, VOCAB_COLUMN)]
         assert len(missing) == 1
 
     def test_full_run_references_independent_class_by_iri(self, answered, tmp_path):
-        prepare_workbook(answered, init=True)
+        prepare_workbook(answered)
         first = tmp_path / "first.xlsx"
-        prepare_workbook(answered, first)
+        derive_fdp_workbook(answered, first)
         answer_classes(first)
         out = tmp_path / "fdp.xlsx"
-        report = prepare_workbook(first, out)
+        report = derive_fdp_workbook(first, out)
         ws = load_workbook(out)["Catalog"]
         row = find_row(ws, "Property URI", "dcat:dataset")
         assert cell(ws, row, "Range") == "dcat:Dataset (IRI)"
@@ -117,5 +121,5 @@ class TestInit:
         ws = wb["Catalog"]
         ws.delete_rows(find_row(ws, "Property URI", "dct:title"))
         wb.save(answered)
-        report = prepare_workbook(answered, init=True)
+        report = prepare_workbook(answered)
         assert not any("dct:title" in f.message for f in report.issues)
