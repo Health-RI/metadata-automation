@@ -493,7 +493,7 @@ The repository doubles as a composite GitHub Action that generates the SHACL Tur
 (`shaclplay` followed by `shacl-from-shaclplay`). It does not commit anything; callers decide whether to compare or commit the result.
 
 ```yaml
-- uses: Health-RI/metadata-automation@v1.1.0
+- uses: Health-RI/metadata-automation@v1.2.0
   with:
     excel-path: Documents/Health-RI_v2.1.0-for-FDP.xlsx
     output-path: Formalisation(shacl)/Core/PiecesShape
@@ -513,7 +513,36 @@ The repository doubles as a composite GitHub Action that generates the SHACL Tur
 | `namespace` | no | Overrides the namespace given in the Excel file (like `-n` on the CLI). |
 
 The Excel file is also passed to `shacl-from-shaclplay` as `-e`, so the FDP and validation SHACLs follow its `SHACL_independent_class` column.
-Always reference an exact release (e.g. `@v1.1.0`) so the generated output stays reproducible.
+Always reference an exact release (e.g. `@v1.2.0`) so the generated output stays reproducible.
+
+### Excel actions
+
+Two more actions work on the metadata Excel. They are sub-actions of this repository and, like the root action, commit nothing; the calling workflow decides what to do with the result.
+
+```yaml
+# Plan: writes {name}-plan.xlsx next to the Excel when something has to change
+- uses: Health-RI/metadata-automation/excel-plan@v1.2.0
+  id: plan
+  with:
+    excel-path: Documents/Health-RI.xlsx
+# steps.plan.outputs.plan-written is 'true' when a plan was written; steps.plan.outputs.plan-path is its path
+
+# Check: fails when the technical columns are not correct and complete
+- uses: Health-RI/metadata-automation/excel-check@v1.2.0
+  with:
+    excel-path: Documents/Health-RI.xlsx
+    hint: Run the "Plan columns" workflow on this branch.
+```
+
+| Action | Input | Required | Description |
+|---|---|---|---|
+| both | `excel-path` | yes | The metadata Excel. |
+| both | `namespace` | no | Namespace prefix used to derive empty `class_URI` values. |
+| `excel-plan` | `plan-path` | no | Where to write the plan (default: next to the Excel as `{name}-plan.xlsx`). |
+| `excel-plan` | `overwrite` | no | `true` replaces an existing plan, including edits made to it. Default `false`: the action fails when a plan exists. |
+| `excel-check` | `hint` | no | What to do when the check fails, shown in the job summary. |
+
+`excel-plan` writes the plan report to the job summary and has the outputs `plan-written` and `plan-path`. `excel-check` appends its result to the job summary, creates an error annotation when it fails, and never modifies the Excel. Applying a plan is done with `apply-plan`, see above.
 
 ### Releasing
 

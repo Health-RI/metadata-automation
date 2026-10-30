@@ -1,0 +1,71 @@
+name: Plan the technical columns of the metadata Excel
+description: >-
+  Computes what has to change in the technical columns of the metadata Excel and writes it as a plan workbook next to
+  the Excel (or at plan-path). The Excel is never modified and nothing is committed; the caller decides whether to
+  commit the plan. Nothing is written when the technical columns are already correct and complete.
+
+inputs:
+  excel-path:
+    description: Path to the metadata Excel file, relative to the workspace.
+    required: true
+  plan-path:
+    description: Path for the plan, relative to the workspace. Default is next to the Excel as {name}-plan.xlsx.
+    required: false
+    default: ""
+  namespace:
+    description: >-
+      Namespace prefix used to derive empty class_URI values. If omitted, class_URI is not derived.
+    required: false
+    default: ""
+  overwrite:
+    description: >-
+      Replace an existing plan, including any edits made to it. If false and a plan exists, the action fails.
+    required: false
+    default: "false"
+
+outputs:
+  plan-written:
+    description: "'true' when a plan was written, 'false' when there was nothing to plan."
+    value: ${{ steps.plan.outputs.plan-written }}
+  plan-path:
+    description: Path of the plan, relative to the workspace.
+    value: ${{ steps.plan.outputs.plan-path }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v6
+
+    - name: Plan the Excel
+      id: plan
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        EXCEL_PATH: ${{ inputs.excel-path }}
+        PLAN_PATH: ${{ inputs.plan-path }}
+        NAMESPACE: ${{ inputs.namespace }}
+        OVERWRITE: ${{ inputs.overwrite }}
+      run: |
+        set -euo pipefail
+        args=(-i "$EXCEL_PATH")
+        if [ -n "$PLAN_PATH" ]; then args+=(-o "$PLAN_PATH"); fi
+        if [ -n "$NAMESPACE" ]; then args+=(-n "$NAMESPACE"); fi
+        if [ "$OVERWRITE" = "true" ]; then args+=(--overwrite); fi
+        output="$(mktemp)"
+        uv run --python 3.13 --frozen --project "$ACTION_PATH/.." metadata-automation plan-excel "${args[@]}" | tee "$output"
+        {
+          echo "## Excel plan"
+          echo
+          echo '```'
+          cat "$output"
+          echo '```'
+        } >> "$GITHUB_STEP_SUMMARY"
+        if grep -q '^Plan written to ' "$output"; then
+          written="$(sed -n 's/^Plan written to //p' "$output")"
+          echo "plan-written=true" >> "$GITHUB_OUTPUT"
+          echo "plan-path=$written" >> "$GITHUB_OUTPUT"
+        else
+          echo "plan-written=false" >> "$GITHUB_OUTPUT"
+          echo "plan-path=" >> "$GITHUB_OUTPUT"
+        fi
