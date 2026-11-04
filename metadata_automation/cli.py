@@ -19,6 +19,7 @@ from metadata_automation.fdp.properties import INDEPENDENT_COLUMN, generate_prop
 from metadata_automation.fdp.shapes import FDP_DIR, PIECES_DIR, fdp_schema_classes, merge_fdp_shapes, missing_pieces
 from metadata_automation.linkml.creator import LinkMLCreator
 from metadata_automation.sempyro.cleanup import remove_unwanted_classes
+from metadata_automation.sempyro.enrichment import apply_plan, build_plan, write_plan, yaml_coverage
 from metadata_automation.sempyro.inheritance_inspector import format_report, inspect_file
 from metadata_automation.sempyro.utils import generate_from_linkml, load_yaml
 from metadata_automation.shaclplay.converter import SHACLPlayConverter
@@ -864,6 +865,125 @@ def inspect_inheritance(
         click.echo(f"Error: {e}", err=True)
         traceback.print_exc()
         exit(1)
+
+
+SEMPYRO_INPUTS = Path(__file__).parent.parent / "inputs/sempyro"
+
+
+@main.command()
+@click.option(
+    "--previous-excel",
+    type=click.Path(exists=True, dir_okay=False),
+    required=True,
+    help="Enriched Excel of the previous model version, e.g. inputs/HealthRI_v2.0.2.xlsx.",
+)
+@click.option(
+    "-i",
+    "--input-excel",
+    type=click.Path(exists=True, dir_okay=False),
+    required=True,
+    help="Excel of the new model version to enrich.",
+)
+@click.option(
+    "-o",
+    "--output-plan",
+    type=click.Path(dir_okay=False),
+    default="./outputs/sempyro_enrichment/plan.xlsx",
+    help="Path for the review plan.",
+)
+@click.option(
+    "--validation-yaml",
+    type=click.Path(exists=True, dir_okay=False),
+    default=str(SEMPYRO_INPUTS / "validation_logic.yaml"),
+    help="validation_logic.yaml to check for missing classes.",
+)
+@click.option(
+    "--types-yaml",
+    type=click.Path(exists=True, dir_okay=False),
+    default=str(SEMPYRO_INPUTS / "sempyro_types.yaml"),
+    help="sempyro_types.yaml to check for missing types.",
+)
+@click.option(
+    "--imports-yaml",
+    type=click.Path(exists=True, dir_okay=False),
+    default=str(SEMPYRO_INPUTS / "imports.yaml"),
+    help="imports.yaml to check for missing classes.",
+)
+@click.option(
+    "-n",
+    "--namespace",
+    type=str,
+    default="hri",
+    help="Namespace the sempyro command is run with; it forms the Pydantic class names and import keys.",
+)
+def sempyro_enrichment_plan(
+    previous_excel: str,
+    input_excel: str,
+    output_plan: str,
+    validation_yaml: str,
+    types_yaml: str,
+    imports_yaml: str,
+    namespace: str,
+) -> None:
+    """Plan the SeMPyRO enrichment of a new model Excel, for review.
+
+    \b
+    Copies the SeMPyRO columns of the previous version for unchanged properties, proposes values for new ones and
+    lists what has to be decided by hand. Edit the plan, then run sempyro-enrichment-apply.
+    """
+    try:
+        items = build_plan(Path(previous_excel), Path(input_excel))
+        coverage = yaml_coverage(items, Path(validation_yaml), Path(types_yaml), Path(imports_yaml), namespace)
+        counts = write_plan(items, coverage, Path(output_plan), Path(previous_excel), Path(input_excel))
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        exit(1)
+    for (level, status), count in sorted(counts.items()):
+        click.echo(f"{level:9} {status:22} {count}")
+    click.echo(f"Missing YAML entries: {sum(1 for row in coverage if row[2] == 'missing')} (sheet yaml_coverage)")
+    click.echo(f"Plan written to {output_plan}")
+
+
+@main.command()
+@click.option(
+    "-i",
+    "--input-excel",
+    type=click.Path(exists=True, dir_okay=False),
+    required=True,
+    help="Excel of the new model version, the same file the plan was made for.",
+)
+@click.option(
+    "-p",
+    "--plan",
+    type=click.Path(exists=True, dir_okay=False),
+    required=True,
+    help="Reviewed plan made by sempyro-enrichment-plan.",
+)
+@click.option(
+    "-o",
+    "--output-excel",
+    type=click.Path(dir_okay=False),
+    required=True,
+    help="Path for the enriched Excel.",
+)
+@click.option("--overwrite", is_flag=True, help="Replace an existing output file.")
+def sempyro_enrichment_apply(input_excel: str, plan: str, output_excel: str, overwrite: bool) -> None:
+    """Write a reviewed enrichment plan into a copy of the model Excel.
+
+    \b
+    Uses final_value where filled in, else the proposed value. A NEEDS_HUMAN proposal is only used once final_value
+    is filled in or the row is ticked as reviewed; other NEEDS_HUMAN cells stay empty and are listed.
+    """
+    try:
+        written, empty = apply_plan(Path(input_excel), Path(plan), Path(output_excel), overwrite)
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        exit(1)
+    click.echo(f"{written} cells written to {output_excel}")
+    if empty:
+        click.echo(f"{len(empty)} NEEDS_HUMAN cells are still empty:")
+        for sheet, key, column in empty:
+            click.echo(f"  {sheet} / {key} / {column}")
 
 
 if __name__ == "__main__":

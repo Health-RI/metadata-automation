@@ -287,6 +287,51 @@ Builds a [FairDataPointSchemaTool](https://github.com/Health-RI/FairDataPointSch
 
 Everything else (`parentChild`, `inputDir`, directories) comes from the base file. Point `inputDir` to where the SHACL files are hosted.
 
+### `sempyro-enrichment-plan` and `sempyro-enrichment-apply`: Carrying SeMPyRO columns over to a new model version
+
+```bash
+metadata-automation sempyro-enrichment-plan --previous-excel ./inputs/HealthRI_v2.0.2.xlsx -i ./Health-RI_v2.1.0.xlsx -o ./outputs/sempyro_enrichment/plan.xlsx
+# review and edit plan.xlsx
+metadata-automation sempyro-enrichment-apply -i ./Health-RI_v2.1.0.xlsx -p ./outputs/sempyro_enrichment/plan.xlsx -o ./inputs/Health-RI_v2.1.0.xlsx
+```
+
+The SeMPyRO columns of a model version were filled in by hand, so a new version cannot be enriched fully
+automatically. `sempyro-enrichment-plan` lists every SeMPyRO cell of the new Excel with a proposed value and a status, and
+`sempyro-enrichment-apply` writes the reviewed plan into a copy of the new Excel (keeping its drawings).
+
+#### Plan statuses (sheet `plan`)
+
+| Status | Meaning |
+|---|---|
+| `carried_over` | The property has the same URI and `Range` in the previous version; its value is copied. |
+| `carried_over_REVIEW` | Same property, but its `Range` (e.g. `(IRI)` added or removed) or URI spelling changed. Check that the old value still applies. |
+| `proposed_by_rule` | New property or class. Derived from patterns in the previous version: the namespace object of the URI prefix for `SeMPyRO_rdf_term`, and the value most rows with the same `Range` have for `SeMPyRO_rdf_type` and `SeMPyRO_range` (at least 90% agreement). New classes get a proposal from the upstream vocabulary. |
+| `NEEDS_HUMAN` | No reliable rule, e.g. a prefix or `Range` that the previous version did not use, or a `Range` that mapped to different SeMPyRO types. A guess is shown where there is one. |
+
+Rows are sorted with the ones that need most attention first. Edit `final_value` to override a proposal; leave it
+blank to accept it. A `NEEDS_HUMAN` guess is only written when `final_value` is filled in or the row is ticked in
+`reviewed (x)`; other `NEEDS_HUMAN` cells stay empty and are listed by `sempyro-enrichment-apply`. The `class_URI` column is
+never written: a changed local name is only reported.
+
+The sheet `yaml_coverage` lists the Pydantic classes and SeMPyRO types without an entry in `validation_logic.yaml`,
+`imports.yaml` and `sempyro_types.yaml`. Pydantic class names and import keys are built from `--namespace`
+(default `hri`), the namespace the `sempyro` command is run with, not from the `class_URI` prefix.
+
+#### Command Options
+
+`sempyro-enrichment-plan`:
+- `--previous-excel`: Enriched Excel of the previous model version (required)
+- `-i, --input-excel`: Excel of the new model version (required)
+- `-o, --output-plan`: Path for the plan (default: `./outputs/sempyro_enrichment/plan.xlsx`)
+- `--validation-yaml`, `--types-yaml`, `--imports-yaml`: The YAML files to check (default: `./inputs/sempyro/`)
+- `-n, --namespace`: Namespace for the Pydantic class names and import keys (default: `hri`)
+
+`sempyro-enrichment-apply`:
+- `-i, --input-excel`: The Excel of the new model version the plan was made for (required)
+- `-p, --plan`: The reviewed plan (required)
+- `-o, --output-excel`: Path for the enriched Excel (required)
+- `--overwrite`: Replace an existing output file
+
 ### `sempyro`: Generating SeMPyRo Classes
 
 ```bash
