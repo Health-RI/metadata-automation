@@ -100,6 +100,19 @@ class TestComputePlan:
         assert all(g.key and g.value == "" for g in plan.gaps)
         assert not any(g.column == "SHACL_pattern" for g in plan.gaps)
 
+    def test_gaps_in_ignored_columns_are_counted_not_listed(self, prepared):
+        everything, _ = compute_plan(prepared)
+        plan, _ = compute_plan(prepared, ignore_gaps=["SeMPyRO_*"])
+        assert not any(g.column.startswith("SeMPyRO_") for g in plan.gaps)
+        assert plan.ignored_gaps == len(everything.gaps) - len(plan.gaps) > 0
+        assert plan.ignored_columns == "SeMPyRO_*"
+
+    def test_ignored_gaps_are_kept_in_the_plan_file(self, prepared, tmp_path):
+        plan, _ = compute_plan(prepared, ignore_gaps=["SeMPyRO_*", "SHACL_pattern"])
+        write_plan(plan, tmp_path / "p.xlsx")
+        loaded = read_plan(tmp_path / "p.xlsx")
+        assert (loaded.ignored_columns, loaded.ignored_gaps) == ("SeMPyRO_*, SHACL_pattern", plan.ignored_gaps)
+
     def test_fully_prepared_and_filled_workbook_gives_an_empty_plan(self, prepared):
         fill_reported_gaps(prepared)
         prepare_workbook(prepared)

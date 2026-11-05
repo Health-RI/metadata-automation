@@ -17,6 +17,12 @@ inputs:
       Namespace prefix used to derive empty class_URI values. If omitted, class_URI is not derived.
     required: false
     default: ""
+  ignore-gaps:
+    description: >-
+      Column patterns whose empty required cells are not counted, separated by commas or newlines, e.g.
+      `SeMPyRO_*` while SeMPyRO classes are not generated yet. They are reported as not checked.
+    required: false
+    default: ""
   overwrite:
     description: >-
       Replace an existing plan, including any edits made to it. If false and a plan exists, the action fails.
@@ -45,12 +51,16 @@ runs:
         EXCEL_PATH: ${{ inputs.excel-path }}
         PLAN_PATH: ${{ inputs.plan-path }}
         NAMESPACE: ${{ inputs.namespace }}
+        IGNORE_GAPS: ${{ inputs.ignore-gaps }}
         OVERWRITE: ${{ inputs.overwrite }}
       run: |
         set -euo pipefail
         args=(-i "$EXCEL_PATH")
         if [ -n "$PLAN_PATH" ]; then args+=(-o "$PLAN_PATH"); fi
         if [ -n "$NAMESPACE" ]; then args+=(-n "$NAMESPACE"); fi
+        while read -r pattern; do
+          if [ -n "$pattern" ]; then args+=(--ignore-gaps "$pattern"); fi
+        done < <(printf '%s\n' "$IGNORE_GAPS" | tr ',' '\n' | sed 's/^ *//; s/ *$//')
         if [ "$OVERWRITE" = "true" ]; then args+=(--overwrite); fi
         output="$(mktemp)"
         uv run --python 3.13 --frozen --project "$ACTION_PATH/.." metadata-automation plan-excel "${args[@]}" | tee "$output"

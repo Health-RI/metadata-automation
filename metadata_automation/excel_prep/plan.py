@@ -12,7 +12,9 @@ Plan workbook:
 - ``Issues``: findings that need a decision. Informational.
 """
 
+import fnmatch
 import hashlib
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
@@ -99,6 +101,8 @@ class Plan:
     source_hash: str
     tool_version: str
     namespace: str = ""
+    ignored_columns: str = ""
+    ignored_gaps: int = 0
     edits: list[Edit] = field(default_factory=list)
     gaps: list[Gap] = field(default_factory=list)
     issues: list[IssueRow] = field(default_factory=list)
@@ -139,8 +143,12 @@ def occurrences(ws, cols: dict[str, int]) -> dict[int, int]:
     return result
 
 
-def compute_plan(src: Path, namespace: str | None = None) -> tuple[Plan, Report]:
-    """Plan ``src`` without modifying it. Also returns the preparation report."""
+def compute_plan(src: Path, namespace: str | None = None, ignore_gaps: Sequence[str] = ()) -> tuple[Plan, Report]:
+    """Plan ``src`` without modifying it. Also returns the preparation report.
+
+    Required cells in columns matching one of the ``ignore_gaps`` patterns (e.g. ``SeMPyRO_*``) are not listed as gaps,
+    for instance because the artifact that needs them is not generated yet. They are counted in the plan.
+    """
     src = Path(src)
     original = load_workbook(src, rich_text=True)
     prepared = load_workbook(src, rich_text=True)
@@ -149,9 +157,16 @@ def compute_plan(src: Path, namespace: str | None = None) -> tuple[Plan, Report]
 
     plan = Plan(src.name, source_hash(src), tool_version(), namespace or "")
     plan.edits = _edits(original, prepared, report)
-    plan.gaps = _gaps(prepared, report)
+    gaps = _gaps(prepared, report)
+    plan.gaps = [g for g in gaps if not _ignored(g.column, ignore_gaps)]
+    plan.ignored_gaps = len(gaps) - len(plan.gaps)
+    plan.ignored_columns = ", ".join(ignore_gaps)
     plan.issues = _issues(prepared, report)
     return plan, report
+
+
+def _ignored(column: str, patterns: Sequence[str]) -> bool:
+    return any(fnmatch.fnmatchcase(column, pattern) for pattern in patterns)
 
 
 def _reason(message: str) -> str:
@@ -267,6 +282,8 @@ def write_plan(plan: Plan, path: Path, overwrite: bool = False) -> None:
         ("Namespace", plan.namespace),
         ("Edits", len(plan.edits)),
         ("Required gaps", len(plan.gaps)),
+        ("Ignored gap columns", plan.ignored_columns),
+        ("Ignored gaps", plan.ignored_gaps),
         ("Issues", len(plan.issues)),
     ]:
         summary.append([label, value])
@@ -306,13 +323,15 @@ def read_plan(path: Path) -> Plan:
     for name in (SUMMARY, EDITS, GAPS, ISSUES):
         if name not in wb.sheetnames:
             raise ValueError(f"{path} is not a plan: sheet '{name}' is missing.")
-    summary = {str(r[0].value): r[1].value for r in wb[SUMMARY].iter_rows(min_row=1, max_row=7) if r[0].value}
+    summary = {str(r[0].value): r[1].value for r in wb[SUMMARY].iter_rows(min_row=1, max_row=9) if r[0].value}
     tool = str(summary.get("Tool", "")).removeprefix("metadata-automation ")
     plan = Plan(
         str(summary.get("Source file", "")),
         str(summary.get("Source SHA-256", "")),
         tool,
         str(summary.get("Namespace") or ""),
+        str(summary.get("Ignored gap columns") or ""),
+        int(summary.get("Ignored gaps") or 0),
     )
     for row in _rows(wb[EDITS], EDIT_COLUMNS):
         plan.edits.append(
