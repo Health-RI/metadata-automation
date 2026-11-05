@@ -40,8 +40,11 @@ def load_yaml(yaml_path: str | Path) -> Dict[str, Any]:
         raise yaml.YAMLError(f"Error parsing YAML file: {e}") from e
 
 
-def add_validation_logic_to_schema(link_dict: Dict[str, Any]) -> None:
-    validation_logic_path = Path("./inputs/sempyro/validation_logic.yaml")
+DEFAULT_VALIDATION_LOGIC_PATH = Path("./inputs/sempyro/validation_logic.yaml")
+
+
+def add_validation_logic_to_schema(link_dict: Dict[str, Any], validation_logic_path: str | Path | None = None) -> None:
+    validation_logic_path = Path(validation_logic_path or DEFAULT_VALIDATION_LOGIC_PATH)
 
     if not validation_logic_path.exists():
         return None

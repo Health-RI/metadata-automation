@@ -6,19 +6,45 @@ from typing import List, Optional
 import pandas as pd
 import yaml
 
+# Name of the types file in the LinkML output directory; the schemas import it relative to themselves.
+SEMPYRO_TYPES_NAME = "sempyro_types"
+SEMPYRO_TYPES_FILE = f"{SEMPYRO_TYPES_NAME}.yaml"
+# Defaults for the hand-maintained sempyro inputs.
+DEFAULT_SEMPYRO_INPUT_DIR = Path("./inputs/sempyro")
+# Hand-maintained types file copied when no derived types are set.
+DEFAULT_SEMPYRO_TYPES_SOURCE = DEFAULT_SEMPYRO_INPUT_DIR / SEMPYRO_TYPES_FILE
+DEFAULT_RDF_MODEL_PATH = DEFAULT_SEMPYRO_INPUT_DIR / "rdf_model.yaml"
+DEFAULT_VALIDATION_LOGIC_PATH = DEFAULT_SEMPYRO_INPUT_DIR / "validation_logic.yaml"
+
 
 class LinkMLCreator:
-    def __init__(self, output_path: Path) -> None:
+    def __init__(
+        self,
+        output_path: Path,
+        validation_logic_path: Optional[Path] = None,
+        rdf_model_path: Optional[Path] = None,
+    ) -> None:
+        """
+        Args:
+            output_path: Output directory for the LinkML schemas.
+            validation_logic_path: Validation logic YAML (default: DEFAULT_VALIDATION_LOGIC_PATH, if it exists).
+            rdf_model_path: RDF model YAML copied to the output directory when needed
+                (default: DEFAULT_RDF_MODEL_PATH).
+        """
         self.output_path = output_path
+        self.validation_logic_path = Path(validation_logic_path or DEFAULT_VALIDATION_LOGIC_PATH)
+        self.rdf_model_path = Path(rdf_model_path or DEFAULT_RDF_MODEL_PATH)
         self.filtered_sheets = None
         self.prefixes = {}
         self.table_classes = None
         self.linkml_data = {}
         self.validation_logic = self._load_validation_logic()
+        # Types file content to write instead of copying ./inputs/sempyro/sempyro_types.yaml.
+        self.sempyro_types: Optional[dict] = None
 
     def _load_validation_logic(self) -> dict:
         """Load validation logic from YAML file if it exists."""
-        validation_logic_path = Path("./inputs/sempyro/validation_logic.yaml")
+        validation_logic_path = self.validation_logic_path
 
         if not validation_logic_path.exists():
             return {}
@@ -151,7 +177,7 @@ class LinkMLCreator:
         linkml_id = self._create_id(ontology, ontology_class)
 
         # Add Sempyro types
-        self.linkml_data[linkml_id]["data"]["imports"].append("../sempyro_types")
+        self.linkml_data[linkml_id]["data"]["imports"].append(f"../{SEMPYRO_TYPES_NAME}")
 
         # Add RDF model import if needed
         if add_rdf_model and str(add_rdf_model).lower() in [
@@ -248,7 +274,8 @@ class LinkMLCreator:
 
         # Check if any schema uses sempyro_types import
         needs_sempyro_types = any(
-            "../sempyro_types" in linkml_dict["data"].get("imports", []) for linkml_dict in self.linkml_data.values()
+            f"../{SEMPYRO_TYPES_NAME}" in linkml_dict["data"].get("imports", [])
+            for linkml_dict in self.linkml_data.values()
         )
 
         for linkml_dict in self.linkml_data.values():
@@ -266,7 +293,7 @@ class LinkMLCreator:
 
         # Copy rdf_model.yaml if needed
         if needs_rdf_model:
-            rdf_model_source = Path("./inputs/sempyro/rdf_model.yaml")
+            rdf_model_source = self.rdf_model_path
             rdf_model_dest = self.output_path / "rdf_model.yaml"
 
             if rdf_model_source.exists():
@@ -276,9 +303,14 @@ class LinkMLCreator:
                 print(f"Warning: RDF model source file not found at {rdf_model_source}")
 
         # Copy sempyro_types.yaml if needed
-        if needs_sempyro_types:
-            sempyro_types_source = Path("./inputs/sempyro/sempyro_types.yaml")
-            sempyro_types_dest = self.output_path / "sempyro_types.yaml"
+        if needs_sempyro_types and self.sempyro_types is not None:
+            sempyro_types_dest = self.output_path / SEMPYRO_TYPES_FILE
+            with open(sempyro_types_dest, "w") as f:
+                yaml.dump(self.sempyro_types, f, sort_keys=False, default_flow_style=False)
+            print(f"Written {sempyro_types_dest}")
+        elif needs_sempyro_types:
+            sempyro_types_source = DEFAULT_SEMPYRO_TYPES_SOURCE
+            sempyro_types_dest = self.output_path / SEMPYRO_TYPES_FILE
 
             if sempyro_types_source.exists():
                 shutil.copy2(sempyro_types_source, sempyro_types_dest)

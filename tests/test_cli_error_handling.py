@@ -488,7 +488,7 @@ class TestSeMPyROErrors:
 
             # Mock load_yaml to return imports
             with patch("metadata_automation.cli.load_yaml") as mock_load:
-                mock_load.return_value = {"ex-TestClass": ["import: something"]}
+                mock_load.return_value = {"ex-TestClass": "import logging"}
 
                 result = runner.invoke(
                     main,
@@ -530,9 +530,12 @@ class TestSeMPyROErrors:
             mock_creator_class.return_value = mock_creator
 
             with patch("metadata_automation.cli.load_yaml") as mock_load:
-                mock_load.return_value = {"ex-TestClass": ["import: something"]}
+                mock_load.return_value = {"ex-TestClass": "import logging"}
 
-                with patch("metadata_automation.cli.generate_from_linkml"):
+                with (
+                    patch("metadata_automation.cli.generate_from_linkml"),
+                    patch("metadata_automation.cli._first_pass_symbols", return_value=set()),
+                ):
                     with patch("metadata_automation.cli.remove_unwanted_classes"):
                         with patch("metadata_automation.cli.subprocess.run") as mock_run:
                             mock_run.side_effect = FileNotFoundError("ruff not found")
