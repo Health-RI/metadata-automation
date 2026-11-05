@@ -1,20 +1,42 @@
 name: Generate SHACLs from Excel
 description: >-
   Generates the SHACL Turtle files for the Health-RI metadata model from its source Excel file.
-  The files are written flat to the output path as `{namespace}-{class}.ttl`. Any existing
-  `{namespace}-*.ttl` files in the output path are replaced; nothing is committed.
+  The per-class files are written flat to the output path as `{namespace}-{class}.ttl`; the FDP and
+  validation SHACLs are written to their own paths when these are given. Existing generated files in
+  those paths are replaced; nothing is committed.
 
 inputs:
   excel-path:
     description: Path to the source metadata Excel file, relative to the workspace.
     required: true
   output-path:
-    description: Directory the SHACL Turtle files are written to, relative to the workspace.
+    description: >-
+      Directory the per-class SHACL Turtle files (`{namespace}-{class}.ttl`) are written to, relative to the
+      workspace. Existing `{namespace}-*.ttl` files in it are replaced.
     required: true
+  fdp-output-path:
+    description: >-
+      Directory the FDP SHACLs (one file per independent class) are written to, relative to the workspace.
+      Existing `*.ttl` files in it are replaced. If omitted, the FDP SHACLs are not written; if given and none are
+      generated (no class has `SHACL_independent_class` TRUE), the action fails.
+    required: false
+    default: ""
+  validation-output-path:
+    description: >-
+      Directory the joined validation SHACL is written to, relative to the workspace. Existing `*.ttl` files in it
+      are replaced. If omitted, the validation SHACL is not written.
+    required: false
+    default: ""
   namespace:
     description: >-
       Namespace prefix that overrides the namespace given in the Excel file, e.g. `hrishapes`.
       If omitted, the namespace from the Excel file is used.
+    required: false
+    default: ""
+  validation-file-name:
+    description: >-
+      File name for the joined validation SHACL in `validation-output-path`, e.g. `HRI-Datamodel-shapes.ttl`.
+      If omitted, the generated name is kept (`{namespace}-shapes.ttl`).
     required: false
     default: ""
 
@@ -36,6 +58,9 @@ runs:
         ACTION_PATH: ${{ github.action_path }}
         EXCEL_PATH: ${{ inputs.excel-path }}
         OUTPUT_PATH: ${{ inputs.output-path }}
+        FDP_OUTPUT_PATH: ${{ inputs.fdp-output-path }}
+        VALIDATION_OUTPUT_PATH: ${{ inputs.validation-output-path }}
+        VALIDATION_FILE_NAME: ${{ inputs.validation-file-name }}
         NAMESPACE: ${{ inputs.namespace }}
       run: |
         set -euo pipefail
@@ -44,11 +69,37 @@ runs:
         ns_args=()
         if [ -n "$NAMESPACE" ]; then ns_args=(-n "$NAMESPACE"); fi
         run shaclplay -i "$EXCEL_PATH" -o "$tmp/shaclplay" "${ns_args[@]}"
-        run shacl-from-shaclplay -i "$tmp/shaclplay" -o "$tmp/shacl"
+        run shacl-from-shaclplay -i "$tmp/shaclplay" -o "$tmp/shacl" -e "$EXCEL_PATH"
+
+        # Per-class files: replace the existing files of every generated namespace.
         mkdir -p "$OUTPUT_PATH"
-        for dir in "$tmp/shacl"/*/; do
-          ns="$(basename "$dir")"
-          rm -f "$OUTPUT_PATH/$ns"-*.ttl
-          cp "$dir"*.ttl "$OUTPUT_PATH/"
-          echo "Generated $(ls "$dir"*.ttl | wc -l) SHACL files for namespace '$ns' in $OUTPUT_PATH"
-        done
+        for file in "$tmp/shacl/PiecesShape"/*.ttl; do basename "$file"; done | sed 's/-.*//' | sort -u |
+          while read -r prefix; do find "$OUTPUT_PATH" -maxdepth 1 -name "$prefix-*.ttl" -delete; done
+        cp "$tmp/shacl/PiecesShape"/*.ttl "$OUTPUT_PATH/"
+        echo "Generated $(ls "$tmp/shacl/PiecesShape"/*.ttl | wc -l) SHACL files in $OUTPUT_PATH"
+
+        # FDP and validation SHACLs: replace the generated files of the folder.
+        copy_all() {
+          local source="$1" target="$2" label="$3" rename_to="${4:-}"
+          if [ -z "$target" ]; then return; fi
+          if ! compgen -G "$source/*.ttl" > /dev/null; then
+            echo "::error title=No $label SHACLs generated::$target was given, but no $label SHACLs were generated."
+            exit 1
+          fi
+          mkdir -p "$target"
+          find "$target" -maxdepth 1 -name '*.ttl' -delete
+          local count
+          count="$(ls "$source"/*.ttl | wc -l)"
+          if [ -n "$rename_to" ]; then
+            if [ "$count" -ne 1 ]; then
+              echo "::error title=Cannot rename::Expected one $label SHACL file to rename to $rename_to, found $count."
+              exit 1
+            fi
+            cp "$source"/*.ttl "$target/$rename_to"
+          else
+            cp "$source"/*.ttl "$target/"
+          fi
+          echo "Generated $count $label SHACL file(s) in $target"
+        }
+        copy_all "$tmp/shacl/FairDataPointShape" "$FDP_OUTPUT_PATH" "FDP"
+        copy_all "$tmp/shacl/ValidationShape" "$VALIDATION_OUTPUT_PATH" "validation" "$VALIDATION_FILE_NAME"
