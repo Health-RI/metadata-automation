@@ -30,7 +30,7 @@ RENAME_SHEET = "rename sheet"
 ADD_COLUMN = "add column"
 ADD_ROW = "add row"
 SET_CELL = "set cell"
-_KIND_ORDER = [RENAME_SHEET, ADD_SHEET, ADD_COLUMN, ADD_ROW, SET_CELL]
+KIND_ORDER = [RENAME_SHEET, ADD_SHEET, ADD_COLUMN, ADD_ROW, SET_CELL]
 
 # Sheets whose rows are added by the preparation, keyed by this column.
 ADDED_ROW_KEYS = {"classes": "sheet_name", "prefixes": "prefix"}
@@ -188,7 +188,7 @@ def _edits(original: Workbook, prepared: Workbook, report: Report) -> list[Edit]
         elif old_name != name:
             edits.append(Edit(RENAME_SHEET, name, old=old_name, new=name, reason=f"renamed from '{old_name}'"))
         edits += _sheet_edits(name, ws_old, ws_new, reasons)
-    return sorted(edits, key=lambda e: _KIND_ORDER.index(e.kind))
+    return sorted(edits, key=lambda e: KIND_ORDER.index(e.kind))
 
 
 def _sheet_edits(name: str, ws_old, ws_new, reasons: dict) -> list[Edit]:
