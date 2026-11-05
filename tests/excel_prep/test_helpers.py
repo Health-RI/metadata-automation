@@ -3,8 +3,8 @@
 import pytest
 from openpyxl import Workbook
 
-from metadata_automation.excel_prep.class_sheet import relax_cardinality
 from metadata_automation.excel_prep.dash import LABEL, URI, expected_dash, has_vocab
+from metadata_automation.excel_prep.fdp import relax_cardinality
 from metadata_automation.excel_prep.report import compress_rows
 from metadata_automation.excel_prep.workbook import is_literal
 
