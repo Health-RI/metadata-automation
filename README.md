@@ -301,7 +301,7 @@ metadata-automation sempyro -i ./inputs/source_excel.xlsx -n hri
   - Used to organize output classes: `{namespace}-{ClassName}`, e.g., `hri-Dataset`
   - Used for LinkML schema and SeMPyRO class organization
 - `--linkml-output-path`: Output directory for LinkML schemas (default: `./outputs/linkml`)
-- `--sempyro-output-path`: Output directory for SeMPyRO Pydantic classes (default: `./outputs/sempyro_classes`)
+- `--sempyro-output-path`: Output directory for SeMPyRO Pydantic classes (default: `./outputs/sempyro`)
 - `--imports-path`: Path to imports configuration YAML file (default: `./inputs/sempyro/imports.yaml`)
 
 #### Description
@@ -344,13 +344,13 @@ This can be done in `./inputs/sempyro/imports.yaml`. The imports are automatical
 
 #### Outputs
 
-Python files are generated in `./outputs/sempyro_classes/{namespace}/` and automatically formatted with ruff.
+Python files are generated in `./outputs/sempyro/{namespace}/` and automatically formatted with ruff.
 LinkML schemas are generated in `./outputs/linkml/{namespace}/`.
 
 ### `inspect_inheritance`: Analyzing SeMPyRO Class Inheritance Overlap
 
 ```bash
-metadata-automation inspect-inheritance -i ./outputs/sempyro_classes/hri/ [-o report.txt]
+metadata-automation inspect-inheritance -i ./outputs/sempyro/hri/ [-o report.txt]
 ```
 
 #### Command Options
@@ -460,9 +460,9 @@ uv run pytest tests/test_cli_inheritance_inspector.py -v
   
   metadata-automation shacl-from-shaclplay -i tests/test_expected/multi/ -o tests/test_expected/multi/
   
-  metadata-automation sempyro -i tests/test_input/test_metadata.xlsx --namespace hri --linkml-output-path tests/test_expected/linkml/ --sempyro-output-path tests/test_expected/sempyro_classes/ --imports-path tests/test_input/imports.yaml
+  metadata-automation sempyro -i tests/test_input/test_metadata.xlsx --namespace hri --linkml-output-path tests/test_expected/linkml/ --sempyro-output-path tests/test_expected/sempyro/ --imports-path tests/test_input/imports.yaml
   
-  metadata-automation sempyro -i tests/test_input/multi_metadata.xlsx --namespace hri --linkml-output-path tests/test_expected/linkml/ --sempyro-output-path tests/test_expected/sempyro_classes/ --imports-path tests/test_input/imports.yaml
+  metadata-automation sempyro -i tests/test_input/multi_metadata.xlsx --namespace hri --linkml-output-path tests/test_expected/linkml/ --sempyro-output-path tests/test_expected/sempyro/ --imports-path tests/test_input/imports.yaml
   ```
 
 ## Future work

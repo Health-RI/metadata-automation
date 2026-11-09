@@ -1,21 +1,17 @@
 import logging
-from datetime import date, datetime
 from typing import ClassVar, List, Optional, Set, Union
 
-from pydantic import AnyHttpUrl, AwareDatetime, ConfigDict, Field, NaiveDatetime, field_validator
+from pydantic import AnyHttpUrl, ConfigDict, Field, field_validator
 from rdflib.namespace import DCAT, DCTERMS, FOAF, ORDL2, PROV
 from sempyro import LiteralField
-from sempyro.adms import Identifier
 from sempyro.dcat import AccessRights, Attribution, DCATDataset, DCATDatasetSeries, DCATDistribution, Relationship
 from sempyro.dqv import QualityCertificate
-from sempyro.geo import Location
 from sempyro.hri import HRI
 from sempyro.hri_dcat.hri_agent import HRIAgent
 from sempyro.hri_dcat.hri_vcard import HRIVCard
 from sempyro.hri_dcat.vocabularies import DatasetStatus, DatasetTheme
 from sempyro.namespaces import ADMS, DCATAPv3, DCATv3, DPV, DQV, HEALTHDCATAP
 from sempyro.odrl import ODRLPolicy
-from sempyro.prov import Activity
 from sempyro.time import PeriodOfTime
 from sempyro.utils.validator_functions import convert_to_literal
 
@@ -65,12 +61,6 @@ class HRIDataset(DCATDataset):
         json_schema_extra={"rdf_term": HEALTHDCATAP.hasCodingSystem, "rdf_type": "uri"},
     )
 
-    dct_conforms_to: Optional[list[AnyHttpUrl]] = Field(
-        default=None,
-        description="""An established standard to which the described resource conforms.""",
-        json_schema_extra={"rdf_term": DCTERMS.conformsTo, "rdf_type": "uri"},
-    )
-
     dcat_contact_point: Union[AnyHttpUrl, HRIVCard] = Field(
         description="""Relevant contact information for the cataloged resource.""",
         json_schema_extra={"rdf_term": DCAT.contactPoint, "rdf_type": "uri"},
@@ -79,11 +69,6 @@ class HRIDataset(DCATDataset):
     dct_creator: list[Union[AnyHttpUrl, HRIAgent]] = Field(
         description="""An entity responsible for making the resource.""",
         json_schema_extra={"rdf_term": DCTERMS.creator, "rdf_type": "uri"},
-    )
-
-    dct_description: list[Union[LiteralField, str]] = Field(
-        description="""An account of the resource.""",
-        json_schema_extra={"rdf_term": DCTERMS.description, "rdf_type": "rdfs_literal"},
     )
 
     dcat_distribution: Optional[list[Union[AnyHttpUrl, DCATDistribution]]] = Field(
@@ -104,18 +89,6 @@ class HRIDataset(DCATDataset):
         json_schema_extra={"rdf_term": DCTERMS.accrualPeriodicity, "rdf_type": "uri"},
     )
 
-    dct_geographical_coverage: Optional[list[Union[AnyHttpUrl, Location]]] = Field(
-        default=None,
-        description="""Spatial characteristics of the resource.""",
-        json_schema_extra={"rdf_term": DCTERMS.spatial, "rdf_type": "uri"},
-    )
-
-    dcat_has_version: Optional[list[AnyHttpUrl]] = Field(
-        default=None,
-        description="""This resource has a more specific, versioned resource.""",
-        json_schema_extra={"rdf_term": DCTERMS.hasVersion, "rdf_type": "uri"},
-    )
-
     healthdcatap_health_theme: Optional[list[AnyHttpUrl]] = Field(
         default=None,
         description="""A category of the Dataset or tag describing the Dataset.""",
@@ -133,21 +106,9 @@ class HRIDataset(DCATDataset):
         json_schema_extra={"rdf_term": DCATv3.inSeries, "rdf_type": "uri"},
     )
 
-    dct_is_referenced_by: Optional[list[AnyHttpUrl]] = Field(
-        default=None,
-        description="""A related resource that references, cites, or otherwise points to the described resource.""",
-        json_schema_extra={"rdf_term": DCTERMS.isReferencedBy, "rdf_type": "uri"},
-    )
-
     dcat_keyword: list[LiteralField] = Field(
         description="""A keyword or tag describing the resource.""",
         json_schema_extra={"rdf_term": DCAT.keyword, "rdf_type": "rdfs_literal"},
-    )
-
-    dct_language: Optional[list[AnyHttpUrl]] = Field(
-        default=None,
-        description="""A language of the resource.""",
-        json_schema_extra={"rdf_term": DCTERMS.language, "rdf_type": "uri"},
     )
 
     dpv_legal_basis: Optional[list[AnyHttpUrl]] = Field(
@@ -168,12 +129,6 @@ class HRIDataset(DCATDataset):
         json_schema_extra={"rdf_term": HEALTHDCATAP.minTypicalAge, "rdf_type": "xsd:nonNegativeInteger"},
     )
 
-    dct_modification_date: Optional[Union[AwareDatetime, NaiveDatetime, date, str]] = Field(
-        default=None,
-        description="""Date on which the resource was changed.""",
-        json_schema_extra={"rdf_term": DCTERMS.modified, "rdf_type": "datetime_literal"},
-    )
-
     healthdcatap_number_of_records: Optional[Union[LiteralField, int]] = Field(
         default=None,
         description="""Size of the dataset in terms of the number of records""",
@@ -184,12 +139,6 @@ class HRIDataset(DCATDataset):
         default=None,
         description="""Number of records for unique individuals.""",
         json_schema_extra={"rdf_term": HEALTHDCATAP.numberOfUniqueIndividuals, "rdf_type": "xsd:nonNegativeInteger"},
-    )
-
-    adms_other_identifier: Optional[list[Identifier]] = Field(
-        default=None,
-        description="""Links a resource to an adms:Identifier class.""",
-        json_schema_extra={"rdf_term": ADMS.identifier, "rdf_type": "uri"},
     )
 
     dpv_personal_data: Optional[list[AnyHttpUrl]] = Field(
@@ -233,12 +182,6 @@ class HRIDataset(DCATDataset):
         json_schema_extra={"rdf_term": DQV.hasQualityAnnotation, "rdf_type": "uri"},
     )
 
-    dct_release_date: Optional[Union[AwareDatetime, NaiveDatetime, date, datetime, str]] = Field(
-        default=None,
-        description="""Date of formal issuance of the resource.""",
-        json_schema_extra={"rdf_term": DCTERMS.issued, "rdf_type": "datetime_literal"},
-    )
-
     healthdcatap_retention_period: Optional[PeriodOfTime] = Field(
         default=None,
         description="""A temporal period which the dataset is available for secondary use.""",
@@ -263,50 +206,9 @@ class HRIDataset(DCATDataset):
         json_schema_extra={"rdf_term": ADMS.status, "rdf_type": "uri"},
     )
 
-    dct_temporal_coverage: Optional[list[PeriodOfTime]] = Field(
-        default=None,
-        description="""Temporal characteristics of the resource.""",
-        json_schema_extra={"rdf_term": DCTERMS.temporal, "rdf_type": "DCTERMS.PeriodOfTime"},
-    )
-
-    dcat_temporal_resolution: Optional[Union[LiteralField, str]] = Field(
-        default=None,
-        description="""Minimum time period resolvable in the dataset.""",
-        json_schema_extra={"rdf_term": DCAT.temporalResolution, "rdf_type": "xsd:duration"},
-    )
-
     dcat_theme: list[DatasetTheme] = Field(
         description="""A main category of the resource. A resource can have multiple themes.""",
         json_schema_extra={"rdf_term": DCAT.theme, "rdf_type": "uri"},
-    )
-
-    dct_title: list[Union[LiteralField, str]] = Field(
-        description="""A name given to the resource.""",
-        json_schema_extra={"rdf_term": DCTERMS.title, "rdf_type": "rdfs_literal"},
-    )
-
-    dct_type: Optional[list[AnyHttpUrl]] = Field(
-        default=None,
-        description="""The nature or genre of the resource.""",
-        json_schema_extra={"rdf_term": DCTERMS.type, "rdf_type": "uri"},
-    )
-
-    dcat_version: Optional[Union[LiteralField, str]] = Field(
-        default=None,
-        description="""The version indicator (name or identifier) of a resource.""",
-        json_schema_extra={"rdf_term": DCATv3.version, "rdf_type": "rdfs_literal"},
-    )
-
-    adms_version_notes: Optional[list[Union[LiteralField, str]]] = Field(
-        default=None,
-        description="""A description of changes between this version and the previous version of the Asset.""",
-        json_schema_extra={"rdf_term": ADMS.versionNotes, "rdf_type": "rdfs_literal"},
-    )
-
-    prov_was_generated_by: Optional[list[Union[Activity, AnyHttpUrl]]] = Field(
-        default=None,
-        description="""Generation is the completion of production of a new entity by an activity. This entity did not exist before generation and becomes available for usage after this generation.""",
-        json_schema_extra={"rdf_term": PROV.wasGeneratedBy, "rdf_type": "uri"},
     )
 
     _validate_literal_fields: ClassVar[Set[str]] = {

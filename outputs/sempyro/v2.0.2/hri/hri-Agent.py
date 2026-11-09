@@ -45,10 +45,6 @@ class HRIAgent(FOAFAgent):
         json_schema_extra={"rdf_term": DCTERMS.identifier, "rdf_type": "rdfs_literal"},
     )
 
-    foaf_name: list[Union[LiteralField, str]] = Field(
-        description="""A name for some thing.""", json_schema_extra={"rdf_term": FOAF.name, "rdf_type": "rdfs_literal"}
-    )
-
     healthdcatap_publisher_note: Optional[Union[LiteralField, str]] = Field(
         default=None,
         description="""A description of the publisher activities.""",
