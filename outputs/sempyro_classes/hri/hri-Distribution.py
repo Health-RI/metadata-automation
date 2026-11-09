@@ -51,18 +51,6 @@ class HRIDistribution(DCATDistribution):
         json_schema_extra={"rdf_term": DCAT.byteSize, "rdf_type": "xsd:integer"},
     )
 
-    spdx_checksum: Optional[Checksum] = Field(
-        default=None,
-        description="""The checksum property provides a mechanism that can be used to verify that the contents of a file or package have not changed.""",
-        json_schema_extra={"rdf_term": SPDX.checksum, "rdf_type": "uri"},
-    )
-
-    dcat_compression_format: Optional[AnyHttpUrl] = Field(
-        default=None,
-        description="""The compression format of the distribution in which the data is contained in a compressed form, e.g., to reduce the size of the downloadable file.""",
-        json_schema_extra={"rdf_term": DCAT.compressFormat, "rdf_type": "uri"},
-    )
-
     dct_description: Optional[list[LiteralField]] = Field(
         default=None,
         description="""An account of the resource.""",
@@ -97,28 +85,10 @@ class HRIDistribution(DCATDistribution):
         json_schema_extra={"rdf_term": DCTERMS.license, "rdf_type": "uri"},
     )
 
-    dct_linked_schemas: Optional[list[AnyHttpUrl]] = Field(
-        default=None,
-        description="""An established standard to which the described resource conforms.""",
-        json_schema_extra={"rdf_term": DCTERMS.conformsTo, "rdf_type": "uri"},
-    )
-
-    dcat_media_type: Optional[AnyHttpUrl] = Field(
-        default=None,
-        description="""The media type of the distribution as defined by IANA.""",
-        json_schema_extra={"rdf_term": DCAT.mediaType, "rdf_type": "uri"},
-    )
-
     dct_modification_date: Optional[Union[AwareDatetime, NaiveDatetime, date, str]] = Field(
         default=None,
         description="""Date on which the resource was changed.""",
         json_schema_extra={"rdf_term": DCTERMS.modified, "rdf_type": "datetime_literal"},
-    )
-
-    dcat_packaging_format: Optional[AnyHttpUrl] = Field(
-        default=None,
-        description="""The package format of the distribution in which one or more data files are grouped together, e.g., to enable a set of related files to be downloaded together.""",
-        json_schema_extra={"rdf_term": DCAT.packageFormat, "rdf_type": "uri"},
     )
 
     dct_release_date: Optional[Union[AwareDatetime, NaiveDatetime, date, str]] = Field(
@@ -148,11 +118,6 @@ class HRIDistribution(DCATDistribution):
         default=None,
         description="""Minimum time period resolvable in the dataset.""",
         json_schema_extra={"rdf_term": DCAT.spatialResolutionInMeters, "rdf_type": "xsd:duration"},
-    )
-
-    dct_title: list[LiteralField] = Field(
-        description="""A name given to the resource.""",
-        json_schema_extra={"rdf_term": DCTERMS.title, "rdf_type": "rdfs_literal"},
     )
 
     @field_validator("title", "description", mode="before")

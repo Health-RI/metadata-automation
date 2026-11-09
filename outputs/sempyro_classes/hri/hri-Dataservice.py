@@ -1,4 +1,3 @@
-from datetime import date
 from pathlib import Path
 from typing import ClassVar, List, Set, Union
 
@@ -66,11 +65,6 @@ class HRIDataservice(DCATDataservice):
         json_schema_extra={"rdf_term": DCTERMS.rights, "rdf_type": "uri"},
     )
 
-    dct_description: list[Union[LiteralField, str]] = Field(
-        description="""An account of the resource.""",
-        json_schema_extra={"rdf_term": DCTERMS.description, "rdf_type": "rdfs_literal"},
-    )
-
     dcat_end_point_description: AnyHttpUrl = Field(
         description="""A description of the services available via the end-points, including their operations, parameters etc.""",
         json_schema_extra={"rdf_term": DCAT.endpointDescription, "rdf_type": "uri"},
@@ -98,33 +92,9 @@ class HRIDataservice(DCATDataservice):
         json_schema_extra={"rdf_term": DCTERMS.identifier, "rdf_type": "rdfs_literal"},
     )
 
-    dcat_keyword: Optional[list[LiteralField]] = Field(
-        default=None,
-        description="""A keyword or tag describing the resource.""",
-        json_schema_extra={"rdf_term": DCAT.keyword, "rdf_type": "rdfs_literal"},
-    )
-
-    dcat_landing_page: Optional[list[AnyHttpUrl]] = Field(
-        default=None,
-        description="""A Web page that can be navigated to in a Web browser to gain access to the catalog, a dataset, its distributions and/or additional information.""",
-        json_schema_extra={"rdf_term": DCAT.landingPage, "rdf_type": "uri"},
-    )
-
-    dct_language: Optional[list[AnyHttpUrl]] = Field(
-        default=None,
-        description="""A language of the resource.""",
-        json_schema_extra={"rdf_term": DCTERMS.language, "rdf_type": "uri"},
-    )
-
     dct_licence: Union[AnyHttpUrl, GeonovumLicenses] = Field(
         description="""A legal document giving official permission to do something with the resource.""",
         json_schema_extra={"rdf_term": DCTERMS.license, "rdf_type": "uri"},
-    )
-
-    dct_modification_date: Optional[Union[AwareDatetime, NaiveDatetime, date, str]] = Field(
-        default=None,
-        description="""Date on which the resource was changed.""",
-        json_schema_extra={"rdf_term": DCTERMS.modified, "rdf_type": "datetime_literal"},
     )
 
     adms_other_identifier: Optional[list[Union[AnyHttpUrl, Identifier]]] = Field(
@@ -138,18 +108,8 @@ class HRIDataservice(DCATDataservice):
         json_schema_extra={"rdf_term": DCTERMS.publisher, "rdf_type": "uri"},
     )
 
-    dcat_serves_dataset: Optional[list[Union[AnyHttpUrl, DCATDataset]]] = Field(
-        default=None,
-        description="""A collection of data that this data service can distribute.""",
-        json_schema_extra={"rdf_term": DCAT.servesDataset, "rdf_type": "uri"},
-    )
-
     dcat_theme: list[DatasetTheme] = Field(
         description="""A main category of the resource. A resource can have multiple themes.""",
         json_schema_extra={"rdf_term": DCAT.theme, "rdf_type": "uri"},
     )
 
-    dct_title: list[Union[LiteralField, str]] = Field(
-        description="""A name given to the resource.""",
-        json_schema_extra={"rdf_term": DCTERMS.title, "rdf_type": "rdfs_literal"},
-    )
