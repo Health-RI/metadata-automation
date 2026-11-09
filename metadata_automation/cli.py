@@ -476,7 +476,7 @@ def shacl_from_shaclplay(
 @click.option(
     "--sempyro-output-path",
     type=click.Path(),
-    default="./outputs/sempyro_classes",
+    default="./outputs/sempyro",
     help="Output directory for SeMPyRO Pydantic classes.",
 )
 @click.option(

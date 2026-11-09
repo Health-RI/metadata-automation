@@ -141,9 +141,9 @@ def synthetic_dir_with_renamed_fields(tmp_path):
 @pytest.fixture(scope="session")
 def hri_classes_dir():
     """Directory containing the real generated HRI SeMPyRO class files."""
-    path = Path(__file__).resolve().parent.parent / "outputs" / "sempyro_classes" / "hri"
+    path = Path(__file__).resolve().parent.parent / "outputs" / "sempyro" / "hri"
     if not path.exists():
-        pytest.skip("HRI sempyro_classes output directory not found")
+        pytest.skip("HRI sempyro output directory not found")
     return path
 
 

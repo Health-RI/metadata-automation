@@ -22,7 +22,7 @@ class TestSemPyRoCLI:
     def sempyro_output_dirs(self, tmp_path):
         """Output directories for sempyro CLI tests."""
         linkml_output_dir = tmp_path / "linkml"
-        sempyro_output_dir = tmp_path / "sempyro_classes"
+        sempyro_output_dir = tmp_path / "sempyro"
         return linkml_output_dir, sempyro_output_dir
 
     @pytest.fixture
@@ -133,7 +133,7 @@ class TestSemPyRoCLI:
         actual_class = sempyro_output_dir / "hri" / "hri-TestClass.py"
 
         expected_linkml = test_expected_dir / "linkml" / "hri" / "hri-TestClass.yaml"
-        expected_class = test_expected_dir / "sempyro_classes" / "hri" / "hri-TestClass.py"
+        expected_class = test_expected_dir / "sempyro" / "hri" / "hri-TestClass.py"
 
         assert actual_linkml.exists()
         assert actual_class.exists()
@@ -174,8 +174,8 @@ class TestSemPyRoCLI:
         # Verify Python classes for both classes
         actual_class_classa = sempyro_output_dir / "hri" / "hri-ClassA.py"
         actual_class_classb = sempyro_output_dir / "hri" / "hri-ClassB.py"
-        expected_class_classa = test_expected_dir / "sempyro_classes" / "hri" / "hri-ClassA.py"
-        expected_class_classb = test_expected_dir / "sempyro_classes" / "hri" / "hri-ClassB.py"
+        expected_class_classa = test_expected_dir / "sempyro" / "hri" / "hri-ClassA.py"
+        expected_class_classb = test_expected_dir / "sempyro" / "hri" / "hri-ClassB.py"
 
         assert actual_class_classa.exists()
         assert actual_class_classb.exists()
