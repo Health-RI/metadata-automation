@@ -3,12 +3,14 @@
 import shutil
 
 import pytest
+from openpyxl import load_workbook
 from prep_helpers import CLASS_ANSWERS, answer_classes, fill_reported_gaps, sha
 
 from metadata_automation.cli import check_excel
 from metadata_automation.excel_prep.check import DEFAULT_HINT, format_check
 from metadata_automation.excel_prep.plan import compute_plan, default_plan_path
 from metadata_automation.excel_prep.preparer import prepare_workbook
+from metadata_automation.excel_prep.workbook import headers
 
 
 @pytest.fixture
@@ -48,6 +50,28 @@ class TestCheckCommand:
         assert result.exit_code == 1
         assert "0 edit(s) pending" in result.output
         assert "### Required cells to fill in" in result.output
+
+    def test_passes_when_only_ignored_columns_are_empty(self, runner, source):
+        prepare_workbook(source)
+        answer_classes(source, {k: v for k, v in CLASS_ANSWERS.items() if k != "Resource"})
+        prepare_workbook(source)
+        # What is left empty is exactly what a person has to fill in; leave only the SeMPyRO columns.
+        fill_reported_gaps(source)
+        wb = load_workbook(source)
+        for ws in wb.worksheets:
+            cols = headers(ws)
+            for column in [c for c in cols if c.startswith("SeMPyRO_") and c != "SeMPyRO_add_rdf_model"]:
+                for row in range(2, ws.max_row + 1):
+                    ws.cell(row=row, column=cols[column]).value = None
+        wb.save(source)
+        prepare_workbook(source)
+
+        failing = runner.invoke(check_excel, ["-i", str(source)])
+        passing = runner.invoke(check_excel, ["-i", str(source), "--ignore-gaps", "SeMPyRO_*"])
+
+        assert failing.exit_code == 1
+        assert passing.exit_code == 0, passing.output
+        assert "Not checked:" in passing.output and "`SeMPyRO_*`" in passing.output
 
     def test_custom_hint(self, runner, source):
         result = runner.invoke(check_excel, ["-i", str(source), "--hint", "Run the Plan columns workflow."])
