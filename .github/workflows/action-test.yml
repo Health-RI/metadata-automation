@@ -40,3 +40,60 @@ jobs:
 
       - name: Check that failure was reported
         run: test "${{ steps.fdp-without-schemas.outcome }}" = "failure"
+
+  excel:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Copy the plain example Excel
+        run: cp tests/test_input/plain_small.xlsx "$RUNNER_TEMP/model.xlsx"
+
+      - name: The check fails on an Excel without technical columns
+        id: check
+        uses: ./excel-check
+        continue-on-error: true
+        with:
+          excel-path: ${{ runner.temp }}/model.xlsx
+          hint: Run the Plan columns workflow.
+
+      - name: Check that failure was reported with the hint
+        run: |
+          test "${{ steps.check.outcome }}" = "failure"
+          grep -q "Run the Plan columns workflow." "$GITHUB_STEP_SUMMARY"
+
+      - name: Plan the Excel
+        id: plan
+        uses: ./excel-plan
+        with:
+          excel-path: ${{ runner.temp }}/model.xlsx
+
+      - name: Check the plan was written next to the Excel and the Excel is untouched
+        run: |
+          test "${{ steps.plan.outputs.plan-written }}" = "true"
+          test -s "$RUNNER_TEMP/model-plan.xlsx"
+          cmp "$RUNNER_TEMP/model.xlsx" tests/test_input/plain_small.xlsx
+
+      - name: Planning again does not replace the plan
+        id: replan
+        uses: ./excel-plan
+        continue-on-error: true
+        with:
+          excel-path: ${{ runner.temp }}/model.xlsx
+
+      - name: Check that the existing plan was protected
+        run: test "${{ steps.replan.outcome }}" = "failure"
+
+      - name: Apply the plan
+        run: >-
+          uv run --python 3.13 --frozen metadata-automation apply-plan -p "$RUNNER_TEMP/model-plan.xlsx"
+
+      - name: Check the plan is gone and the edits are applied
+        run: |
+          test ! -e "$RUNNER_TEMP/model-plan.xlsx"
+          # Required cells are still empty, so the check fails, but no edit is pending any more.
+          result="$(uv run --python 3.13 --frozen metadata-automation check-excel -i "$RUNNER_TEMP/model.xlsx" || true)"
+          echo "$result"
+          echo "$result" | grep -q "0 edit(s) pending"
+
