@@ -7,7 +7,7 @@ from openpyxl.utils import get_column_letter
 from prep_helpers import cell, sha
 
 from metadata_automation.excel_prep.columns import CLASS_SHEET_COLUMNS, CLASSES_COLUMNS
-from metadata_automation.excel_prep.preparer import prepare_workbook
+from metadata_automation.excel_prep.fdp import derive_fdp_workbook
 from metadata_automation.excel_prep.workbook import class_sheet_names, data_rows, headers, text
 
 
@@ -15,17 +15,17 @@ class TestFirstPass:
     @pytest.fixture
     def prepared(self, plain_small, tmp_path):
         out = tmp_path / "prepared.xlsx"
-        report = prepare_workbook(plain_small, out)
+        report = derive_fdp_workbook(plain_small, out)
         return report, load_workbook(out)
 
     def test_source_is_untouched(self, plain_small, tmp_path):
         before = sha(plain_small)
-        prepare_workbook(plain_small, tmp_path / "out.xlsx")
+        derive_fdp_workbook(plain_small, tmp_path / "out.xlsx")
         assert sha(plain_small) == before
 
     def test_refuses_to_overwrite_source(self, plain_small):
         with pytest.raises(ValueError, match="differ"):
-            prepare_workbook(plain_small, plain_small)
+            derive_fdp_workbook(plain_small, plain_small)
 
     def test_general_sheets_added_after_info(self, prepared):
         _, wb = prepared
@@ -56,7 +56,7 @@ class TestFirstPass:
         wb.save(styled)
 
         out = tmp_path / "prepared.xlsx"
-        prepare_workbook(styled, out)
+        derive_fdp_workbook(styled, out)
         ws = load_workbook(out)["Dataset"]
         for name in CLASS_SHEET_COLUMNS:
             col = headers(ws)[name]

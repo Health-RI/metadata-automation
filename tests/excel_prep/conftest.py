@@ -4,7 +4,7 @@ import pytest
 from openpyxl import load_workbook
 from prep_helpers import answer_classes
 
-from metadata_automation.excel_prep.preparer import prepare_workbook
+from metadata_automation.excel_prep.fdp import derive_fdp_workbook
 
 
 @pytest.fixture
@@ -19,10 +19,10 @@ def plain_metadata(test_input_dir):
 
 @pytest.fixture
 def second_pass(plain_small, tmp_path):
-    """Prepare, answer the class questions, and prepare again."""
+    """Prepare, answer the class questions, and derive the FDP variant."""
     first = tmp_path / "first.xlsx"
-    prepare_workbook(plain_small, first)
+    derive_fdp_workbook(plain_small, first)
     answer_classes(first)
     second = tmp_path / "second.xlsx"
-    report = prepare_workbook(first, second)
+    report = derive_fdp_workbook(first, second)
     return report, load_workbook(second), second
