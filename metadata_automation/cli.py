@@ -14,6 +14,7 @@ import click
 import pandas as pd
 
 from metadata_automation.excel_prep.apply import apply_plan as apply_plan_to_workbook
+from metadata_automation.excel_prep.check import DEFAULT_HINT, format_check
 from metadata_automation.excel_prep.columns import VOCAB_COLUMN
 from metadata_automation.excel_prep.fdp import derive_fdp_workbook
 from metadata_automation.excel_prep.plan import compute_plan, default_plan_path, read_plan, write_plan
@@ -795,6 +796,52 @@ def plan_excel(input_excel: str, output_plan: str | None, namespace: str | None,
         click.echo(f"Error: {e}", err=True)
         exit(1)
     click.echo(f"Plan written to {plan_path}")
+
+
+@main.command()
+@click.option(
+    "-i",
+    "--input-excel",
+    type=click.Path(exists=True, dir_okay=False),
+    required=True,
+    help="Path to the metadata Excel file. It is never modified.",
+)
+@click.option(
+    "-n",
+    "--namespace",
+    type=str,
+    default=None,
+    help="Namespace prefix used to derive empty class_URI values, as for plan-excel.",
+)
+@click.option(
+    "--summary",
+    "summary_path",
+    type=click.Path(dir_okay=False),
+    default=None,
+    help="Also write the result as markdown to this file, e.g. $GITHUB_STEP_SUMMARY (appended).",
+)
+@click.option("--hint", type=str, default=DEFAULT_HINT, help="What to do when the check fails; shown in the result.")
+def check_excel(input_excel: str, namespace: str | None, summary_path: str | None, hint: str) -> None:
+    """Check that the technical columns of a metadata Excel are correct and complete.
+
+    \b
+    Computes the plan in memory. Exits with 0 when no edit is pending and no
+    required cell is empty, and with 1 otherwise, listing what is missing.
+    The Excel is never modified.
+    """
+    input_path = Path(input_excel)
+    try:
+        plan, _ = compute_plan(input_path, namespace)
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        exit(2)
+    result = format_check(plan, hint, input_path)
+    click.echo(result)
+    if summary_path:
+        with open(summary_path, "a", encoding="utf-8") as f:
+            f.write(result + "\n")
+    if not plan.is_empty:
+        exit(1)
 
 
 @main.command()
