@@ -783,6 +783,8 @@ def plan_excel(input_excel: str, output_plan: str | None, namespace: str | None,
     input_path = Path(input_excel)
     plan_path = Path(output_plan) if output_plan else default_plan_path(input_path)
     try:
+        if plan_path.resolve() == input_path.resolve():
+            raise ValueError("Plan path must differ from the input path; the source file is left untouched.")
         plan, report = compute_plan(input_path, namespace)
         click.echo(report.format())
         click.echo(f"Plan: {len(plan.edits)} edit(s), {len(plan.gaps)} required cell(s) to fill in.")

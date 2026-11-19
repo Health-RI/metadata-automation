@@ -7,6 +7,7 @@ from openpyxl import Workbook, load_workbook
 from prep_helpers import CLASS_ANSWERS, answer_classes, fill_reported_gaps, sha
 
 from metadata_automation.cli import plan_excel
+from metadata_automation.excel_prep import plan as plan_module
 from metadata_automation.excel_prep.plan import (
     ADD_COLUMN,
     ADD_ROW,
@@ -20,7 +21,7 @@ from metadata_automation.excel_prep.plan import (
     row_key,
     write_plan,
 )
-from metadata_automation.excel_prep.preparer import prepare_workbook
+from metadata_automation.excel_prep.preparer import prepare_in_memory, prepare_workbook
 from metadata_automation.excel_prep.workbook import headers
 
 
@@ -120,6 +121,26 @@ class TestComputePlan:
         gaps = [g for g in plan.gaps if g.sheet == "Thing" and g.column == "SeMPyRO_rdf_term"]
         assert [(g.key, g.occurrence) for g in gaps] == [("ex:p", 1), ("ex:p", 2)]
 
+    def test_rows_are_keyed_as_the_source_names_them(self, tmp_path, monkeypatch):
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Thing"
+        ws.append(["Property label", "Property URI", "Range", "Cardinality"])
+        ws.append(["title", None, "xsd:string", "1"])
+        path = tmp_path / "label.xlsx"
+        wb.save(path)
+
+        def prepare_and_fill_uri(prepared, namespace, report):
+            prepare_in_memory(prepared, namespace, report)
+            sheet = prepared["Thing"]
+            sheet.cell(row=2, column=headers(sheet)["Property URI"], value="ex:title")
+
+        monkeypatch.setattr(plan_module, "prepare_in_memory", prepare_and_fill_uri)
+        plan, _ = compute_plan(path)
+        edit = next(e for e in plan.edits if e.kind == SET_CELL and e.column == "Property URI")
+        assert (edit.key, edit.occurrence, edit.new) == ("label: title", 1, "ex:title")
+        assert {g.key for g in plan.gaps if g.sheet == "Thing"} == {"label: title"}
+
     def test_case_variant_of_a_general_sheet_is_a_rename(self, source):
         wb = load_workbook(source)
         wb.create_sheet("Classes", 0)
@@ -210,3 +231,10 @@ class TestPlanCommand:
         result = runner.invoke(plan_excel, ["-i", str(source), "-o", str(out)])
         assert result.exit_code == 0, result.output
         assert out.exists() and not default_plan_path(source).exists()
+
+    def test_refuses_to_write_the_plan_over_the_source(self, runner, source):
+        before = sha(source)
+        result = runner.invoke(plan_excel, ["-i", str(source), "-o", str(source), "--overwrite"])
+        assert result.exit_code == 1
+        assert "must differ" in result.output
+        assert sha(source) == before

@@ -147,10 +147,12 @@ def compute_plan(src: Path, namespace: str | None = None) -> tuple[Plan, Report]
     report = Report()
     prepare_in_memory(prepared, namespace, report)
 
+    pairs = _sheet_pairs(original, prepared)
+    keys = {name: _sheet_keys(name, original[old] if old else None, prepared[name]) for name, old in pairs}
     plan = Plan(src.name, source_hash(src), tool_version(), namespace or "")
-    plan.edits = _edits(original, prepared, report)
-    plan.gaps = _gaps(prepared, report)
-    plan.issues = _issues(prepared, report)
+    plan.edits = _edits(original, prepared, report, pairs, keys)
+    plan.gaps = _gaps(report, keys)
+    plan.issues = _issues(report, keys)
     return plan, report
 
 
@@ -177,21 +179,68 @@ def _sheet_pairs(original: Workbook, prepared: Workbook) -> list[tuple[str, str 
     return pairs
 
 
-def _edits(original: Workbook, prepared: Workbook, report: Report) -> list[Edit]:
+@dataclass(frozen=True)
+class _SheetKeys:
+    """Key and occurrence of each row of a prepared sheet, as the source names it."""
+
+    rows: dict[int, tuple[str, int]]
+    added: frozenset[int]
+
+
+def _sheet_keys(name: str, ws_old, ws_new) -> _SheetKeys:
+    """Existing rows are keyed by their source content, so a value the preparation changes cannot change the key.
+
+    Rows the preparation added do not exist in the source and are keyed by their prepared content.
+    """
+    cols_new = headers(ws_new)
+    cols_old = headers(ws_old) if ws_old is not None else {}
+    added = frozenset(_added_rows(name, ws_old, ws_new, cols_old, cols_new))
+    occ_new = occurrences(ws_new, cols_new)
+    occ_old = occurrences(ws_old, cols_old) if ws_old is not None else {}
+    rows = {}
+    for row in range(2, ws_new.max_row + 1):
+        if row in added or row not in occ_old:
+            rows[row] = (row_key(ws_new, row, cols_new), occ_new[row])
+        else:
+            rows[row] = (row_key(ws_old, row, cols_old), occ_old[row])
+    return _SheetKeys(rows, added)
+
+
+def _added_rows(name: str, ws_old, ws_new, cols_old: dict[str, int], cols_new: dict[str, int]) -> set[int]:
+    """Rows whose key cell the preparation filled: empty or absent in the source, filled in the prepared copy."""
+    key_column = ADDED_ROW_KEYS.get(name)
+    if key_column not in cols_new:
+        return set()
+    old_col = cols_old.get(key_column)
+    old_rows = ws_old.max_row if ws_old is not None else 0
+    return {
+        row
+        for row in range(2, ws_new.max_row + 1)
+        if text(ws_new, row, cols_new[key_column]) and not (row <= old_rows and text(ws_old, row, old_col))
+    }
+
+
+def _edits(
+    original: Workbook,
+    prepared: Workbook,
+    report: Report,
+    pairs: list[tuple[str, str | None]],
+    keys: dict[str, _SheetKeys],
+) -> list[Edit]:
     reasons = _reasons(report)
     edits: list[Edit] = []
-    for name, old_name in _sheet_pairs(original, prepared):
+    for name, old_name in pairs:
         ws_new = prepared[name]
         ws_old = original[old_name] if old_name else None
         if old_name is None:
             edits.append(Edit(ADD_SHEET, name, reason=reasons.get((name, None, None), "required sheet")))
         elif old_name != name:
             edits.append(Edit(RENAME_SHEET, name, old=old_name, new=name, reason=f"renamed from '{old_name}'"))
-        edits += _sheet_edits(name, ws_old, ws_new, reasons)
+        edits += _sheet_edits(name, ws_old, ws_new, keys[name], reasons)
     return sorted(edits, key=lambda e: _KIND_ORDER.index(e.kind))
 
 
-def _sheet_edits(name: str, ws_old, ws_new, reasons: dict) -> list[Edit]:
+def _sheet_edits(name: str, ws_old, ws_new, keys: _SheetKeys, reasons: dict) -> list[Edit]:
     edits: list[Edit] = []
     cols_new = headers(ws_new)
     cols_old = headers(ws_old) if ws_old is not None else {}
@@ -200,21 +249,16 @@ def _sheet_edits(name: str, ws_old, ws_new, reasons: dict) -> list[Edit]:
             edits.append(Edit(ADD_COLUMN, name, column=column, reason="pipeline column"))
 
     key_column = ADDED_ROW_KEYS.get(name)
-    old_rows = {row_key(ws_old, r, cols_old): r for r in range(2, ws_old.max_row + 1)} if ws_old is not None else {}
-    occ = occurrences(ws_new, cols_new)
     for row in range(2, ws_new.max_row + 1):
-        key = row_key(ws_new, row, cols_new)
-        added = bool(key_column) and key_column in cols_new and key not in old_rows
+        key, occurrence = keys.rows[row]
+        added = row in keys.added
         if added:
-            if not text(ws_new, row, cols_new[key_column]):
-                continue
             edits.append(
                 Edit(
                     ADD_ROW,
                     name,
-                    key,
-                    1,
-                    key_column,
+                    key=key,
+                    column=key_column,
                     new=text(ws_new, row, cols_new[key_column]),
                     reason=reasons.get((name, row, key_column), "added row"),
                     row=row,
@@ -227,27 +271,25 @@ def _sheet_edits(name: str, ws_old, ws_new, reasons: dict) -> list[Edit]:
             old = "" if added or column not in cols_old else text(ws_old, row, cols_old[column])
             if new != old:
                 reason = reasons.get((name, row, column), "computed value")
-                edits.append(Edit(SET_CELL, name, key, occ[row], column, old, new, reason, row))
+                edits.append(Edit(SET_CELL, name, key, occurrence, column, old, new, reason, row))
     return edits
 
 
-def _gaps(prepared: Workbook, report: Report) -> list[Gap]:
+def _gaps(report: Report, keys: dict[str, _SheetKeys]) -> list[Gap]:
     gaps = []
     for gap in report.gaps:
-        ws = prepared[gap.sheet]
-        cols = headers(ws)
-        gaps.append(Gap(gap.sheet, row_key(ws, gap.row, cols), occurrences(ws, cols)[gap.row], gap.column, row=gap.row))
+        key, occurrence = keys[gap.sheet].rows[gap.row]
+        gaps.append(Gap(gap.sheet, key, occurrence, gap.column, row=gap.row))
     return gaps
 
 
-def _issues(prepared: Workbook, report: Report) -> list[IssueRow]:
+def _issues(report: Report, keys: dict[str, _SheetKeys]) -> list[IssueRow]:
     rows = []
     for finding in [*report.issues, *report.prefix_issues]:
         cell: Cell = finding.cell
         key = ""
-        if cell.row and cell.sheet in prepared.sheetnames:
-            ws = prepared[cell.sheet]
-            key = row_key(ws, cell.row, headers(ws))
+        if cell.row and cell.sheet in keys:
+            key = keys[cell.sheet].rows.get(cell.row, (f"row {cell.row}", 1))[0]
         rows.append(IssueRow(cell.sheet, key, cell.column or "", finding.message))
     return rows
 
