@@ -15,6 +15,7 @@ import pandas as pd
 
 from metadata_automation.excel_prep.columns import VOCAB_COLUMN
 from metadata_automation.excel_prep.fdp import derive_fdp_workbook
+from metadata_automation.excel_prep.plan import compute_plan, default_plan_path, write_plan
 from metadata_automation.excel_prep.preparer import prepare_workbook
 from metadata_automation.fdp.properties import INDEPENDENT_COLUMN, generate_properties
 from metadata_automation.fdp.shapes import FDP_DIR, PIECES_DIR, fdp_schema_classes, merge_fdp_shapes, missing_pieces
@@ -746,6 +747,65 @@ def prepare_excel(
         exit(1)
     click.echo(report.format())
     click.echo(f"Prepared Excel written to {output_path or input_path}")
+
+
+@main.command()
+@click.option(
+    "-i",
+    "--input-excel",
+    type=click.Path(exists=True, dir_okay=False),
+    required=True,
+    help="Path to the metadata Excel file. It is never modified.",
+)
+@click.option(
+    "-o",
+    "--output-plan",
+    type=click.Path(dir_okay=False),
+    default=None,
+    help="Path for the plan (default: next to the input as {name}-plan.xlsx).",
+)
+@click.option(
+    "-n",
+    "--namespace",
+    type=str,
+    default=None,
+    help="Namespace prefix used to derive empty class_URI values. Without it, class_URI is left empty.",
+)
+@click.option("--overwrite", is_flag=True, help="Replace an existing plan, including any edits made to it.")
+def plan_excel(input_excel: str, output_plan: str | None, namespace: str | None, overwrite: bool) -> None:
+    """Plan the technical columns of a metadata Excel without modifying it.
+
+    \b
+    Computes what prepare-excel would change and writes it as a plan
+    workbook (Summary, Edits, Gaps, Issues) that can be inspected and edited
+    before it is applied. Nothing is written when there are no edits and no
+    gaps; issues are then only reported, and an existing plan is reported as
+    outdated.
+    """
+    input_path = Path(input_excel)
+    plan_path = Path(output_plan) if output_plan else default_plan_path(input_path)
+    try:
+        if plan_path.resolve() == input_path.resolve():
+            raise ValueError("Plan path must differ from the input path; the source file is left untouched.")
+        plan, report = compute_plan(input_path, namespace)
+        click.echo(report.format())
+        click.echo(
+            f"Plan: {len(plan.edits)} edit(s), {len(plan.gaps)} required cell(s) to fill in, "
+            f"{len(plan.issues)} issue(s)."
+        )
+        if plan.is_empty:
+            message = "Nothing to plan: no edits and no required cells to fill in. No plan written."
+            if plan.issues:
+                message += f" Review the {len(plan.issues)} issue(s) in the report above."
+            click.echo(message)
+            if plan_path.exists():
+                click.echo(f"Warning: {plan_path} is from an earlier run and no longer applies; delete it.", err=True)
+            return
+        write_plan(plan, plan_path, overwrite=overwrite)
+    except Exception as e:
+        click.echo(f"Error: {e}", err=True)
+        exit(1)
+    click.echo(f"Plan written to {plan_path}")
 
 
 @main.command()

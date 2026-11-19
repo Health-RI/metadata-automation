@@ -156,6 +156,34 @@ Set per class in the `classes` sheet. It decides how other classes refer to this
 4. Fill in the remaining reported cells, then run `shaclplay` and `sempyro`.
 5. For the FDP variant of the Excel, run `derive-fdp-excel`.
 
+### `plan-excel`: Planning the technical columns
+
+```bash
+metadata-automation plan-excel -i ./inputs/model.xlsx
+```
+
+#### Command Options
+
+- `-i, --input-excel`: Path to the metadata Excel file (required). It is never modified.
+- `-o, --output-plan`: Path for the plan (default: next to the input as `{name}-plan.xlsx`).
+- `-n, --namespace`: Namespace prefix used to derive empty `class_URI` values, as for `prepare-excel`.
+- `--overwrite`: Replace an existing plan. Without it an existing plan is refused, as it may hold edits.
+
+#### Description
+
+Runs the steps of `prepare-excel` on an in-memory copy and writes the difference as a plan workbook, so the technical columns can be inspected and changed before they are applied to the source. Nothing is written when there are no edits and no required cells to fill in; issues are then only listed in the report, and a plan left from an earlier run is reported as outdated, not deleted.
+
+| Sheet | Contents |
+|---|---|
+| `Summary` | Source file name and SHA-256, tool version, namespace, counts. |
+| `Edits` | One row per change: kind (`add sheet`, `rename sheet`, `add column`, `add row`, `set cell`), sheet, key, column, current and proposed value, reason, and `Apply` (default `yes`). Set `Apply` to `no` to skip a change, or edit the proposed value. |
+| `Gaps` | Required cells that cannot be computed, with an empty `Value to apply`. |
+| `Issues` | Findings that need a decision, such as a differing existing value or a prefix problem. Informational. |
+
+Rows are identified by sheet and key, not by row number: the key is the property URI (or `label: {label}` without one), the sheet name in `classes` and the prefix in `prefixes`. When a key occurs more than once in a sheet, `Occurrence` tells which one. A plan therefore survives rows being inserted or sorted in the source.
+
+When a plan is read back, `Apply` must be `yes`/`y`/`true`/`1` or `no`/`n`/`false`/`0`, `Occurrence` a whole number of at least 1 and `Row` blank or at least 2. All problems are reported together, with their sheet and row.
+
 ### `derive-fdp-excel`: Deriving the FDP variant of an Excel
 
 ```bash
