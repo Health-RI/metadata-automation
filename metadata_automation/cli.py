@@ -778,7 +778,9 @@ def plan_excel(input_excel: str, output_plan: str | None, namespace: str | None,
     \b
     Computes what prepare-excel would change and writes it as a plan
     workbook (Summary, Edits, Gaps, Issues) that can be inspected and edited
-    before it is applied. Nothing is written when there is nothing to plan.
+    before it is applied. Nothing is written when there are no edits and no
+    gaps; issues are then only reported, and an existing plan is reported as
+    outdated.
     """
     input_path = Path(input_excel)
     plan_path = Path(output_plan) if output_plan else default_plan_path(input_path)
@@ -787,9 +789,17 @@ def plan_excel(input_excel: str, output_plan: str | None, namespace: str | None,
             raise ValueError("Plan path must differ from the input path; the source file is left untouched.")
         plan, report = compute_plan(input_path, namespace)
         click.echo(report.format())
-        click.echo(f"Plan: {len(plan.edits)} edit(s), {len(plan.gaps)} required cell(s) to fill in.")
+        click.echo(
+            f"Plan: {len(plan.edits)} edit(s), {len(plan.gaps)} required cell(s) to fill in, "
+            f"{len(plan.issues)} issue(s)."
+        )
         if plan.is_empty:
-            click.echo("Nothing to plan: the technical columns are correct and complete. No plan written.")
+            message = "Nothing to plan: no edits and no required cells to fill in. No plan written."
+            if plan.issues:
+                message += f" Review the {len(plan.issues)} issue(s) in the report above."
+            click.echo(message)
+            if plan_path.exists():
+                click.echo(f"Warning: {plan_path} is from an earlier run and no longer applies; delete it.", err=True)
             return
         write_plan(plan, plan_path, overwrite=overwrite)
     except Exception as e:

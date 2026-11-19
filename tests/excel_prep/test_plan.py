@@ -15,6 +15,9 @@ from metadata_automation.excel_prep.plan import (
     RENAME_SHEET,
     SET_CELL,
     Edit,
+    Gap,
+    IssueRow,
+    Plan,
     compute_plan,
     default_plan_path,
     read_plan,
@@ -39,6 +42,32 @@ def prepared(source):
     answer_classes(source, {k: v for k, v in CLASS_ANSWERS.items() if k != "Resource"})
     prepare_workbook(source)
     return source
+
+
+PLAN_HASH = "a" * 64
+
+
+@pytest.fixture
+def plan_file(tmp_path):
+    """Edits rows 2-5: add sheet, two set cell, add column. Gaps row 2."""
+    plan = Plan("model.xlsx", PLAN_HASH, "1.1.0")
+    plan.edits = [
+        Edit(ADD_SHEET, "classes", reason="required sheet"),
+        Edit(SET_CELL, "Catalog", "dct:title", 1, "SHACL_sh:node", "a", "b", "why", 5),
+        Edit(SET_CELL, "Catalog", "dct:publisher", 1, "Range", "x", "y", "why", 6),
+        Edit(ADD_COLUMN, "Catalog", column="SeMPyRO_range", reason="pipeline column"),
+    ]
+    plan.gaps = [Gap("Catalog", "dct:title", 1, "SeMPyRO_rdf_term", row=5)]
+    path = tmp_path / "plan.xlsx"
+    write_plan(plan, path)
+    return path
+
+
+def _edit_plan(path, change):
+    """Edit a plan workbook as a person would."""
+    wb = load_workbook(path)
+    change(wb)
+    wb.save(path)
 
 
 class TestComputePlan:
@@ -141,6 +170,39 @@ class TestComputePlan:
         assert (edit.key, edit.occurrence, edit.new) == ("label: title", 1, "ex:title")
         assert {g.key for g in plan.gaps if g.sheet == "Thing"} == {"label: title"}
 
+    def test_duplicate_keys_get_their_own_cell_edits(self, tmp_path):
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Thing"
+        ws.append(["Property label", "Property URI", "Range", "Cardinality"])
+        ws.append(["a", "ex:p", "ex:Foo", "1"])
+        ws.append(["b", "ex:p", "ex:Bar", "1"])
+        classes = wb.create_sheet("classes")
+        classes.append(["sheet_name", "SHACL_target_ontology_name", "class_URI"])
+        classes.append(["Thing", "ex:Thing", "ex:Thing"])
+        path = tmp_path / "dup.xlsx"
+        wb.save(path)
+
+        plan, _ = compute_plan(path)
+        ranges = [(e.key, e.occurrence, e.old, e.new) for e in plan.edits if e.kind == SET_CELL and e.column == "Range"]
+        assert ranges == [("ex:p", 1, "ex:Foo", "ex:Foo (IRI)"), ("ex:p", 2, "ex:Bar", "ex:Bar (IRI)")]
+
+    def test_rename_precedes_the_edits_of_the_renamed_sheet(self, source):
+        wb = load_workbook(source)
+        wb.create_sheet("Classes", 0)
+        wb["Classes"].append(["sheet_name"])
+        wb.save(source)
+
+        plan, _ = compute_plan(source)
+        rename = next(i for i, e in enumerate(plan.edits) if e.kind == RENAME_SHEET)
+        on_sheet = [i for i, e in enumerate(plan.edits) if e.sheet == "classes" and e.kind != RENAME_SHEET]
+        assert on_sheet and rename < min(on_sheet)
+        assert {e.key for e in plan.edits if e.kind == ADD_ROW and e.sheet == "classes"} >= {"Catalog", "Dataset"}
+
+    def test_issues_alone_leave_the_plan_empty(self):
+        plan = Plan("m.xlsx", "0" * 64, "1", issues=[IssueRow("classes", "Catalog", "x", "note")])
+        assert plan.is_empty
+
     def test_case_variant_of_a_general_sheet_is_a_rename(self, source):
         wb = load_workbook(source)
         wb.create_sheet("Classes", 0)
@@ -202,6 +264,81 @@ class TestPlanFile:
         with pytest.raises(ValueError, match="not a plan"):
             read_plan(source)
 
+    @pytest.mark.parametrize(
+        ("typed", "expected"),
+        [
+            ("no", False),
+            ("N", False),
+            ("FALSE", False),
+            (0, False),
+            (False, False),
+            ("Y", True),
+            (True, True),
+            (1, True),
+        ],
+    )
+    def test_apply_accepts_yes_and_no_spellings(self, plan_file, typed, expected):
+        _edit_plan(plan_file, lambda wb: wb["Edits"].cell(row=2, column=1, value=typed))
+        assert read_plan(plan_file).edits[0].apply is expected
+
+    def test_invalid_cells_are_reported_together(self, plan_file):
+        def spoil(wb):
+            edits = wb["Edits"]
+            edits.cell(row=2, column=1, value="ok")
+            edits.cell(row=3, column=2, value="move cell")
+            edits.cell(row=4, column=5, value="two")
+            edits.cell(row=5, column=10, value=1)
+            wb["Gaps"].cell(row=2, column=2).value = None
+
+        _edit_plan(plan_file, spoil)
+        with pytest.raises(ValueError) as error:
+            read_plan(plan_file)
+        message = str(error.value)
+        for problem in ("Edits row 2, Apply", "Edits row 3, Kind", "Edits row 4, Occurrence", "Edits row 5, Row"):
+            assert problem in message
+        assert "Gaps row 2, Key" in message
+
+    def test_numeric_cells_are_read_as_typed(self, plan_file):
+        def numbers(wb):
+            wb["Edits"].cell(row=2, column=5, value=2.0)
+            wb["Gaps"].cell(row=2, column=5, value=1)
+
+        _edit_plan(plan_file, numbers)
+        loaded = read_plan(plan_file)
+        assert loaded.edits[0].occurrence == 2
+        assert loaded.gaps[0].value == "1"
+
+    def test_set_cell_edits_need_a_key_and_column(self, plan_file):
+        def blank(wb):
+            wb["Edits"].cell(row=3, column=4).value = None
+            wb["Edits"].cell(row=3, column=6).value = None
+
+        _edit_plan(plan_file, blank)
+        with pytest.raises(ValueError, match="Key: required for 'set cell'") as error:
+            read_plan(plan_file)
+        assert "Column: required for 'set cell'" in str(error.value)
+
+    def test_two_edits_of_the_same_cell_are_rejected(self, plan_file):
+        def duplicate(wb):
+            edits = wb["Edits"]
+            edits.append([c.value for c in edits[3]])
+
+        _edit_plan(plan_file, duplicate)
+        with pytest.raises(ValueError, match="same cell as row"):
+            read_plan(plan_file)
+
+    def test_summary_needs_the_source_hash(self, plan_file):
+        def clear_hash(wb):
+            wb["Summary"].cell(row=2, column=2).value = None
+
+        _edit_plan(plan_file, clear_hash)
+        with pytest.raises(ValueError, match="Source SHA-256"):
+            read_plan(plan_file)
+
+    def test_summary_is_read_by_label(self, plan_file):
+        _edit_plan(plan_file, lambda wb: wb["Summary"].insert_rows(1))
+        assert read_plan(plan_file).source_hash == PLAN_HASH
+
     def test_default_path_is_next_to_the_source(self, tmp_path):
         assert default_plan_path(tmp_path / "Health-RI.xlsx") == tmp_path / "Health-RI-plan.xlsx"
 
@@ -238,3 +375,40 @@ class TestPlanCommand:
         assert result.exit_code == 1
         assert "must differ" in result.output
         assert sha(source) == before
+
+    def test_nothing_to_plan_writes_nothing_and_names_the_issues(self, runner, prepared):
+        fill_reported_gaps(prepared)
+        prepare_workbook(prepared)
+        result = runner.invoke(plan_excel, ["-i", str(prepared)])
+        assert result.exit_code == 0, result.output
+        assert "Nothing to plan" in result.output
+        assert "issue(s) in the report above" in result.output
+        assert not default_plan_path(prepared).exists()
+
+    def test_a_plan_from_an_earlier_run_is_reported_as_outdated(self, runner, prepared):
+        assert runner.invoke(plan_excel, ["-i", str(prepared)]).exit_code == 0
+        fill_reported_gaps(prepared)
+        prepare_workbook(prepared)
+        result = runner.invoke(plan_excel, ["-i", str(prepared)])
+        assert result.exit_code == 0, result.output
+        assert "earlier run and no longer applies" in result.output
+        assert default_plan_path(prepared).exists()
+
+    def test_an_unreadable_input_fails(self, runner, tmp_path):
+        broken = tmp_path / "broken.xlsx"
+        broken.write_text("not a workbook")
+        result = runner.invoke(plan_excel, ["-i", str(broken)])
+        assert result.exit_code == 1
+        assert "Error:" in result.output
+        assert not default_plan_path(broken).exists()
+
+    def test_namespace_reaches_the_plan(self, runner, source):
+        prepare_workbook(source)
+        answer_classes(source, {k: v for k, v in CLASS_ANSWERS.items() if k != "Resource"}, class_uris=False)
+        result = runner.invoke(plan_excel, ["-i", str(source), "-n", "ex"])
+        assert result.exit_code == 0, result.output
+
+        plan = read_plan(default_plan_path(source))
+        assert plan.namespace == "ex"
+        class_uris = {e.key: e.new for e in plan.edits if e.column == "class_URI"}
+        assert class_uris["Catalog"] == "ex:Catalog"

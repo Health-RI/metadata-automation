@@ -13,6 +13,7 @@ Plan workbook:
 """
 
 import hashlib
+import re
 from dataclasses import dataclass, field
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
@@ -105,7 +106,10 @@ class Plan:
 
     @property
     def is_empty(self) -> bool:
-        """True when the source needs no edit and no required cell is empty."""
+        """True when the source needs no edit and no required cell is empty.
+
+        Issues do not count: many only confirm how an answer was read, so a correct source always has some.
+        """
         return not self.edits and not self.gaps
 
 
@@ -343,67 +347,175 @@ def _sheet(wb: Workbook, title: str, columns: list[str], rows: list[list]) -> No
 
 
 def read_plan(path: Path) -> Plan:
-    """Read a plan workbook, including the edits and values a person changed."""
+    """Read a plan workbook, including the edits and values a person changed.
+
+    Every cell a person may have edited is validated; all problems are raised together, each with its sheet and row.
+    """
     wb = load_workbook(Path(path))
     for name in (SUMMARY, EDITS, GAPS, ISSUES):
         if name not in wb.sheetnames:
             raise ValueError(f"{path} is not a plan: sheet '{name}' is missing.")
-    summary = {str(r[0].value): r[1].value for r in wb[SUMMARY].iter_rows(min_row=1, max_row=7) if r[0].value}
-    tool = str(summary.get("Tool", "")).removeprefix("metadata-automation ")
-    plan = Plan(
-        str(summary.get("Source file", "")),
-        str(summary.get("Source SHA-256", "")),
-        tool,
-        str(summary.get("Namespace") or ""),
+    errors = _Errors()
+    summary = _read_summary(wb[SUMMARY], errors)
+    edits = [_read_edit(row, values, errors) for row, values in _rows(wb[EDITS], EDIT_COLUMNS)]
+    gaps = [_read_gap(row, values, errors) for row, values in _rows(wb[GAPS], GAP_COLUMNS)]
+    issues = [
+        IssueRow(*(_cell_text(values[c]) for c in ISSUE_COLUMNS)) for _, values in _rows(wb[ISSUES], ISSUE_COLUMNS)
+    ]
+    _check_unique(
+        EDITS, [(r, (e.sheet, e.key, e.occurrence, e.column)) for r, e in edits if e.kind == SET_CELL], errors
     )
-    for row in _rows(wb[EDITS], EDIT_COLUMNS):
-        plan.edits.append(
-            Edit(
-                kind=row["Kind"],
-                sheet=row["Sheet"],
-                key=row["Key"],
-                occurrence=int(row["Occurrence"] or 1),
-                column=row["Column"],
-                old=row["Current value"],
-                new=row["Proposed value"],
-                reason=row["Reason"],
-                row=row["Row"] or None,
-                apply=str(row["Apply"]).strip().lower() in ("yes", "y", "true", "1"),
-            )
-        )
-    for row in _rows(wb[GAPS], GAP_COLUMNS):
-        plan.gaps.append(
-            Gap(
-                row["Sheet"],
-                row["Key"],
-                int(row["Occurrence"] or 1),
-                row["Column"],
-                row["Value to apply"],
-                row["Row"] or None,
-            )
-        )
-    for row in _rows(wb[ISSUES], ISSUE_COLUMNS):
-        plan.issues.append(IssueRow(row["Sheet"], row["Key"], row["Column"], row["Message"]))
+    _check_unique(GAPS, [(r, (g.sheet, g.key, g.occurrence, g.column)) for r, g in gaps], errors)
+    if errors.messages:
+        raise ValueError(f"{path} is not a valid plan:\n" + "\n".join(f"  - {m}" for m in errors.messages))
+    plan = Plan(*summary)
+    plan.edits = [e for _, e in edits]
+    plan.gaps = [g for _, g in gaps]
+    plan.issues = issues
     return plan
 
 
-def _rows(ws, columns: list[str]) -> list[dict[str, str]]:
-    """Rows of a plan sheet as dicts of stripped strings; numbers stay numbers."""
+class _Errors:
+    """Collects the problems of a plan, so a person can fix them all in one pass."""
+
+    def __init__(self) -> None:
+        self.messages: list[str] = []
+
+    def check(self, where: str, column: str, parse, value, default=None):
+        """``parse(value)``, or ``default`` with the problem recorded."""
+        try:
+            return parse(value)
+        except ValueError as e:
+            self.messages.append(f"{where}, {column}: {e}")
+            return default
+
+
+def _read_summary(ws, errors: _Errors) -> tuple[str, str, str, str]:
+    """Source name, hash, tool version and namespace, found by label so the order of the rows does not matter."""
+    summary = {_cell_text(r[0].value): r[1].value for r in ws.iter_rows(max_col=2) if r[0].value}
+    source = _cell_text(summary.get("Source file"))
+    digest = _cell_text(summary.get("Source SHA-256")).lower()
+    if not source:
+        errors.messages.append(f"{SUMMARY}: 'Source file' is missing.")
+    if not _SHA256.fullmatch(digest):
+        errors.messages.append(f"{SUMMARY}: 'Source SHA-256' must be 64 hexadecimal characters, got {digest!r}.")
+    tool = _cell_text(summary.get("Tool")).removeprefix("metadata-automation ")
+    return source, digest, tool, _cell_text(summary.get("Namespace"))
+
+
+def _read_edit(row: int, values: dict, errors: _Errors) -> tuple[int, Edit]:
+    where = f"{EDITS} row {row}"
+    kind = errors.check(where, "Kind", _kind, values["Kind"], default=SET_CELL)
+    edit = Edit(
+        kind=kind,
+        sheet=errors.check(where, "Sheet", _required, values["Sheet"], default=""),
+        key=_cell_text(values["Key"]),
+        occurrence=errors.check(where, "Occurrence", _occurrence, values["Occurrence"], default=1),
+        column=_cell_text(values["Column"]),
+        old=_cell_text(values["Current value"]),
+        new=_cell_text(values["Proposed value"]),
+        reason=_cell_text(values["Reason"]),
+        row=errors.check(where, "Row", _row_number, values["Row"]),
+        apply=errors.check(where, "Apply", _apply, values["Apply"], default=False),
+    )
+    if kind in _NEEDS_KEY and not edit.key:
+        errors.messages.append(f"{where}, Key: required for '{kind}'.")
+    if kind in _NEEDS_COLUMN and not edit.column:
+        errors.messages.append(f"{where}, Column: required for '{kind}'.")
+    return row, edit
+
+
+def _read_gap(row: int, values: dict, errors: _Errors) -> tuple[int, Gap]:
+    where = f"{GAPS} row {row}"
+    gap = Gap(
+        sheet=errors.check(where, "Sheet", _required, values["Sheet"], default=""),
+        key=errors.check(where, "Key", _required, values["Key"], default=""),
+        occurrence=errors.check(where, "Occurrence", _occurrence, values["Occurrence"], default=1),
+        column=errors.check(where, "Column", _required, values["Column"], default=""),
+        value=_cell_text(values["Value to apply"]),
+        row=errors.check(where, "Row", _row_number, values["Row"]),
+    )
+    return row, gap
+
+
+def _check_unique(sheet: str, entries: list[tuple[int, tuple]], errors: _Errors) -> None:
+    """Two rows for the same cell would be applied in an arbitrary order."""
+    first: dict[tuple, int] = {}
+    for row, identity in entries:
+        if identity in first:
+            errors.messages.append(f"{sheet} row {row}: same cell as row {first[identity]}.")
+        else:
+            first[identity] = row
+
+
+_YES = frozenset({"yes", "y", "true", "1"})
+_NO = frozenset({"no", "n", "false", "0"})
+_NEEDS_KEY = frozenset({ADD_ROW, SET_CELL})
+_NEEDS_COLUMN = frozenset({ADD_COLUMN, ADD_ROW, SET_CELL})
+_SHA256 = re.compile(r"[0-9a-f]{64}")
+_FIRST_DATA_ROW = 2
+
+
+def _cell_text(value) -> str:
+    """A cell as text: whole numbers without ``.0``, so a numeric key or value reads as typed."""
+    if value is None:
+        return ""
+    if isinstance(value, float) and value.is_integer():
+        return str(int(value))
+    return str(value).strip()
+
+
+def _required(value) -> str:
+    if not (result := _cell_text(value)):
+        raise ValueError("required.")
+    return result
+
+
+def _kind(value) -> str:
+    if (kind := _cell_text(value).lower()) not in _KIND_ORDER:
+        raise ValueError(f"expected one of {', '.join(_KIND_ORDER)}, got {_cell_text(value)!r}.")
+    return kind
+
+
+def _apply(value) -> bool:
+    if isinstance(value, bool):
+        return value
+    answer = _cell_text(value).lower()
+    if answer in _YES:
+        return True
+    if answer in _NO:
+        return False
+    raise ValueError(f"expected yes or no, got {_cell_text(value)!r}.")
+
+
+def _whole_number(value, minimum: int) -> int:
+    text_value = _cell_text(value)
+    if isinstance(value, bool) or not text_value.isdigit() or int(text_value) < minimum:
+        raise ValueError(f"expected a whole number of at least {minimum}, got {text_value!r}.")
+    return int(text_value)
+
+
+def _occurrence(value) -> int:
+    """Blank means the first occurrence."""
+    return 1 if _cell_text(value) == "" else _whole_number(value, 1)
+
+
+def _row_number(value) -> int | None:
+    """Blank means unknown; row 1 holds the headers."""
+    return None if _cell_text(value) == "" else _whole_number(value, _FIRST_DATA_ROW)
+
+
+def _rows(ws, columns: list[str]) -> list[tuple[int, dict]]:
+    """Non-blank rows of a plan sheet with their row number, as raw cell values by column."""
     cols = headers(ws)
     missing = [c for c in columns if c not in cols]
     if missing:
         raise ValueError(f"Sheet '{ws.title}' of the plan lacks the columns {', '.join(missing)}.")
     rows = []
-    for r in range(2, ws.max_row + 1):
+    for r in range(_FIRST_DATA_ROW, ws.max_row + 1):
         values = {c: ws.cell(row=r, column=cols[c]).value for c in columns}
-        if all(v in (None, "") for v in values.values()):
-            continue
-        rows.append(
-            {
-                c: ("" if v is None else (v if isinstance(v, int) and not isinstance(v, bool) else str(v).strip()))
-                for c, v in values.items()
-            }
-        )
+        if any(_cell_text(v) for v in values.values()):
+            rows.append((r, values))
     return rows
 
 
