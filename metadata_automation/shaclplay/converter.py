@@ -373,6 +373,7 @@ class SHACLPlayConverter:
         vocab_mapping = find_vocab_mapping(
             property_row.get(VOCAB_COLUMN),
             property_row.get(VOCAB_HYPERLINK_COLUMN),
+            class_name,
         )
         if vocab_mapping:
             new_row[17] = vocab_mapping["sh_in"]

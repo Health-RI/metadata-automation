@@ -14,6 +14,7 @@ VOCAB_MAPPINGS = {
         + "<http://publications.europa.eu/resource/authority/access-right/NON_PUBLIC> )",
         "editor": "dash:EnumSelectEditor",
         "example_property": "access rights",
+        "classes": {"Dataset"},
     },
     "http://publications.europa.eu/resource/authority/distribution-status": {
         "sh_in": "( <http://publications.europa.eu/resource/authority/distribution-status/COMPLETED> "
@@ -30,6 +31,7 @@ VOCAB_MAPPINGS = {
     },
     # Add more mappings as they are discovered or manually specified
     # Format: URL -> {'sh_in': '( value1 value2 ... )', 'editor': 'dash:EnumSelectEditor'}
+    # Optional 'classes': set of class names the mapping is limited to (default: all classes)
 }
 
 
@@ -60,7 +62,7 @@ def get_vocab_mapping(vocab_url: object) -> dict | None:
     return _NORMALIZED_MAPPINGS.get(_normalize_url(vocab_url))
 
 
-def find_vocab_mapping(cell_text: object, hyperlink: object = None) -> dict | None:
+def find_vocab_mapping(cell_text: object, hyperlink: object = None, class_name: str | None = None) -> dict | None:
     """
     Find the sh:in mapping for a controlled vocabulary cell.
 
@@ -70,6 +72,7 @@ def find_vocab_mapping(cell_text: object, hyperlink: object = None) -> dict | No
     Args:
         cell_text: Text of the controlled vocabulary cell
         hyperlink: Hyperlink target of the cell, if any
+        class_name: Class the property belongs to; None skips class filtering
 
     Returns:
         Dictionary with 'sh_in' and 'editor' keys, or None if not found
@@ -81,7 +84,7 @@ def find_vocab_mapping(cell_text: object, hyperlink: object = None) -> dict | No
             candidates += [source, *urls]
     for candidate in candidates:
         mapping = get_vocab_mapping(candidate)
-        if mapping:
+        if mapping and (class_name is None or class_name in mapping.get("classes", {class_name})):
             return mapping
     return None
 

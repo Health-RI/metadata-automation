@@ -29,12 +29,12 @@ GENERIC_RESOURCE = "rdfs:Resource"
 
 
 def has_vocab(ws: Worksheet, row: int, col: int | None) -> bool:
-    """True when the controlled vocabulary cell (text or hyperlink) resolves to a known vocabulary mapping."""
+    """True when the controlled vocabulary cell (text or hyperlink) maps to a known vocabulary for this class."""
     if col is None:
         return False
     cell = ws.cell(row=row, column=col)
     hyperlink = cell.hyperlink.target if cell.hyperlink else None
-    return find_vocab_mapping(text(ws, row, col), hyperlink) is not None
+    return find_vocab_mapping(text(ws, row, col), hyperlink, ws.title) is not None
 
 
 def expected_dash(

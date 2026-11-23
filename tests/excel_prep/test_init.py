@@ -70,7 +70,7 @@ class TestInit:
         wb = load_workbook(answered)
         ws = wb["Catalog"]
         row = find_row(ws, "Property URI", "dct:license")
-        set_cell(ws, row, VOCAB_COLUMN, "http://publications.europa.eu/resource/authority/access-right")
+        set_cell(ws, row, VOCAB_COLUMN, "http://publications.europa.eu/resource/authority/distribution-status")
         wb.save(answered)
         prepare_workbook(answered, init=True)
         ws = load_workbook(answered)["Catalog"]
