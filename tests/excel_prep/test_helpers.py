@@ -50,6 +50,7 @@ ACCESS_RIGHT = "http://publications.europa.eu/resource/authority/access-right"
 def test_has_vocab(value, hyperlink, expected):
     # Arrange
     ws = Workbook().active
+    ws.title = "Dataset"  # access rights mapping is limited to the Dataset class
     ws.cell(row=2, column=1, value=value or None).hyperlink = hyperlink
 
     # Act
@@ -57,6 +58,16 @@ def test_has_vocab(value, hyperlink, expected):
 
     # Assert
     assert result is expected
+
+
+def test_has_vocab_access_rights_not_applied_on_data_service():
+    # Arrange
+    ws = Workbook().active
+    ws.title = "DataService"
+    ws.cell(row=2, column=1, value=ACCESS_RIGHT)
+
+    # Act / Assert
+    assert has_vocab(ws, 2, 1) is False
 
 
 def test_has_vocab_without_column():

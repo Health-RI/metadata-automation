@@ -300,6 +300,17 @@ def test_find_vocab_mapping(cell_text, hyperlink):
     assert find_vocab_mapping(cell_text, hyperlink)["editor"] == "dash:EnumSelectEditor"
 
 
+def test_find_vocab_mapping_class_restriction():
+    url = "http://publications.europa.eu/resource/authority/access-right"
+    assert find_vocab_mapping(url, None, "Dataset") is not None
+    assert find_vocab_mapping(url, None, "DataService") is None
+    # No class given: no filtering
+    assert find_vocab_mapping(url, None) is not None
+    # Unrestricted mappings apply to every class
+    status = "http://publications.europa.eu/resource/authority/distribution-status"
+    assert find_vocab_mapping(status, None, "DataService") is not None
+
+
 def test_find_vocab_mapping_no_match():
     assert find_vocab_mapping("GeoNames", None) is None
     assert find_vocab_mapping(float("nan"), None) is None
@@ -348,9 +359,18 @@ def shaclplay_converter(template_file: Path, test_input_dir: Path) -> SHACLPlayC
     return SHACLPlayConverter(template_file, test_input_dir / "test_metadata.xlsx")
 
 
-def _convert(converter: SHACLPlayConverter, **overrides) -> list:
+def _convert(converter: SHACLPlayConverter, class_name: str = "Dataset", **overrides) -> list:
     row = pd.Series({**BASE_PROPERTY_ROW, **overrides})
-    return converter._convert_property_to_shaclplay(row, "TestClass", "hri:TestClass", "hri")
+    return converter._convert_property_to_shaclplay(row, class_name, f"hri:{class_name}", "hri")
+
+
+def test_shaclplay_converter_access_rights_vocab_not_applied_on_data_service(
+    shaclplay_converter: SHACLPlayConverter,
+):
+    out = _convert(shaclplay_converter, class_name="DataService", Range="dct:RightsStatement (IRI)")
+
+    assert pd.isna(out[17])  # no sh:in
+    assert out[23] == "dash:TextFieldEditor"  # editor not overridden to EnumSelectEditor
 
 
 def test_shaclplay_converter_missing_namespace_raises(shaclplay_converter: SHACLPlayConverter):
@@ -430,7 +450,7 @@ def test_shaclplay_converter_reads_vocab_column(template_file: Path, test_input_
         }
     )
 
-    out = converter._convert_property_to_shaclplay(row, "TestClass", "hri:TestClass", "hri")
+    out = converter._convert_property_to_shaclplay(row, "Dataset", "hri:Dataset", "hri")
 
     assert "<http://publications.europa.eu/resource/authority/access-right/PUBLIC>" in str(out[17])
 
